@@ -27,3 +27,6 @@ __pycache__/
 .DS_Store
 .env
 wandb/
+
+# agent instructions (local only)
+CLAUDE.md
