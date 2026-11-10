@@ -28,3 +28,4 @@ challenge is our problem statement, benchmark protocol and research gap.
 ## Log
 
 - 2026-11-10: repo scaffolded; challenge site crawled; literature review preserved.
+- 2026-11-11: deep-research pass done (5 research streams plus a final report in `docs/reports/`). Notes 03–08 and `configs/default.yaml` updated. **Next:** inspect the 266 training masks (inner tongue, sheath splitting, scale bar, filename metadata), then implement `evaluation/official.py` and validate it against ASTIH TEM1 (B0).

@@ -3,6 +3,11 @@
 Origin: a deep-research pass (235 sources) run before this repo existed and preserved here. Several sources are
 preprints, and some venue details come from background knowledge. Re-verify any number before citing it in a paper.
 
+> **Superseded in part by the 2026-11-11 deep-research report** ([`../reports/TEM axon myelin segmentation review.md`](../reports/TEM%20axon%20myelin%20segmentation%20review.md)).
+> Its audit table marks each claim below CONFIRMED / CORRECTED / UNVERIFIED. Key corrections: there is no published "dual-radius StarDist";
+> SAM4MIS = CIBM 2024 (arXiv 2401.03495); DeepACSON is in *Communications Biology* 2021; gACSON's 70% is only an example; EM-SAM's 0.984 is semantic mIoU on
+> serial **SEM**; the TopoMortar numbers are in Table 6 (BMVC 2025 oral); the optic-nerve code repo returns 404; the generalist's "TEM2" is macaque, not ASTIH TEM2.
+>
 > **Corrections from the 2026-11-10 site crawl (see [01](01-challenge-spec.md)):**
 > - Dataset is **400 images = 266 annotated train + 134 unannotated test**, 4096×3008. The review's "~157 labeled /
 >   608 total / ~450 unlabeled" figures come from an earlier site version. **There is no extra unlabeled pool** besides

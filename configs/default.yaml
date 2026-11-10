@@ -1,3 +1,4 @@
+# Defaults follow docs/reports/"TEM axon myelin segmentation review.md" (evaluator table). Every switch is reported in a sensitivity table.
 data:
   root: data/raw/challenge
   pixel_size_nm: 2.152
@@ -5,10 +6,21 @@ data:
   ignore_label: 1
 split:
   file: configs/splits/image_level_5fold_seed0.json   # frozen once created; committed
-  group_by: image          # switch to animal once metadata is known
+  group_by: image          # animal / block once metadata is known
+  n_folds: 5
+  heldout_fraction: 0.2    # ~53 images, never used for tuning
 evaluation:
-  dice_aggregation: per_image      # per_image | pooled
-  hd95_mode: global_per_image      # global_per_image | per_instance
-  match_iou_threshold: 0.0         # official rule: max IoU, threshold unstated
-  empty_hd95_policy: image_diagonal
-  exclude_border_fibers: false
+  artifact_policy: remove_gt1_from_both      # | drop_adjacent_boundary_points
+  dice_aggregation: per_image                # | pooled | matched_instance_mean
+  dice_both_empty: nan                       # | one
+  hd95_mode: max_directed_p95                # | pooled_percentile (panoptica) | surfel_weighted (DeepMind) | per_instance
+  hd95_boundary: inner                       # | outer | both
+  hd95_one_empty: image_diagonal             # ~10,936 nm; | inf
+  match_iou_threshold: 0.5                   # | 0.0 (hungarian any-overlap) | 0.1 | 0.3 | 0.75
+  match_algorithm: greedy                    # | hungarian (identical above 0.5)
+  pairing_validity: strict                   # unpaired IDs count in Dice/HD95 but cannot match; | lenient
+  border_fibers: include                     # | exclude_morphometry | exclude_matching
+  g_ratio_definition: equivalent_circle      # = sqrt(A_axon / A_fiber); | min_feret (sensitivity only)
+  report_fiber_recall_with_g_mae: true
+  ranking: aggregate_then_rank               # | rank_then_aggregate; tiebreak = lower HD95_Mean
+  bootstrap_samples: 1000

@@ -1,6 +1,8 @@
 # 05 — Evaluation Framework
 
-Build this **before any training**. It lives in `src/axon_myelin_seg/evaluation/`.
+Build this **before any training**. The concrete default and switch for every ambiguity are in the report's evaluator table and are mirrored in `configs/default.yaml`
+(IoU > 0.5 matching; MONAI-style max of directed P95 for HD95; one-empty HD95 capped at the 10,936 nm diagonal; g-MAE always reported with fiber recall).
+The g-ratio sensitivity is Δg/g = p/r per 1-px interface shift: +0.015 for a 0.2 µm axon, +0.003 for a 1 µm axon. It lives in `src/axon_myelin_seg/evaluation/`.
 
 ## Tier 1: official metric replica (`official.py`, `ranking.py`)
 

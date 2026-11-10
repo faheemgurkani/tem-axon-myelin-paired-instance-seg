@@ -8,7 +8,7 @@ Update this list as questions get answered. Record the answer, its source and th
 - [ ] Will the test GT be released after SIPAIM, or will a post-challenge evaluation server be offered?
 - [ ] Is there official evaluation code? If not, settle: per-image vs pooled Dice; global vs per-instance HD95; IoU threshold; empty-mask HD95; border-cut fibers.
 - [ ] Animal / block / condition metadata per image (for grouped splits)? Control vs disease models?
-- [ ] Data provenance: any overlap with ASTIH TEM1 (DANDI 001436) or other public sets?
+- [ ] Data provenance: animal count, conditions, source papers? (Our check on 2026-11-11 found overlap with ASTIH TEM1 unlikely; see 07.)
 - [ ] Annotation convention: is the inner tongue / periaxonal space axon or myelin? How are unmyelinated axons and the scale bar labelled?
 - [ ] Is transductive use of the unannotated test images allowed?
 - [ ] Will there be a challenge summary paper that includes participants?
@@ -30,3 +30,15 @@ Update this list as questions get answered. Record the answer, its source and th
 - 2026-11-10: mask format = uint16 paired IDs (site `data.md`/`submission.md`); `{0,1,2}` checklist is stale.
 - 2026-11-10: dataset = 266 annotated + 134 test, 4096×3008.
 - 2026-11-10: leaderboard podium is hard-coded placeholder HTML.
+- 2026-11-11: overlap with ASTIH TEM1 unlikely (different lab, microscope, pixel size and image size), but unconfirmed by the organizers. Source: `docs/research_notes/.../datasets_provenance.md`.
+- 2026-11-11: AxonDeepSeg's g-ratio definition (equivalent-circle diameters) matches the challenge's definition (`domain_methods.md`).
+- 2026-11-11: ASTIH evaluates fibers with `stardist.matching` at IoU 0.3/0.5. TEM1 nnU-Net: Dice 0.974/0.924, but fiber F1@0.5 is only 0.791, so **pairing/instance separation is the bottleneck** (`domain_methods.md`).
+
+## New risks (2026-11-11)
+
+| Risk | Mitigation |
+|---|---|
+| Inner-tongue / periaxonal convention differs between the challenge, AxonPath and ASTIH | Inspect the challenge masks; map each external dataset explicitly |
+| HD95 differs across libraries (MONAI max of directed P95 vs panoptica pooled vs DeepMind surfel-weighted) | Config switch; report which one we use (`evaluation_methodology.md`) |
+| On oval fibers, g-ratio definitions (equivalent circle vs minimum Feret) differ by 0.02–0.07, more than a 1-px boundary error | Use the challenge definition; report the others as sensitivity |
+

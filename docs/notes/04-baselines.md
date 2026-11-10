@@ -1,5 +1,9 @@
 # 04 — Baselines
 
+> **Updated plan (2026-11-11):** see the report's "Five baselines, one shared pairing step" section. It adds **B0**, a reproduction of ASTIH's TEM1 numbers
+> (nnU-Net Dice 0.974/0.924, fiber F1@0.5 0.791; Cellpose 0.882) to validate our evaluator, plus a B1∪B3 consensus run and an **oracle-pairing** diagnostic.
+> Cellpose and μSAM must be trained on **filled fibers**, never on rings. Use nnU-Net ResEnc-**L**, and run the optional B5 as affinities + mutex watershed.
+
 **Rule:** every baseline gets the **same pairing post-processing** and is scored with **our replica of the official
 metric** ([05](05-evaluation-framework.md)) on the **same image-level split**. Time-box this phase.
 

@@ -1,5 +1,11 @@
 # 06 — Research Directions (our methodology, post-baselines)
 
+> **Updated recommendation (2026-11-11, report §"The publishable gap"):** an **instance-first, part-second nested decoder**
+> (filled-fiber foreground + fiber separation on filled fibers + within-fiber inner/outer part head, written as 2k/2k+1), plus an optional **dual-radius polar head**
+> (novel: no prior dual-radius StarDist exists; HydraStarDist, arXiv 2504.12078, is the nearest prior work). Losses: differentiable g-ratio loss, TopoInteraction containment,
+> and boundary loss on both contours. Augmentation and self-distillation go in every arm (TopoMortar). Hypotheses H1–H4. There is also a standalone MIDL-style evaluation paper
+> (ambiguity sensitivity + recall-vs-g-MAE gaming curve).
+
 The method must come from **error analysis** of the baselines ([02](02-problem-framing.md) §critique). These are
 candidate directions, ranked by how directly they address the organizers' two stated gaps.
 
