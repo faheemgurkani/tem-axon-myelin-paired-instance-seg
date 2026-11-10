@@ -1,0 +1,10 @@
+# Mirrors pyproject.toml; kept because the challenge submission requires requirements.txt
+numpy
+scipy
+scikit-image
+tifffile
+imageio
+pandas
+pyyaml
+tqdm
+torch

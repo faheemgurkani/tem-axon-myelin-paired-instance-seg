@@ -1,0 +1,29 @@
+# data & outputs (never commit — public repo, data licence unknown)
+data/*
+!data/README.md
+runs/
+outputs/
+predictions/
+checkpoints/
+*.tif
+*.tiff
+*.png
+!docs/**/*.png
+*.pth
+*.pt
+*.ckpt
+nnUNet_raw/
+nnUNet_preprocessed/
+nnUNet_results/
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+# misc
+.DS_Store
+.env
+wandb/
