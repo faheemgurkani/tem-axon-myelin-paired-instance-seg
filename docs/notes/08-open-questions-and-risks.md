@@ -4,7 +4,7 @@ Update this list as questions get answered. Record the answer, its source and th
 
 ## Questions for the organizers (gabriel.jimenez@icm-institute.org)
 
-- [ ] Can unregistered researchers use the data after the deadline, and under what licence? May results be published?
+- [x] Data obtained 2026-11-12 (licence still unstated). Can unregistered researchers use the data after the deadline, and under what licence? May results be published?
 - [ ] Will the test GT be released after SIPAIM, or will a post-challenge evaluation server be offered?
 - [ ] Is there official evaluation code? If not, settle: per-image vs pooled Dice; global vs per-instance HD95; IoU threshold; empty-mask HD95; border-cut fibers.
 - [ ] Animal / block / condition metadata per image (for grouped splits)? Control vs disease models?

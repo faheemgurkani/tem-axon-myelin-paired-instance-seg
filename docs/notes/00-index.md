@@ -28,3 +28,4 @@ Raw snapshot of the challenge website content: [`../references/challenge-site-sn
 (source repo `alexandrojim/tem-challenge` @ `ec9b8e3`, crawled 2026-11-10).
 
 **Precedence:** 01 (verified from the site) > the 2026-11-11 report (primary-source verified) > 03 (secondary review). Record new evidence in 08.
+- [10 — EDA of the training set](10-eda.md)
