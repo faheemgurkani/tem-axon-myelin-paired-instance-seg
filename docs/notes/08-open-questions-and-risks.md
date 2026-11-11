@@ -42,3 +42,13 @@ Update this list as questions get answered. Record the answer, its source and th
 | HD95 differs across libraries (MONAI max of directed P95 vs panoptica pooled vs DeepMind surfel-weighted) | Config switch; report which one we use (`evaluation_methodology.md`) |
 | On oval fibers, g-ratio definitions (equivalent circle vs minimum Feret) differ by 0.02–0.07, more than a 1-px boundary error | Use the challenge definition; report the others as sensitivity |
 
+
+## Data risks found by EDA (2026-11-12, see [11](11-deep-eda.md))
+
+| Risk | Mitigation |
+|---|---|
+| Overlapping tiles (40 images in 18 groups) leak across splits | GroupKFold on `configs/splits/overlap_groups.json` |
+| ~4–8% of real fibers unlabelled; test GT has the same misses | Down-weight or ignore confident unlabelled rings in training; FP taxonomy in diagnostics |
+| Interstitial gaps between touching fibers look like fibers | Track FP rate on gaps; motivation for by-construction pairing |
+| Annotation-noise ceiling (myelin Dice ~0.93–0.96, g floor ~0.006) | Bootstrap CIs; don't over-interpret small gains |
+| Test tiles probably overlap train tiles | Do not exploit; report if confirmed |
