@@ -1,89 +1,313 @@
 # 09 — Research Plan (v2, revised 12 Nov 2026)
 
-v1 (10–11 Nov) was "beat the challenge with a nested decoder and a g-ratio loss". Three things changed it:
+**How to use this file.** Every decision has an ID (D-xx) with its reason, the evidence it rests on, the outcome we expect,
+and what would make us revisit it. Every task (T-xx) has its steps, technical details, why it exists, expected
+outcome, a "done when" check and a fallback. When an outcome differs from the expectation, record it in the **Log** at the bottom
+and update the decision. Do not silently edit the expectation.
 
-- **The gap-validation report** (`docs/reports/Paired axon myelin gap validation.md`) narrowed the novelty claim.
-- **We now have the challenge training data.**
-- **The EDA** ([10](10-eda.md), [11](11-deep-eda.md)) showed that labels and data, not only the model, shape the error.
+Sources referred to below:
+- report A = `docs/reports/TEM axon myelin segmentation review.md` (11 Nov)
+- report B = `docs/reports/Paired axon myelin gap validation.md` (12 Nov)
+- [10](10-eda.md) and [11](11-deep-eda.md) = EDA notes
 
-We are not bound by the challenge timeline. The time budget is **2 weeks (10 working days)** of focused work.
+Time budget: **10 working days**. We are not bound by the challenge timeline.
 
-## 1. What we now believe (evidence → consequence)
+---
 
-| Evidence | Consequence for the plan |
-|---|---|
-| ASTIH's 0.79 fiber F1 measures fiber *detection*, not axon↔ring pairing. Nobody measures pairing correctness | "Pairing is the bottleneck" is a **hypothesis to test**, not a premise |
-| AxonPath (Sep 2026) already predicts fiber + axon jointly, then pairs them with a 90% overlap rule | AxonPath is a required baseline; "joint prediction" alone is not novel |
-| Nested polar contours (Alblas 2022, NPS-Net 2026, Bi-Polar Mask 2022) and ratio losses (Meng 2022) exist | The dual-radius head and the g-ratio loss **cannot be headline claims** |
-| GT pairs are clean (1 axon in 1 ring, 99.5% enclosed) but 71% of fibers touch a neighbour | Errors will come from **separating touching fibers**, not mismatching axons |
-| Interstitial gaps between touching fibers look like axon-in-ring | A concrete failure mode that by-construction decoding should fix, and a measurable one |
-| ~4–8% of real fibers are unlabelled. Interior label 1 marks large or oblique fibers | **Fiber selection** is a hidden error source. Background is not clean negatives |
-| Re-annotated overlaps: myelin Dice ~0.93–0.96, g noise ~0.006. g-definition spread 0.065 | Hard ceilings: gains smaller than these are noise, and the evaluator definition must be exact |
-| Fibers are large (median axon 562 nm), so 1 px moves g by only ~0.006 | The g-ratio loss is a minor ablation, not a contribution, on this data |
-| 40 images form 18 overlapping-tile groups | Group-aware splits are mandatory |
-| Challenge data licence is unstated | Headline numbers must also be reproducible on public data (ASTIH TEM1, AxonPath) |
+## 1. Domain primer (what the task really is)
 
-## 2. Revised intention
+- **Myelinated fiber.** A nerve fiber (axon) wrapped by a myelin sheath: many tightly packed membrane layers made by an oligodendrocyte
+  in the brain. In TEM cross-sections an axon is a light, granular disc. Its myelin is a **dark, electron-dense ring** around it.
+  Between them sits a thin inner tongue / periaxonal space. In *this* dataset that space is counted as **axon** ([10](10-eda.md) §4).
+- **g-ratio** = inner diameter / outer diameter = axon diameter / fiber diameter. It is the standard measure of how well myelinated a fiber is.
+  - The challenge computes it from areas: g = √(A_axon / A_fiber), with A_fiber = A_axon + A_myelin, which is the equivalent-circle form.
+  - Healthy mouse corpus callosum: g ≈ 0.7–0.8. Our GT median is 0.750 (IQR 0.711–0.790).
+  - g rises with axon size (r = 0.65 here).
+  - **Remyelinated** fibers have abnormally thin myelin (g > 0.85). **Degenerating** fibers show dark axoplasm, vacuoles and split myelin.
+  - All of these occur in this dataset, consistent with a demyelination/remyelination model, possibly cuprizone ([11](11-deep-eda.md) §C).
+- **Why pairing matters.** Every morphometric number (g, myelin thickness, axon diameter per fiber) needs to know *which* ring belongs to *which*
+  axon. Pixel-level Dice can be near-perfect while fibers are merged or split. When two sheaths touch, a semantic map shows one continuous dark
+  region, and the line between the two sheaths has to be inferred.
+- **Why touching fibers are hard.** 71% of fibers touch a neighbour; 14% share more than a quarter of their outline ([10](10-eda.md) §2). The sheath–sheath
+  contact has almost no intensity contrast. The light triangular gaps where three or more sheaths meet look like an axon inside a ring
+  ([11](11-deep-eda.md) §B2).
+- **Sensitivity of g.** One pixel of boundary shift on the axon changes g by about g/r_px.
+  - Median axon radius is 131 px, so Δg ≈ 0.006 per px here.
+  - It is ≈0.015 for a 0.2 µm axon, but only 2.4% of our axons are under 300 nm.
+- **Metrics (challenge spec, [01](01-challenge-spec.md)):**
+  - Dice for axon and myelin
+  - HD95 in nm (95th-percentile boundary distance: how far off the worst 5% of boundary is)
+  - g-MAE over fibers matched by IoU on X∪X+1
+  - combined by aggregate rank, ties broken by HD95
 
-**Research question.** In paired axon–myelin instance segmentation of TEM, how much of the fiber-level error comes from
-(a) **fiber selection** (what annotators chose to label), (b) **separating touching fibers / pairing**, and (c) **boundary
-placement**, once annotation noise is accounted for? And does a decoder that makes each fiber's axon and ring nested by construction
-remove the (b) part?
+  g-MAE ignores missed fibers, so it rewards predicting fewer, easier fibers (report A, "gaming").
 
-The project is now **evaluation-first, method-second**. The evaluation contribution stands on its own whatever the method result.
+## 2. What we now believe (evidence → consequence)
 
-| Contribution | Status | Risk |
+| # | Evidence (source) | Consequence |
 |---|---|---|
-| **C1. Error-decomposition evaluation for paired fibers.** Pairing-correctness metric, FP taxonomy (unlabelled real fiber / interstitial gap / label 1 / other), selection vs separation vs boundary decomposition via oracle experiments, annotation-noise ceilings from overlapping tiles, g-MAE gaming curve (recall vs g-MAE) and g-definition sensitivity | **Core, always delivered** | Low: no comparable benchmark analysis exists (gap report §C) |
-| **C2. Nested-by-construction decoder** (instance-first, part-second: filled-fiber + fiber separation + inner/outer part head). Judged on touching-fiber and interstitial-gap errors, not just Dice | Delivered only if the go/no-go passes | Medium: must beat nnU-Net + watershed *and* AxonPath beyond the noise ceiling |
-| **C3. Learning with incomplete fiber annotation.** Ignore-masking or down-weighting confident unlabelled rings in training (a partial-label view) | Cheap add-on, mainly if the go/no-go fails | Medium: the official GT has the same misses, so gains may show only in our diagnostics |
+| E1 | ASTIH's TEM1 fiber F1@0.5 = 0.791 measures fiber *detection* after watershed. It never checks axon↔ring assignment. The same pipeline scores 0.949 on TEM2 (report B §1) | "Pairing is the bottleneck" is a **hypothesis (H1)**, not a premise |
+| E2 | AxonPath (Sep 2026; models on Zenodo 22982902, code paucabar/axonpath) predicts semantics + fibre-SDT + axon-SDT in one U-Net, then links axon→fibre by a ≥90% overlap rule (report B) | Joint prediction is not novel. AxonPath is a **required baseline** |
+| E3 | Nested polar contours exist for single objects (Alblas 2022; NPS-Net 2026, r_cup = α·r_disc). Bi-Polar Mask (ICIP 2022) pairs cell + nucleus contours via a shared centre. Ratio losses exist (Meng MICCAI 2022) (report B) | Dual-radius head and g-ratio loss are **ablations, not claims** |
+| E4 | GT pairs are clean: 1 axon in 1 ring, 99.5% enclosed, axon never touches another fiber; 3.7% of fibers have topology defects ([10](10-eda.md)) | The nested-by-construction output format matches GT exactly. Defects are label noise |
+| E5 | ~4–8% of real fibers are unlabelled (≈1.1 large ones per image, randomly missed); interior label 1 marks large or oblique fibers ([11](11-deep-eda.md) §B) | **Selection** is a hidden error source. Background ≠ clean negatives |
+| E6 | Overlapping tiles annotated twice: axon Dice 0.98–0.99, myelin 0.90–0.97, per-fiber Δg 0.004–0.010 ([11](11-deep-eda.md) §C) | Ceilings: myelin Dice ~0.93–0.96, g-MAE floor ~0.006 |
+| E7 | g definitions differ by 0.065 on average (eq-circle 0.750, minor axis 0.725, Feret 0.790, thickness 0.763) | The evaluator must use exactly the equivalent-circle form |
+| E8 | 22 overlapping tile pairs → 18 groups, 40 images (`configs/splits/overlap_groups.json`) | Group-aware splits are mandatory |
+| E9 | Noise σ 7.5–22; illumination range up to 64%; black corners in 10 images; fiber density 0.11–1.47 /µm² ([11](11-deep-eda.md) §D) | Normalisation, augmentation and density-aware sampling |
+| E10 | Challenge data licence unstated ([08](08-open-questions-and-risks.md)) | Headline results must be reproducible on public **ASTIH TEM1** |
 
-**Dropped or deferred:**
-- dual-radius polar head
-- self-supervised pretraining
-- μSAM and the full 5-baseline set
-- H3 "small fibers" on challenge data (only ~190 fibers under 300 nm)
-- any challenge-style submission
+## 3. Research question, contributions, hypotheses
 
-## 3. Hypotheses (falsifiable)
+**Question.** In paired axon–myelin instance segmentation of TEM, how much of the fiber-level error comes from:
+- **(a) selection:** which fibers annotators chose to label
+- **(b) separation/pairing:** grouping pixels into the right fibers and linking each axon to its ring
+- **(c) boundary placement**
 
-- **H1 (go/no-go).** On the nnU-Net + watershed baseline, oracle *pairing/separation* recovers at least as much fiber F1@0.5 as oracle *selection*,
-  and the recovered amount exceeds the re-annotation noise (fiber-level disagreement ~8%).
-  - **Rejected** → pivot: C1 + C3. Pairing is not the bottleneck on this data, and that is itself the finding.
-- **H2.** The nested decoder cuts interstitial-gap FPs and merge/split errors versus nnU-Net + watershed and AxonPath, without losing compartment Dice (within CIs).
-- **H3.** Ignore-masking unlabelled confident rings raises recall on overlapping tiles' disagreement fibers without lowering official metrics beyond CI.
-- **H4.** The ordering of methods on challenge data is reproduced on ASTIH TEM1 (and AxonPath where labels allow).
+once annotation noise is accounted for? And does a decoder that makes each fiber's axon and ring nested *by construction* remove (b)?
 
-## 4. Two-week schedule
+| ID | Contribution | When delivered | Expected outcome |
+|---|---|---|---|
+| C1 | **Error-decomposition evaluation** for paired fibers. Comprises: pairing-correctness metric; FP/FN taxonomy; oracle experiments separating (a)/(b)/(c); annotation-noise ceilings from overlapping tiles; recall-vs-g-MAE gaming curve; g-definition sensitivity | Always | A table that says, per baseline, what share of fiber errors is selection vs separation vs boundary. No published benchmark has this (report B) |
+| C2 | **Nested-by-construction decoder** (instance-first, part-second) | Only if H1 = GO | Zero pairing violations by construction; fewer merge/split and interstitial-gap FPs than nnU-Net+watershed and AxonPath, at equal Dice |
+| C3 | **Learning with incomplete fiber annotation** (ignore-mask confident unlabelled rings during training) | Ablation if GO; main method if NO-GO | Higher recall of real-but-unlabelled fibers (overlap-disagreement set) with official metrics unchanged within CI |
 
-| Day | Work | Output / exit check |
+**Hypotheses** (each with a decision rule):
+- **H1, go/no-go on day 5:** on the B1 baseline, fixing separation/pairing with an oracle recovers ≥ 0.03 absolute fiber F1@0.5,
+  *and* at least as much as fixing selection with an oracle, *and* separation errors (merge + split) are ≥ 30% of fiber-level errors.
+  - **Why these numbers:**
+    - 0.03 is about 2× the expected bootstrap CI half-width for ~50 validation images × ~30 fibers. This is an estimate; confirm with the actual CI from T-07.
+    - 30% means pairing is a major, not marginal, error class.
+  - **Expectation:** borderline. ASTIH suggests most loss is spurious fibers and mid-IoU delineation (report B), and our EDA suggests selection is large.
+    So NO-GO is a real possibility, and the plan is built so NO-GO still yields a paper.
+- **H2:** C2 reduces (merge + split + interstitial-gap FP) count by ≥ 30% relative to B1 and to AxonPath, with axon/myelin Dice within the B1 CI.
+- **H3:** C3 raises recall on the overlap-disagreement fibers (fibers labelled in one tile, background in the other) by ≥ 10 points,
+  and moves no official metric outside the B1 CI.
+- **H4:** the ranking of methods (B1 vs C2/C3) on challenge data is the same on ASTIH TEM1.
+
+## 4. Decision register
+
+| ID | Decision | Reason / evidence | Expected outcome | Revisit if |
+|---|---|---|---|---|
+| D-01 | Evaluation-first; the method is conditional on H1 | E1–E3: the method's novelty is narrow, and the premise is untested | A publishable result in every branch | Never (structural) |
+| D-02 | Primary data = challenge train set (266 images); external = ASTIH TEM1 only; AxonPath data deferred | E10. TEM1 has a published reference (Dice 0.974/0.924, F1 0.791/0.882) for validating our pipeline. AxonPath's ROI-only labels and Axon-vs-InnerCylinder convention cost conversion time | Pipeline validated against a published number; results publishable even if the challenge licence blocks us | Organisers forbid publication → TEM1 becomes primary |
+| D-03 | Splits: dev split 80/20 by **overlap group**, stratified by fiber-density tercile; final numbers on 3-fold GroupKFold | E8 (leakage), E9 (13× density range). Singleton images are their own group | No tissue appears on both sides; the val set has dense and sparse images | — |
+| D-04 | Score full 4096×3008 images, never tiles | Seam and border errors concentrate at tile edges (report A) | Honest HD95 and instance counts | — |
+| D-05 | Label 1 = ignore everywhere (loss, Dice, HD95, matching) | Spec ([01](01-challenge-spec.md)); label 1 = border-cut fibers + deliberately excluded large/oblique fibers (E5) | Predictions on excluded fibers neither help nor hurt | — |
+| D-06 | Equivalent-circle g only, from the areas of matched fibers; IoU threshold 0.5 one-to-one (Hungarian) on X∪X+1 | E7: definition spread 0.065 ≫ annotation noise 0.006. IoU>0.5 makes matching unique ([`configs/default.yaml`](../../configs/default.yaml)) | g-MAE comparable with the challenge definition | Organisers publish reference code → mirror it |
+| D-07 | HD95 = max of the two directed 95th percentiles (MONAI-style), per image per compartment, in nm (× 2.152); if one side is empty, use the image diagonal 10,936 nm | The spec doesn't say which variant; this is the most common in medical segmentation (report A evaluator table) | Stable, documented HD95. Sensitivity reported for the other variants | Organiser code |
+| D-08 | Always report fiber recall and matched count next to g-MAE | g-MAE ignores misses → gameable (report A) | Reviewers can see whether a low g-MAE was bought by skipping fibers | — |
+| D-09 | B1 = nnU-Net v2, 2D, **ResEnc-L** plans, labels {0 bg, 1 axon, 2 myelin, 3 ignore}, then a shared watershed pairing | nnU-Net is the established bar (Isensee 2024; ASTIH baseline). nnU-Net's ignore label must be the highest integer and is excluded from the loss (nnU-Net docs) | Dice near ASTIH-level (axon ≥ 0.95, myelin ≥ 0.88 expected on our harder, noisier data) | Dice far below → check normalisation/patch size before anything else |
+| D-10 | B1 trains 250 epochs (shortened trainer, `-tr nnUNetTrainer_250epochs`; verify the name in the installed version), one dev fold first | 1000 epochs × 5 folds doesn't fit 2 weeks. nnU-Net usually plateaus well before 1000 epochs on 2D data (to verify on our loss curve) | ≤ 1 day of GPU per run (estimate) | Loss still falling at 250 → continue with `--c` |
+| D-11 | Shared semantic→instance pairing for every semantic baseline: marker watershed. Seeds = connected components of predicted axon (holes filled, ≥ 50 px); landscape = −EDT of (axon∪myelin); mask = axon∪myelin; then keep fibers with exactly one axon CC and a non-empty ring, writing 2k/2k+1 | One pairing module means baselines differ only in representation. Seeds from components, not integer centroids, avoid ADS's centroid-outside-concave-axon failure (report A) | Pairing behaviour identical across baselines; isolates the representation effect | — |
+| D-12 | B3 = Cellpose-SAM (`cpsam`) trained on **filled fibers** (X∪X+1 as one instance) at **4× downsampling** (8.6 nm/px); axon/myelin split inside each fiber from B1's semantic probabilities | Fiber median diameter 755 nm = 351 px is far above Cellpose's comfortable object scale; ×4 gives ~88 px. Fibers are filled because a ring's centre lies in its hole, so flows to the centre fail on rings (report A). ASTIH Cellpose got the highest precision (0.990) | High precision, lower recall than B1, mirroring ASTIH (P 0.990 / R 0.797) | Small fibers lost at ×4 → try ×2 |
+| D-13 | AxonPath zero-shot: rescale our images 2.152→8 nm/px (×0.269), run `em_cns`, upsample instances back with nearest neighbour; compare its `InnerCylinder` (axon + tongue) with our axon | Our GT counts the tongue as axon (E4/[10](10-eda.md)); AxonPath's model was trained at 8 nm/px (report B) | A strong, independent pairing-rule baseline; possibly weaker Dice from domain shift | Zero-shot unusable → fine-tune only if day 4 time allows; otherwise report as is |
+| D-14 | Oracle experiments define the error decomposition (T-08) | The only clean way to attribute errors without new labels | Numbers for (a), (b), (c) per baseline | — |
+| D-15 | GO/NO-GO strictly by the H1 rule on day 5 | Prevents sunk-cost drift; the 2-week budget is fixed | A decision in the log on day 5 | — |
+| D-16 | C2 architecture: shared nnU-Net ResEnc-L 2D encoder-decoder; three heads (filled-fiber foreground, fiber SDT/boundary for separation, inner-vs-outer part) | Instance-first, part-second gives pairing by construction (part-aware panoptic recipe, report A/B). A fiber SDT is what AxonPath uses for fibres, so the difference from AxonPath is *only* the part head replacing the separate axon-instance branch and the 90% rule | Zero pairing violations; fewer gap FPs | Training unstable → freeze the B1 encoder and train only the heads |
+| D-17 | g-ratio loss and TopoInteraction-style containment: **ablations only** | E3 (prior art), E6 (g noise floor 0.006), small Δg/px here. Containment already holds by construction in C2 | Effect within CI is the likely result | Big effect → promote in the write-up |
+| D-18 | C3 ignore-masking: in training labels, set to ignore any pixels of high-confidence unlabelled ring candidates (dark band ≥ 85% closed, d ≥ 300 nm, not an interstitial gap, out-of-fold B1 fiber probability ≥ 0.9) | E5: about 1 real fiber per image is labelled as background; penalising the model for finding it teaches it to under-segment | Recall ↑ on disagreement fibers; official metrics ±CI | Masking also hides true negatives (organelles) → raise thresholds |
+| D-19 | Augmentation: intensity normalisation per image (z-score); brightness/contrast/gamma; smooth illumination gradients (random 2nd-order surface, ±30%); Gaussian+Poisson noise σ 7–22; random black corner masks; flips/rot90 (TEM sections have no orientation) | E9 | Robustness across acquisition regimes; no regression on low-noise images | — |
+| D-20 | No edge-snapping or active-contour post-processing | Labels sit ~2–4 px from the strongest edge, with ±1–2 px per-image variation ([11](11-deep-eda.md) §C) | Prevents systematic HD95/g bias | — |
+| D-21 | Training-label cleaning: drop the 47 orphan IDs → ignore; the 296 topology-defect fibers → ignore (train only, never in eval) | E4 | Cleaner supervision; eval stays faithful to the official GT | — |
+| D-22 | Statistics: bootstrap 1,000× over **overlap groups** (cluster bootstrap), paired between methods; 95% CI | Images in a group aren't independent (E8) | Honest CIs; differences inside the ceilings are flagged | — |
+| D-23 | Deferred: dual-radius polar head, SSL pretraining, μSAM, AxonPath data conversion, test-set pseudo-labelling, any challenge submission | Time budget; E3 | — | Days left over after T-14 |
+
+## 5. Task list (day by day)
+
+Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / Expect / Done when / If not**.
+
+### Day 0 — prerequisites (before day 1)
+
+- [ ] **T-00 Compute and permissions**
+  - **Do:**
+    - Confirm one GPU (≥ 24 GB preferred for ResEnc-L 2D at nnU-Net's default batch) and ≥ 200 GB disk for nnU-Net preprocessed data.
+    - Email the organisers asking whether results on their data may be published, and under what licence.
+    - Request the Bi-Polar Mask PDF via Sir Faizan.
+  - **Why:** D-09/D-10 need a GPU; D-02 needs the licence answer; the C2 novelty statement needs Bi-Polar Mask.
+  - **Expect:** a GPU is available; the licence answer may take days, which doesn't block us because of TEM1.
+  - **If not (no GPU):** run B1 at 2× downsampling (4.3 nm/px) on CPU/MPS, and drop C2 to a light U-Net. State this in the write-up.
+
+### Day 1 — data plumbing and splits
+
+- [ ] **T-01 Loader** (`src/axon_myelin_seg/data/io.py`)
+  - **Do:** read uint8 images and uint16 masks with tifffile; validate the shape is 3008×4096; return (image, mask, name). Add the helpers from `encoding.py`.
+  - **Why:** single entry point; EDA confirmed there is no metadata to parse ([10](10-eda.md) §1).
+  - **Expect:** 266/266 load; 0 shape mismatches.
+  - **Done when:** a unit test loads 3 samples and checks dtype and shape.
+- [ ] **T-02 Training-label cleaner** (`data/cleaning.py`)
+  - **Do:** produce a copy of the masks where orphan IDs and topology-defect fibers become ignore (D-21). Log the counts.
+  - **Why:** E4.
+  - **Expect:** 47 orphan IDs and ~296 fibers converted, matching [10](10-eda.md).
+  - **Done when:** the counts match the EDA within ±1.
+- [ ] **T-03 Splits** (`data/splits.py`, `configs/splits/dev.json`, `cv3.json`)
+  - **Do:**
+    - Groups are the overlap groups; every other image is its own group.
+    - Stratify by fiber-density tercile.
+    - Dev split is 80/20, seed 0; plus a 3-fold GroupKFold.
+    - Commit the JSONs.
+  - **Why:** D-03.
+  - **Expect:** about 213/53 images; no group crosses a split.
+  - **Done when:** an assertion test passes on both files.
+
+### Day 2 — evaluator (C1 core)
+
+- [ ] **T-04 Official replica** (`evaluation/official.py`)
+  - **Do:**
+    - Mask GT label 1 in both maps.
+    - Axon = even ≥ 2; myelin = odd ≥ 3.
+    - Per-image Dice for axon and myelin.
+    - HD95 per D-07 using surface distances (scipy EDT on boundaries).
+    - Fiber matching on X∪X+1 via an IoU matrix and Hungarian assignment at IoU > 0.5.
+    - Eq-circle g per matched pair.
+    - Return g-MAE, n_matched, recall and precision.
+  - **Why:** D-05–D-08.
+  - **Expect:** GT vs GT gives Dice 1, HD95 0 and g-MAE 0. Shifting GT by 1 px changes g-MAE by about 0.005 (§1 sensitivity).
+  - **Done when:** both tests pass.
+- [ ] **T-05 Pairing & instance diagnostics** (`evaluation/diagnostics.py`)
+  - **Do:**
+    - Fiber F1@0.5/0.75, PQ, merges (a pred fiber overlapping ≥ 2 GT fibers each by ≥ 20% of GT area) and splits (the reverse).
+    - **Pairing correctness** per matched fiber: pred axon is one connected component, fully enclosed by its own ring, and IoU with the GT axon ≥ 0.5.
+    - **Pairing-violation rate** on all predictions: axon without ring, ring without axon, axon touching background, ring with Euler number ≠ 0.
+  - **Why:** C1. Nobody measures pairing correctness (report B).
+  - **Expect:** GT vs GT gives 0 violations except the known 3.7% topology defects. Report those as the "GT violation rate" baseline.
+- [ ] **T-06 FP/FN taxonomy** (`evaluation/taxonomy.py`)
+  - **Do:** every unmatched predicted fiber gets one class:
+    - (a) **unlabelled real fiber**: ≥ 50% overlap with a ring candidate from `scripts/eda/unl_loc.py` that has d ≥ 300 nm and is not a gap
+    - (b) **interstitial gap**: ≥ 75% of its outer boundary adjacent to myelin of ≥ 2 different GT fibers
+    - (c) **on label 1**: ≥ 50% overlap with label 1. Free under the official metric, but counted
+    - (d) **merge/split debris**: overlaps a GT fiber that is matched to another prediction
+    - (e) **other**
+
+    Every unmatched GT fiber gets one class: missed (no overlap), merged, split, or low-IoU.
+  - **Why:** E5 and E6. This is what separates selection from separation.
+  - **Expect:** on GT-derived perturbations, the classes behave as constructed.
+  - **Done when:** a hand-made toy example covering each class passes.
+- [ ] **T-07 Ceiling check**
+  - **Do:** run T-04/T-05 on the aligned overlap pairs (0055/0212, 0024/0141, 0091/0201, 0054/0152, 0236/0257), treating one tile as the "prediction".
+  - **Why:** validates the evaluator against [11](11-deep-eda.md) and fixes the noise ceilings we compare against.
+  - **Expect:** axon Dice ≈ 0.98–0.99, myelin ≈ 0.90–0.97, g-MAE ≈ 0.006. Record bootstrap CI widths for H1's 0.03 threshold.
+  - **If not:** a mismatch means an evaluator bug or misregistration. Check registration first (NCC > 0.8).
+
+### Day 3 — baselines start
+
+- [ ] **T-08 nnU-Net dataset + B1 training**
+  - **Do:**
+    - Convert to nnU-Net format (Dataset501_TEMAxonMyelin, 2D, `.png` or `.tif` with `_0000` channel suffix).
+    - Labels: {background 0, axon 1, myelin 2, ignore 3}. Label 1 → 3; cleaned defects → 3.
+    - `nnUNetv2_plan_and_preprocess -d 501 -c 2d -pl nnUNetPlannerResEncL`
+    - `nnUNetv2_train 501 2d <fold> -p nnUNetResEncUNetLPlans -tr nnUNetTrainer_250epochs --npz`, with the dev split injected as a custom `splits_final.json`.
+  - **Why:** D-09, D-10, D-03. `--npz` keeps softmax for the oracle and C3 experiments.
+  - **Expect:** a 2D patch on the order of 1024² chosen by the planner; training ≤ ~1 day (estimate); val Dice axon ≥ 0.95, myelin ≥ 0.88.
+  - **If not:** Dice < 0.85 myelin → check intensity normalisation (nnU-Net z-score is fine for 2D grey) and that ignore really is the highest label.
+- [ ] **T-09 Shared pairing module** (`postprocessing/pairing.py`), per D-11
+  - **Expect:** when run on **GT semantics**, it reproduces GT instances with fiber F1@0.5 high (≥ 0.95, expected) but lower *per-fiber myelin IoU on touching fibers*. The watershed line between touching sheaths is a guess.
+  - **This number is itself result R1.**
+- [ ] **T-10 B3 Cellpose**
+  - **Do:**
+    - Filled-fiber instance masks at ×4 downsampling, with label 1 set to 0 and excluded via masks.
+    - Fine-tune `cpsam` for about 100 epochs on dev-train.
+    - Predict, upsample, and split each fiber with B1's axon probability: axon = largest CC of p_axon > 0.5 inside the fiber, holes filled, eroded 1 px from the fiber edge. The rest is myelin.
+  - **Why:** D-12.
+  - **Expect:** precision > B1's, recall < B1's (the ASTIH pattern).
+- [ ] **T-11 AxonPath zero-shot**, per D-13
+  - **Expect:** reasonable fiber recall; Dice lower than B1 because of the domain and scale shift. Possibly a lower pairing-violation rate than B1, since it has explicit fibre instances.
+
+### Day 4 — scoring and oracles
+
+- [ ] **T-12 Score B1/B3/AxonPath** on dev-val with T-04–T-06 and cluster-bootstrap CIs (D-22).
+- [ ] **T-13 Oracle experiments** (on B1, then on the others):
+  - **O-sel (oracle selection):** drop predicted fibers of taxonomy classes (a) and (c) → Δ precision and F1 = cost of selection.
+  - **O-sep (oracle separation):** take the GT fiber instances (X∪X+1 regions) and fill the axon/myelin *compartments from B1's predicted semantics* inside each GT fiber → ΔF1, Δg-MAE = cost of grouping/pairing.
+  - **O-pair-GT:** GT semantics → T-09 watershed (= R1). This is the error of the pairing *rule* with perfect pixels.
+  - **O-bnd (oracle boundaries):** predicted fiber instances, but every matched fiber's pixels replaced by GT → remaining error = selection + detection only. Its complement is the boundary cost.
+  - **Why:** D-14. Each oracle removes one error source.
+  - **Expect (prior guess, to be tested):** O-sel gives the largest F1 gain (E5), O-sep gives a modest gain concentrated in touching fibers, O-bnd mainly moves HD95 and g-MAE.
+
+### Day 5 — decision
+
+- [ ] **T-14 GO/NO-GO**
+  - **Do:** apply the H1 rule to the T-13 numbers with CIs. Write the decision, the numbers and a one-paragraph interpretation into the Log.
+  - **Expect:** a decision either way. Both branches below are fully planned.
+
+### Days 6–8 — branch GO (C2)
+
+- [ ] **T-15 Nested decoder** (`models/nested.py`) as an nnU-Net custom trainer/network, so B1's preprocessing, augmentation and sampling are shared.
+  - **Heads:**
+    - (1) filled-fiber foreground: sigmoid, BCE + Dice, ignore-masked
+    - (2) fiber SDT: normalised per fiber to [0,1], MSE, ignore-masked; optional boundary channel
+    - (3) part head p_inner: sigmoid, BCE + Dice, loss only inside GT fibers
+  - **Decoding:**
+    - Seeds = h-maxima of the SDT (h tuned on dev-train).
+    - Watershed on −SDT restricted to foreground > 0.5.
+    - Per fiber: axon = largest CC of p_inner > 0.5, holes filled, then intersected with the fiber eroded by 1 px. This guarantees containment and that the axon never touches background.
+    - Myelin = fiber − axon. Drop fibers with an empty axon or an empty ring. Write 2k/2k+1.
+  - **Why:** D-16. Pairing violations become impossible by construction, and a gap between three sheaths only becomes a fiber if head (1) calls the gap foreground. Head (1) is trained with gaps as background.
+  - **Expect:** violation rate 0 (structural); merge+split+gap FP −30% vs B1 (H2); Dice within B1's CI.
+  - **If not:** if separation is worse than the watershed, swap head (2) for Cellpose-style flows on filled fibers (D-12 logic), at ×4 for flows only.
+- [ ] **T-16 Ablations (one run each, dev fold):**
+  - + C3 ignore-masking (D-18)
+  - + g-ratio loss (λ = 0.1, per GT fiber: |√(Σp_axon / Σp_fiber) − g_gt|, small fibers up-weighted ×2) (D-17)
+  - SDT-only vs SDT+boundary channel
+  - **Expect:** the C3 effect shows in diagnostics; the g-loss effect is within CI.
+
+### Days 6–8 — branch NO-GO (C1 + C3)
+
+- [ ] **T-15' C3 properly**
+  - **Do:**
+    - Out-of-fold B1 predictions on all 266 images (3-fold).
+    - Build ignore masks per D-18.
+    - Retrain B1 with them.
+    - Evaluate on (i) the official metrics and (ii) the overlap-disagreement fibers (fibers labelled in one tile and background in the other: the only place we know a "missed" label is real).
+  - **Expect:** H3.
+- [ ] **T-16' Full C1 analyses**
+  - **Do:**
+    - Decomposition for B1/B3/AxonPath.
+    - Recall-vs-g-MAE gaming curve: drop predicted fibers by confidence or size and plot g-MAE against recall.
+    - g-definition sensitivity (E7).
+    - HD95-variant sensitivity.
+    - Rank stability under these switches.
+  - **Expect:** g-MAE can be lowered by dropping small or uncertain fibers while recall falls. Rankings flip under some evaluator switches.
+
+### Day 9 — external replication (both branches)
+
+- [ ] **T-17 ASTIH TEM1**
+  - **Do:**
+    - Download DANDI 001436 with `ASTIH/scripts/get_data.py --make-splits`. The test subject is `sub-nyuMouse26`.
+    - Apply the released ASTIH model (`get_models.py`, `apply_models.py`) and score it with **our** evaluator → must reproduce Dice 0.974/0.924 and F1@0.5 0.791 (±0.01 Dice, ±0.03 F1).
+    - Then run our best method or analysis (train on TEM1-train, rescale 2.36→2.152 or train natively).
+    - Instance GT for TEM1 is built the ASTIH way (ADS watershed on GT). Note that this makes the TEM1 pairing GT rule-derived, which is a known limitation for pairing claims.
+  - **Why:** D-02 and E10. It validates the evaluator against a published number and checks H4.
+  - **If not reproduced:** fix the evaluator before trusting any day-4 result.
+
+### Day 10 — write-up
+
+- [ ] **T-18 Short paper (4 pages, MIDL short-paper format; check the current call for dates)**
+  - **Do:** method or analysis, decomposition table, ceilings, gaming curve, limitations (selective annotation, rule-derived TEM1 pairing GT, no animal IDs).
+  - **Update:** README, notes 05/06/08, this log.
+
+## 6. Rules carried everywhere (from the EDA)
+
+- Splits use `configs/splits/overlap_groups.json` (D-03). Score full images (D-04).
+- Label 1 = ignore (D-05). Never assume consecutive IDs. Orphans are skipped in eval and ignored in training (D-21).
+- Eq-circle g only, with recall next to g-MAE (D-06, D-08). No edge snapping (D-20).
+- Read every difference against the ceilings: myelin Dice ~0.93–0.96, g-MAE ~0.006, fiber selection disagreement ~8% (E6, D-22).
+
+## 7. Risks specific to this plan
+
+| Risk | Signal | Response |
 |---|---|---|
-| 1 | Data loader; group-aware splits: one dev split (80/20 by overlap group) plus 3-fold GroupKFold for final numbers, frozen in `configs/splits/` | Split JSONs committed; no overlap group crosses a split |
-| 2 | Evaluator: official replica (Dice, HD95 nm, g-MAE eq-circle with IoU matching), fiber F1/PQ, **pairing-correctness**, **FP taxonomy**, recall next to g-MAE | Unit tests; GT-vs-GT perfect; overlap pairs reproduce the ceilings in [11](11-deep-eda.md) |
-| 3 | Start baselines: **B1** nnU-Net 2D (semantic, dev fold) + shared watershed pairing; **B3** Cellpose fibers + semantic split; **AxonPath** zero-shot (rescale 2.152→8 nm/px) | Training running; AxonPath predictions scored |
-| 4 | Score B1/B3/AxonPath; **oracle experiments**: GT selection (drop FPs on unlabelled/label 1), GT separation (GT fiber outlines + predicted semantics), GT boundaries | Error-decomposition table |
-| 5 | **GO / NO-GO on H1.** Write the decision and numbers into the log | Decision recorded |
-| 6–8 | **GO:** nested decoder on the nnU-Net backbone (C2), plus ignore-masking (C3) as one ablation. **NO-GO:** C3 properly + full decomposition across all baselines + g-MAE gaming and definition analyses | Model or analysis results with bootstrap CIs over images |
-| 9 | ASTIH TEM1 replication (B0 check: Dice 0.974/0.924, fiber F1 0.791), then the best method / analysis on TEM1 | H4 table |
-| 10 | Write-up: 4-page short paper draft (MIDL short-paper format) + figures; update notes | `paper/` draft |
+| nnU-Net training slower than budgeted | < 50% of epochs done by the end of day 3 | Use 2× downsampled data; 150 epochs |
+| Evaluator disagrees with the TEM1 reference | T-17 numbers off by more than the tolerance | Stop and debug the evaluator. All conclusions depend on it |
+| H1 result is ambiguous (inside the CIs) | CIs overlap 0.03 | Treat as NO-GO (conservative); report the decomposition |
+| Organisers forbid publication | Email reply | TEM1 becomes the primary dataset; the challenge data is internal validation only |
+| Bi-Polar Mask turns out to be nested by construction | PDF read | C2 framed as "multi-instance, touching annuli, dense" (report B novelty statement) |
 
-**Compute.** This assumes access to one GPU for nnU-Net 2D. Without one, B1 runs on downsampled data and C2 shrinks to a
-lighter backbone. Settle this before day 3.
+## 7a. Open items
 
-## 5. Rules that come from the EDA (apply everywhere)
-
-- Splits use `configs/splits/overlap_groups.json`. Score full images, never tiles.
-- Ignore label 1 in loss and metrics. Never assume consecutive IDs. Skip orphan IDs.
-- g uses the equivalent-circle definition only. Report recall next to g-MAE.
-- Use no edge-snapping post-processing, because the labels follow a smooth convention.
-- Augment brightness, contrast and gamma, illumination gradients, noise (σ 7–22) and black corners.
-- Report bootstrap CIs. Read every difference against the ceilings (myelin Dice ~0.93–0.96; g ~0.006).
-
-## 6. Open items
-
-- Ask the organisers whether results on their data may be published, and under what licence ([08](08-open-questions-and-risks.md)).
-- Bi-Polar Mask full text, for the C2 novelty statement.
-- AxonPath preprint, which is still pending; re-check it before submission.
+- Organiser reply on publication and licence ([08](08-open-questions-and-risks.md)).
+- Bi-Polar Mask full text.
+- AxonPath preprint (still pending; re-check before submission).
 
 ## Log
 
@@ -94,3 +318,4 @@ lighter backbone. Settle this before day 3.
 - 2026-11-12: training data received (266 images + masks) and EDA done ([10](10-eda.md)). Conventions are now settled: border-cut fibers are label 1, the inner tongue is part of the axon, IDs are not consecutive, and 47 orphan labels exist. **New risk:** selective annotation. Abnormal myelinated fibers are background (~25% of ring-like structures), so fiber *selection* becomes a hidden task, and the go/no-go experiment must separate selection errors from pairing errors. Fibers are large (median axon 562 nm), so g is less sensitive than the report assumed.
 - 2026-11-12: deep EDA ([11](11-deep-eda.md)). Found **leakage**: 22 overlapping tile pairs in 18 groups (40 images), saved in `configs/splits/overlap_groups.json` and to be used as split groups. **FP patterns:** ~4–8% of real fibers are unlabelled (random misses, not a rule), interstitial gaps between touching fibers act as pseudo-fibers, and interior label 1 marks large or oblique fibers. **Ceilings from re-annotated overlaps:** myelin Dice ~0.93–0.96, g-MAE floor ~0.006. The g definition spread (0.065) is 10× annotation noise. Next: an evaluator with an FP taxonomy (unlabelled fiber / interstitial gap / label 1 / other).
 - 2026-11-12: **plan v2.** The project becomes evaluation-first (C1 error decomposition, always delivered), method-second (C2 nested decoder, only if the H1 go/no-go passes on day 5), with C3 incomplete-annotation handling. Dual-radius head, SSL, μSAM and the g-ratio-loss headline are dropped.
+- 2026-11-12: plan v2 expanded into a decision register (D-01–D-23) and a task list (T-00–T-18), each with reason, expected outcome and fallback. Hypotheses H1–H4 now have numeric decision rules.
