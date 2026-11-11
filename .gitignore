@@ -34,3 +34,6 @@ CLAUDE.md
 # downloaded third-party papers and cloned repos (copyrighted / large; keep local)
 docs/references/papers/
 external/
+
+# personal TODO (never commit)
+docs/TODO.md
