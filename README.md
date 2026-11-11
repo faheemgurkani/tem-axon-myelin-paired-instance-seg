@@ -13,12 +13,19 @@ Each myelinated fiber is a linked pair: axon `X` (even ≥ 2) and its myelin rin
 is artifacts (ignored). Outputs are `uint16` instance maps. Evaluation: Dice (axon/myelin), HD95 in nm, and per-fiber
 g-ratio MAE, combined by aggregate rank. Full spec: [`docs/notes/01-challenge-spec.md`](docs/notes/01-challenge-spec.md).
 
-## Roadmap
+## Research question and roadmap (plan v2)
 
-1. Evaluation framework: official-metric replica + instance/pairing diagnostics + morphometry
-2. Baselines: nnU-Net v2 + pairing, AxonDeepSeg/ASTIH, Cellpose-SAM, μSAM
-3. Error analysis by failure type and fiber size
-4. Our method: nested-instance representation with containment-topology and g-ratio-aware losses
+How much of the fiber-level error in paired axon–myelin segmentation comes from **fiber selection**, **separating touching
+fibers / pairing**, and **boundary placement**, once annotation noise is accounted for? Does a decoder that makes each
+fiber's axon and ring nested by construction remove the pairing part?
+
+1. Evaluation framework: official-metric replica + pairing-correctness, FP taxonomy and error decomposition via oracle experiments
+2. Baselines: nnU-Net v2 + watershed pairing, Cellpose (fibers), AxonPath
+3. Go/no-go: is pairing/separation a larger error source than selection, beyond annotation noise?
+4. Our method (if go): nested-by-construction decoder; otherwise learning with incomplete fiber annotation
+5. Replication on public data (ASTIH TEM1)
+
+Full plan: [`docs/notes/09-research-plan.md`](docs/notes/09-research-plan.md).
 
 Research notes: [`docs/notes/00-index.md`](docs/notes/00-index.md).
 

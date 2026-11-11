@@ -1,5 +1,10 @@
 # 06 — Research Directions (our methodology, post-baselines)
 
+> **Superseded in part by plan v2 (2026-11-12, [09](09-research-plan.md)):** the project is now evaluation-first.
+> D1 survives as C2 (instance-first, part-second decoder), and only runs if the H1 go/no-go passes. The dual-radius head (prior art: Alblas 2022, NPS-Net 2026, Bi-Polar Mask 2022)
+> and the g-ratio loss (prior art: Meng 2022; small effect on this data) are ablations, not contributions. D3 (SSL) is deferred. D4 is replaced by C3 (incomplete fiber annotation).
+
+
 > **Updated recommendation (2026-11-11, report §"The publishable gap"):** an **instance-first, part-second nested decoder**
 > (filled-fiber foreground + fiber separation on filled fibers + within-fiber inner/outer part head, written as 2k/2k+1), plus an optional **dual-radius polar head**
 > (novel: no prior dual-radius StarDist exists; HydraStarDist, arXiv 2504.12078, is the nearest prior work). Losses: differentiable g-ratio loss, TopoInteraction containment,
