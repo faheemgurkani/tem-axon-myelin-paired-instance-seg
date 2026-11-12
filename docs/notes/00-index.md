@@ -31,3 +31,4 @@ Raw snapshot of the challenge website content: [`../references/challenge-site-sn
 - [10 — EDA of the training set](10-eda.md)
 - [11 — Deep EDA: label quality, image forensics, FP patterns, leakage](11-deep-eda.md)
 - [12 — Day 0–5 resources, verified facts and GPU pre-flight](12-day0-5-resources.md)
+- [13 — Cloud compute on Modal: setup, budget, commands](13-modal.md)

@@ -3,7 +3,7 @@
 This lists everything collected for tasks T-00 to T-14 in [09](09-research-plan.md): code, papers, environment and data.
 It also records the facts we verified in those resources, the corrections they force on the plan, and what is still missing.
 
-**Status: collection done. No training or preprocessing has run.** The GPU and large-disk machine arrives on 13 Nov.
+**Status: collection done. No training or preprocessing has run.** **Update 12 Nov:** the GPU machine is now Modal (L40S, $80 credit). See [13](13-modal.md), which maps the §7 pre-flight steps onto Modal. The repo now sits on a 2 TB disk with about 1 TB free.
 
 ## 1. Hardware, now and needed
 
