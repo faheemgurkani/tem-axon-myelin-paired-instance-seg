@@ -6,17 +6,15 @@
   "fp": 7,
   "fn": 11,
   "f1@0.5": 0.9291338582677166,
-  "f1@0.75": 0.9291338582677166,
-  "recall@0.5": 0.9147286821705426,
-  "precision@0.5": 0.944
+  "f1@0.75": 0.9291338582677166
  },
- "pixel_metrics_median_pairs_ge3": {
+ "median_pairs_ge3": {
   "dice_axon": 0.987056523417556,
   "dice_myelin": 0.9513789721796879,
   "hd95_axon_nm": 8.608,
   "hd95_myelin_nm": 643.5735071691533
  },
- "pixel_metrics_iqr_pairs_ge3": {
+ "iqr_pairs_ge3": {
   "dice_axon": [
    0.982932422007544,
    0.9920964693309514
@@ -28,8 +26,8 @@
  },
  "g_mae_fiber_weighted": 0.006749289683201344,
  "g_bias_fiber_weighted": -0.0005135799978127904,
- "pairing_correct_pooled": 0.9830508474576272,
- "violation_rate_median": 0.1,
+ "pairing_correct_pooled": 1.0,
+ "violation_rate_pooled": 0.1527777777777778,
  "n_matched_fibers": 118,
  "merges": 0,
  "splits": 0

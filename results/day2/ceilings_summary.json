@@ -15,8 +15,8 @@
   "f1@0.5": 0.8540648496240602,
   "f1@0.75": 0.8540648496240602,
   "pq": 0.8326356478005836,
-  "pairing_correct_rate": 0.9707792207792209,
-  "violation_rate": 0.15163375272070925
+  "pairing_correct_rate": 1.0,
+  "violation_rate": 0.1899284743034743
  },
  "median": {
   "dice_axon": 0.9878050567139809,
@@ -30,7 +30,7 @@
   "f1@0.75": 1.0,
   "pq": 0.9712277179842371,
   "pairing_correct_rate": 1.0,
-  "violation_rate": 0.1
+  "violation_rate": 0.08630952380952381
  },
  "min": {
   "dice_axon": 0.0,
@@ -43,7 +43,7 @@
   "f1@0.5": 0.0,
   "f1@0.75": 0.0,
   "pq": 0.0,
-  "pairing_correct_rate": 0.5,
+  "pairing_correct_rate": 1.0,
   "violation_rate": 0.0
  },
  "max": {
@@ -58,6 +58,6 @@
   "f1@0.75": 1.0,
   "pq": 0.986659215629462,
   "pairing_correct_rate": 1.0,
-  "violation_rate": 0.6666666666666666
+  "violation_rate": 1.0
  }
 }

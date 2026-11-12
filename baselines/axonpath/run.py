@@ -8,8 +8,10 @@ Mapping AxonPath outputs to our encoding, per AxonPath fibre k:
 - axon (2k) = AxonPath *inner cylinder* k (axon + inner tongue). Our GT counts the inner tongue as axon
   (docs/notes/10-eda.md), so this is the like-for-like choice. AxonPath's "axon" excludes the tongue.
 - myelin (2k+1) = fibre k minus inner cylinder k.
-- A fibre without an inner cylinder is dropped. It has no axon, so it is not a fiber in our encoding. The count
-  is logged.
+- If a fibre has no inner cylinder, AxonPath's own *axon* instance for that fibre is used instead (fallback).
+  This was added after the first run (v1) dropped 834 of 3,277 fibres (25%) for lacking an inner cylinder;
+  see docs/notes/16-day3-baselines.md. A fibre with neither is dropped, since it has no axon and is therefore not
+  a fiber in our encoding. Both counts are logged.
 
 AxonPath pairs axons to fibres with its own rule (map_axon_labels_to_fibres / segment_inner_cylinders), not with
 our watershed. That makes it the "explicit-fibre-instance" baseline.
@@ -35,21 +37,24 @@ REPO = Path(__file__).resolve().parents[2]
 SCALE = 2.152 / 8.0
 
 
-def to_challenge(fibre: np.ndarray, inner: np.ndarray) -> tuple[np.ndarray, int]:
+def to_challenge(fibre: np.ndarray, inner: np.ndarray, axon: np.ndarray) -> tuple[np.ndarray, int, int]:
     out = np.zeros(fibre.shape, np.uint16)
     ids = np.unique(fibre)
     ids = ids[ids > 0]
-    dropped, k = 0, 0
+    dropped, fallback, k = 0, 0, 0
     for i in ids:
         f = fibre == i
         ic = (inner == i) & f
         if not ic.any() or ic.sum() == f.sum():
-            dropped += 1
-            continue
+            ic = (axon == i) & f
+            if not ic.any() or ic.sum() == f.sum():
+                dropped += 1
+                continue
+            fallback += 1
         k += 1
         out[f] = 2 * k + 1
         out[ic] = 2 * k
-    return out, dropped
+    return out, dropped, fallback
 
 
 def main():
@@ -73,13 +78,14 @@ def main():
         H, W = img.shape
         small = cv2.resize(img, (round(W * SCALE), round(H * SCALE)), interpolation=cv2.INTER_AREA)
         x = normalize(small.astype(np.float32))
-        fibre, _axon, inner, _sem = run_inference(x, model, device=device, min_diameter=a.min_diameter)
+        fibre, axon, inner, _sem = run_inference(x, model, device=device, min_diameter=a.min_diameter)
         fibre = cv2.resize(fibre.astype(np.int32).astype(np.float32), (W, H), interpolation=cv2.INTER_NEAREST).astype(np.int32)
         inner = cv2.resize(inner.astype(np.int32).astype(np.float32), (W, H), interpolation=cv2.INTER_NEAREST).astype(np.int32)
-        pred, dropped = to_challenge(fibre, inner)
+        axon = cv2.resize(axon.astype(np.int32).astype(np.float32), (W, H), interpolation=cv2.INTER_NEAREST).astype(np.int32)
+        pred, dropped, fallback = to_challenge(fibre, inner, axon)
         write_mask(out_dir / f"{n}.tif", pred)
         log.append({"name": n, "n_fibres_axonpath": int(len(np.unique(fibre)) - 1), "n_fibers_written": int(pred.max() // 2),
-                    "dropped_no_inner": dropped, "seconds": time.time() - t0})
+                    "dropped_no_axon": dropped, "axon_fallback": fallback, "seconds": time.time() - t0})
         print(log[-1], flush=True)
     out = REPO / "results" / "day3"
     out.mkdir(parents=True, exist_ok=True)

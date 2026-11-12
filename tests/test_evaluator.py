@@ -110,3 +110,19 @@ def test_one_pixel_axon_erosion_moves_g_by_about_0p005():
     pred[rim] = pred[rim] + 1                        # axon boundary pixels → own myelin
     r = evaluate_image(pred, gt)
     assert 0.002 < r["g_mae"] < 0.01 and r["g_bias"] < 0
+
+
+def test_oracles_fix_what_they_claim():
+    from axon_myelin_seg.evaluation.oracles import o_bnd, o_sep
+
+    gt = toy_gt()
+    pred = np.zeros_like(gt)
+    disk_fiber(pred, 1, 50, 75, 30, 50)                  # one prediction merging GT 1 and GT 2
+    sem = np.where((gt >= 2) & (gt % 2 == 0), 1, np.where((gt >= 3) & (gt % 2 == 1), 2, 0)).astype(np.uint8)
+    fixed = o_sep(pred, gt, sem)                          # perfect pixels + GT grouping → both recovered
+    d = diagnose_image(fixed, gt)
+    assert d["tp@0.5"] == 4 and d["n_merges"] == 0
+    shifted = gt.copy()
+    shifted[(gt == 2)] = 3                                # axon 1 swallowed by its ring → g wrong
+    disk_fiber(shifted, 1, 50, 50, 10, 25)
+    assert evaluate_image(o_bnd(shifted, gt), gt)["g_mae"] == 0
