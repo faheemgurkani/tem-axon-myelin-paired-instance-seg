@@ -1,26 +1,39 @@
 [
  [
-  "sample_0055.tif",
-  "sample_0212.tif"
- ],
- [
-  "sample_0118.tif",
-  "sample_0178.tif"
- ],
- [
-  "sample_0018.tif",
-  "sample_0050.tif"
- ],
- [
   "sample_0002.tif",
   "sample_0045.tif",
-  "sample_0147.tif"
+  "sample_0147.tif",
+  "sample_0252.tif"
  ],
  [
   "sample_0008.tif",
   "sample_0034.tif",
   "sample_0060.tif",
   "sample_0264.tif"
+ ],
+ [
+  "sample_0014.tif",
+  "sample_0110.tif",
+  "sample_0256.tif"
+ ],
+ [
+  "sample_0016.tif",
+  "sample_0248.tif"
+ ],
+ [
+  "sample_0018.tif",
+  "sample_0050.tif",
+  "sample_0223.tif",
+  "sample_0234.tif",
+  "sample_0238.tif"
+ ],
+ [
+  "sample_0024.tif",
+  "sample_0141.tif"
+ ],
+ [
+  "sample_0030.tif",
+  "sample_0122.tif"
  ],
  [
   "sample_0037.tif",
@@ -31,48 +44,55 @@
   "sample_0163.tif"
  ],
  [
-  "sample_0024.tif",
-  "sample_0141.tif"
+  "sample_0054.tif",
+  "sample_0152.tif"
  ],
  [
-  "sample_0096.tif",
-  "sample_0183.tif"
- ],
- [
-  "sample_0014.tif",
-  "sample_0110.tif",
-  "sample_0256.tif"
- ],
- [
-  "sample_0223.tif",
-  "sample_0234.tif"
- ],
- [
-  "sample_0091.tif",
-  "sample_0201.tif"
- ],
- [
-  "sample_0236.tif",
-  "sample_0257.tif"
- ],
- [
-  "sample_0016.tif",
-  "sample_0248.tif"
+  "sample_0055.tif",
+  "sample_0212.tif"
  ],
  [
   "sample_0078.tif",
   "sample_0131.tif"
  ],
  [
-  "sample_0030.tif",
-  "sample_0122.tif"
+  "sample_0091.tif",
+  "sample_0201.tif"
+ ],
+ [
+  "sample_0096.tif",
+  "sample_0183.tif"
+ ],
+ [
+  "sample_0104.tif",
+  "sample_0263.tif"
+ ],
+ [
+  "sample_0113.tif",
+  "sample_0233.tif"
+ ],
+ [
+  "sample_0118.tif",
+  "sample_0178.tif"
+ ],
+ [
+  "sample_0123.tif",
+  "sample_0181.tif"
+ ],
+ [
+  "sample_0139.tif",
+  "sample_0224.tif"
+ ],
+ [
+  "sample_0148.tif",
+  "sample_0218.tif"
  ],
  [
   "sample_0189.tif",
   "sample_0247.tif"
  ],
  [
-  "sample_0054.tif",
-  "sample_0152.tif"
+  "sample_0236.tif",
+  "sample_0257.tif"
  ]
 ]

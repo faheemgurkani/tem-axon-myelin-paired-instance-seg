@@ -1,0 +1,63 @@
+{
+ "n_pairs_total": 32,
+ "n_pairs_used": 28,
+ "ncc_min": 0.8,
+ "n_used_via_ecc": 28,
+ "n_matched_fibers": 118,
+ "mean": {
+  "dice_axon": 0.8466090443496097,
+  "dice_myelin": 0.7067536778471532,
+  "hd95_axon_nm": 1206.880950002114,
+  "hd95_myelin_nm": 1958.2866785298268,
+  "g_mae": 0.005891553956120021,
+  "recall": 0.8995737425404944,
+  "precision": 0.9037768994290734,
+  "f1@0.5": 0.8540648496240602,
+  "f1@0.75": 0.8540648496240602,
+  "pq": 0.8326356478005836,
+  "pairing_correct_rate": 0.9707792207792209,
+  "violation_rate": 0.15163375272070925
+ },
+ "median": {
+  "dice_axon": 0.9878050567139809,
+  "dice_myelin": 0.9294699969323641,
+  "hd95_axon_nm": 8.608,
+  "hd95_myelin_nm": 1024.398770299445,
+  "g_mae": 0.005598966016144871,
+  "recall": 1.0,
+  "precision": 1.0,
+  "f1@0.5": 1.0,
+  "f1@0.75": 1.0,
+  "pq": 0.9712277179842371,
+  "pairing_correct_rate": 1.0,
+  "violation_rate": 0.1
+ },
+ "min": {
+  "dice_axon": 0.0,
+  "dice_myelin": 0.0,
+  "hd95_axon_nm": 4.304,
+  "hd95_myelin_nm": 16.38914372381913,
+  "g_mae": 0.0002947638493762117,
+  "recall": 0.0,
+  "precision": 0.0,
+  "f1@0.5": 0.0,
+  "f1@0.75": 0.0,
+  "pq": 0.0,
+  "pairing_correct_rate": 0.5,
+  "violation_rate": 0.0
+ },
+ "max": {
+  "dice_axon": 0.9946146273669582,
+  "dice_myelin": 0.9716220225522693,
+  "hd95_axon_nm": 10936.158260976294,
+  "hd95_myelin_nm": 10936.158260976294,
+  "g_mae": 0.017164645458333294,
+  "recall": 1.0,
+  "precision": 1.0,
+  "f1@0.5": 1.0,
+  "f1@0.75": 1.0,
+  "pq": 0.986659215629462,
+  "pairing_correct_rate": 1.0,
+  "violation_rate": 0.6666666666666666
+ }
+}

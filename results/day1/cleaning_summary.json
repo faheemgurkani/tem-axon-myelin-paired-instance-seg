@@ -1,0 +1,12 @@
+{
+ "n_samples": 266,
+ "n_load_ok": 266,
+ "n_fibers": 7968,
+ "n_orphan_ids": 47,
+ "n_defect_fibers": 296,
+ "images_with_defects": 116,
+ "cleaned_extra_ignore_px": 42618303,
+ "n_groups": 236,
+ "density_min": 0.10755530410815717,
+ "density_max": 1.471037164012725
+}
