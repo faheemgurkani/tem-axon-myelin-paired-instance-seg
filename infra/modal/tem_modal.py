@@ -1,48 +1,56 @@
-"""Modal cloud compute for this repo (GPU training, preprocessing, inference).
+"""Modal cloud compute for this repo: **GPU work only**.
 
-All state lives on one private Modal Volume, ``tem-axon-myelin``:
+CPU work runs on the local Mac (M4):
+- data conversion, nnU-Net planning and preprocessing
+- pairing, evaluation and analysis
 
-    /vol/data/raw/train-dataset/{train_samples,train_instance_labels}/   challenge data (uploaded once)
-    /vol/nnUNet_raw, /vol/nnUNet_preprocessed, /vol/nnUNet_results      nnU-Net folders
-    /vol/runs/                                                           everything else (predictions, logs)
+Modal is used only for training and inference, so we don't pay for cloud CPU-only containers. See
+docs/notes/13-modal.md §3b for the full split and the GPU-seconds rules.
 
-The repo's code (src/, scripts/, baselines/, configs/) is mounted at /root/repo on every run, so code edits
-need no image rebuild. Data, .venv, external/ and docs/ are never uploaded with the code.
+State lives on one private Modal Volume, ``tem-axon-myelin``:
 
-Usage (from the repo root; see docs/notes/13-modal.md):
+    /vol/data/raw/train-dataset/                    challenge data (uploaded 12 Nov)
+    /vol/nnUNet_preprocessed/Dataset<ID>_<name>/    preprocessed locally, then uploaded with `modal volume put`
+    /vol/nnUNet_results/                            checkpoints, logs, validation softmax (.npz)
+    /vol/runs/                                      GPU-utilisation logs, budget ledgers, predictions
 
-    modal run infra/modal/tem_modal.py                                  # GPU smoke check (~1 min)
-    modal run infra/modal/tem_modal.py --action cpu --cmd "python scripts/..."
-    modal run --detach infra/modal/tem_modal.py --action gpu --cmd "..."
-    modal run --detach infra/modal/tem_modal.py --action train --dataset 501 --fold 0
+Usage (from the repo root; see docs/notes/13-modal.md §5):
 
-GPU functions are preemptible on Modal. ``train`` retries and resumes with nnU-Net's ``--c``; use the
-``*_ckpt10`` trainers (baselines/nnunet/trainers.py) so a preemption loses at most 10 epochs.
+    modal run infra/modal/tem_modal.py                                      # GPU smoke check (~1 min)
+    modal run infra/modal/tem_modal.py --action train --trainer nnUNetTrainer_5epochs_ckpt1 --max-gpu-hours 0.3
+    modal run --detach infra/modal/tem_modal.py --action train --dataset 501 --fold 0 --max-gpu-hours 5
 """
 
+import json
 import os
+import shutil
 import subprocess
+import time
 from pathlib import Path
 
 import modal
 
 # Inside the container this module sits at /root/tem_modal.py; local paths are only read when building locally.
 REPO = Path(__file__).resolve().parents[2] if modal.is_local() else Path("/root/repo")
-# L4 (24 GB) is the best value for a 2D U-Net on a small budget: ResEnc-M targets 8 GB VRAM and nnU-Net 2D
-# training is largely CPU-bound (augmentation). Override with TEM_MODAL_GPU=A10G/L40S. See doc 13 §3.
+# L4 (24 GB) is the best value for a 2D U-Net on a small budget. ResEnc-M targets 8 GB of VRAM, and nnU-Net 2D
+# training is largely CPU-bound (augmentation). Override with TEM_MODAL_GPU=A10G or L40S. See doc 13 §3a.
 GPU = os.environ.get("TEM_MODAL_GPU", "L4")
-CPU = 8.0  # nnU-Net augmentation is CPU-bound (nnUNet_n_proc_DA)
-MEMORY_MB = 32768
+# The GPU container's own CPU feeds the GPU with augmented batches during training, which can't move to the Mac
+# (every batch would cross the network). Six cores is the smallest number that should keep an L4 busy. The GPU log
+# shows whether that holds: below ~70% utilisation, the CPU is starving the GPU.
+CPU = 6.0
+MEMORY_MB = 16384
 HOUR = 60 * 60
 
 volume = modal.Volume.from_name("tem-axon-myelin", create_if_missing=True)
 VOL = "/vol"
+LOCAL_PRE = "/tmp/nnUNet_preprocessed"  # container-local SSD copy, so patch reads don't go over the network
 
 ENV = {
     "nnUNet_raw": f"{VOL}/nnUNet_raw",
     "nnUNet_preprocessed": f"{VOL}/nnUNet_preprocessed",
     "nnUNet_results": f"{VOL}/nnUNet_results",
-    "nnUNet_n_proc_DA": "8",
+    "nnUNet_n_proc_DA": str(int(CPU)),
     "TEM_DATA": f"{VOL}/data/raw/train-dataset",
     "TEM_RUNS": f"{VOL}/runs",
     "PYTHONPATH": "/root/repo/src:/root/repo",
@@ -89,19 +97,62 @@ image = (
 )
 
 app = modal.App("tem-axon-myelin", image=image)
-common = {"volumes": {VOL: volume}, "cpu": CPU, "memory": MEMORY_MB}
+gpu_fn = {
+    "gpu": GPU, "cpu": CPU, "memory": MEMORY_MB, "volumes": {VOL: volume},
+    "single_use_containers": True,  # a retry after preemption starts clean; nothing idles between calls
+}
 
 
-def _sh(cmd: str) -> None:
-    """Run a shell command in the repo, stream output, commit the Volume, and raise on failure."""
+def _gpu_logger(path: Path) -> subprocess.Popen:
+    """Sample GPU utilisation every 15 s. Low utilisation means paid GPU seconds are being wasted."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    f = open(path, "a")  # noqa: SIM115 (closed by the OS when the process ends)
+    return subprocess.Popen(
+        ["nvidia-smi", "--query-gpu=timestamp,utilization.gpu,memory.used", "--format=csv,noheader,nounits",
+         "-l", "15"], stdout=f, stderr=subprocess.DEVNULL,
+    )
+
+
+def _gpu_summary(path: Path) -> None:
+    rows = [r.split(", ") for r in path.read_text().splitlines() if r.count(",") == 2] if path.exists() else []
+    util = [float(r[1]) for r in rows if r[1].strip().isdigit()]
+    if util:
+        busy = sum(u >= 50 for u in util) / len(util)
+        print(f"GPU utilisation: mean {sum(util) / len(util):.0f}%, ≥50% busy in {busy:.0%} of samples ({path})")
+
+
+def _run_with_deadline(cmd: str, deadline: float, env: dict) -> int | None:
+    """Run ``cmd``. If it is still running at ``deadline`` (epoch seconds), stop it. Returns the exit code, or None."""
     print(f"$ {cmd}", flush=True)
+    proc = subprocess.Popen(cmd, shell=True, cwd="/root/repo", env=env, start_new_session=True)
     try:
-        subprocess.run(cmd, shell=True, check=True, cwd="/root/repo")
-    finally:
-        volume.commit()
+        return proc.wait(timeout=max(1.0, deadline - time.time()))
+    except subprocess.TimeoutExpired:
+        print("GPU-hour cap reached: stopping. checkpoint_latest is at most 10 epochs old.", flush=True)
+        os.killpg(proc.pid, 15)
+        try:
+            proc.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, 9)
+        return None
 
 
-@app.function(gpu=GPU, timeout=10 * 60, **common)
+def _ledger(key: str, max_gpu_hours: float) -> dict:
+    """Per-run budget ledger on the Volume. The deadline is fixed at the first attempt, so retries can't extend it."""
+    path = Path(VOL) / "runs" / "budget" / f"{key}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        led = json.loads(path.read_text())
+    else:
+        led = {"key": key, "first_start": time.time(), "max_gpu_hours": max_gpu_hours, "attempts": 0}
+    led["attempts"] += 1
+    led["deadline"] = led["first_start"] + led["max_gpu_hours"] * HOUR
+    path.write_text(json.dumps(led, indent=1))
+    volume.commit()
+    return led
+
+
+@app.function(timeout=10 * 60, **gpu_fn)
 def gpu_check() -> None:
     """Report GPU, CUDA, library versions and what is on the Volume (T-00 pre-flight step 2)."""
     import torch
@@ -114,46 +165,86 @@ def gpu_check() -> None:
         x = torch.randn(4096, 4096, device="cuda")
         print("matmul ok:", float((x @ x).abs().mean()))
     import cellpose
-    import nnunetv2  # noqa: F401
-    from nnunetv2.training.nnUNetTrainer.variants.tem.tem_trainers import nnUNetTrainer_250epochs_ckpt10  # noqa: F401
+    from nnunetv2.training.nnUNetTrainer.variants.tem.tem_trainers import (  # noqa: F401
+        nnUNetTrainer_250epochs_ckpt10_es,
+    )
 
     print("cellpose", cellpose.version, "| custom nnU-Net trainers importable")
-    print("CPU cores", os.cpu_count())
     for sub in ("data/raw/train-dataset/train_samples", "data/raw/train-dataset/train_instance_labels"):
         p = Path(VOL) / sub
-        print(sub, len(list(p.glob("*.tif"))) if p.exists() else "missing (run the upload step)")
+        print(sub, len(list(p.glob("*.tif"))) if p.exists() else "missing")
+    pre = Path(ENV["nnUNet_preprocessed"])
+    print("preprocessed datasets:", sorted(d.name for d in pre.iterdir()) if pre.exists() else "none yet")
 
 
-@app.function(timeout=6 * HOUR, **common)
-def shell_cpu(cmd: str) -> None:
-    """CPU-only job, e.g. data conversion or nnUNetv2_plan_and_preprocess."""
-    _sh(cmd)
-
-
-@app.function(
-    gpu=GPU, timeout=24 * HOUR, retries=modal.Retries(initial_delay=0.0, max_retries=5),
-    single_use_containers=True, **common,
-)
-def shell_gpu(cmd: str) -> None:
-    """GPU job. It is retried after preemption, so ``cmd`` must be safe to re-run (resume, don't restart)."""
-    _sh(cmd)
-
-
-@app.function(
-    gpu=GPU, timeout=24 * HOUR, retries=modal.Retries(initial_delay=0.0, max_retries=10),
-    single_use_containers=True, **common,
-)
-def train_nnunet(dataset: str, configuration: str, fold: str, trainer: str, plans: str) -> None:
-    """nnU-Net training that resumes from the newest checkpoint after a preemption or retry."""
+@app.function(timeout=24 * HOUR, retries=modal.Retries(initial_delay=0.0, max_retries=3), **gpu_fn)
+def train_nnunet(dataset: str, configuration: str, fold: str, trainer: str, plans: str, max_gpu_hours: float) -> None:
+    """Resumable nnU-Net training with early stopping (trainer) and a hard GPU-hour cap (ledger)."""
     volume.reload()
-    results = Path(ENV["nnUNet_results"])
-    done = any(results.glob(f"Dataset{dataset}_*/{trainer}__{plans}__{configuration}/fold_{fold}/checkpoint_final.pth"))
-    if done:
-        print("checkpoint_final.pth exists; nothing to do")
+    key = f"nnunet_D{dataset}_{trainer}_{plans}_{configuration}_f{fold}"
+    led = _ledger(key, max_gpu_hours)
+    if time.time() >= led["deadline"]:
+        print(f"Budget ledger {key}: the GPU-hour cap ({led['max_gpu_hours']} h) is already used up. Not starting.")
         return
-    started = any(results.glob(f"Dataset{dataset}_*/{trainer}__{plans}__{configuration}/fold_{fold}/checkpoint_*.pth"))
-    cont = " --c" if started else ""
-    _sh(f"nnUNetv2_train {dataset} {configuration} {fold} -tr {trainer} -p {plans} --npz{cont}")
+
+    results = Path(ENV["nnUNet_results"])
+    run_dir = f"Dataset{dataset}_*/{trainer}__{plans}__{configuration}/fold_{fold}"
+    if any(results.glob(f"{run_dir}/checkpoint_final.*")):
+        print("checkpoint_final exists; nothing to do")
+        return
+
+    # Copy the preprocessed dataset to local SSD once per container (blosc2 files, no unpacking: seconds, not minutes).
+    src = next(Path(ENV["nnUNet_preprocessed"]).glob(f"Dataset{dataset}_*"), None)
+    if src is None:
+        raise SystemExit(f"No preprocessed Dataset{dataset} on the Volume. Preprocess locally and upload it first.")
+    t0 = time.time()
+    shutil.copytree(src, f"{LOCAL_PRE}/{src.name}", dirs_exist_ok=True)
+    print(f"staged {src.name} to local disk in {time.time() - t0:.0f} s")
+    env = {**os.environ, "nnUNet_preprocessed": LOCAL_PRE}
+
+    cont = " --c" if any(results.glob(f"{run_dir}/checkpoint_*")) else ""
+    val_best = " --val_best" if trainer.endswith("_es") else ""
+    gpu_log = Path(VOL) / "runs" / "gpu_util" / f"{key}.csv"
+    sampler = _gpu_logger(gpu_log)
+    try:
+        code = _run_with_deadline(
+            f"nnUNetv2_train {dataset} {configuration} {fold} -tr {trainer} -p {plans} --npz{cont}{val_best}",
+            led["deadline"], env,
+        )
+    finally:
+        sampler.terminate()
+        _gpu_summary(gpu_log)
+        volume.commit()
+    if code not in (0, None):
+        raise RuntimeError(f"nnUNetv2_train exited with {code}")  # lets Modal retry (resumes with --c)
+
+
+@app.function(timeout=6 * HOUR, **gpu_fn)
+def predict_nnunet(dataset: str, configuration: str, fold: str, trainer: str, plans: str,
+                   input_dir: str, output_dir: str, checkpoint: str, save_probabilities: bool) -> None:
+    """Sliding-window inference only. Input images (nnU-Net format) are prepared locally and uploaded first."""
+    volume.reload()
+    prob = " --save_probabilities" if save_probabilities else ""
+    cmd = (f"nnUNetv2_predict -i {VOL}/{input_dir} -o {VOL}/{output_dir} -d {dataset} -c {configuration} "
+           f"-f {fold} -tr {trainer} -p {plans} -chk {checkpoint}{prob}")
+    try:
+        code = _run_with_deadline(cmd, time.time() + 6 * HOUR, dict(os.environ))
+    finally:
+        volume.commit()
+    if code != 0:
+        raise RuntimeError(f"nnUNetv2_predict exited with {code}")
+
+
+@app.function(timeout=24 * HOUR, retries=modal.Retries(initial_delay=0.0, max_retries=3), **gpu_fn)
+def shell_gpu(cmd: str, max_gpu_hours: float) -> None:
+    """Any other GPU job (e.g. Cellpose fine-tuning). It is retried after preemption, so ``cmd`` must resume."""
+    volume.reload()
+    try:
+        code = _run_with_deadline(cmd, time.time() + max_gpu_hours * HOUR, dict(os.environ))
+    finally:
+        volume.commit()
+    if code not in (0, None):
+        raise RuntimeError(f"command exited with {code}")
 
 
 @app.local_entrypoint()
@@ -163,16 +254,22 @@ def main(
     dataset: str = "501",
     configuration: str = "2d",
     fold: str = "0",
-    trainer: str = "nnUNetTrainer_250epochs_ckpt10",
+    trainer: str = "nnUNetTrainer_250epochs_ckpt10_es",
     plans: str = "nnUNetResEncUNetMPlans",
+    max_gpu_hours: float = 5.0,
+    input_dir: str = "",
+    output_dir: str = "",
+    checkpoint: str = "checkpoint_best.pth",
+    save_probabilities: bool = True,
 ) -> None:
     if action == "check":
         gpu_check.remote()
-    elif action == "cpu":
-        shell_cpu.remote(cmd)
-    elif action == "gpu":
-        shell_gpu.remote(cmd)
     elif action == "train":
-        train_nnunet.remote(dataset, configuration, fold, trainer, plans)
+        train_nnunet.remote(dataset, configuration, fold, trainer, plans, max_gpu_hours)
+    elif action == "predict":
+        predict_nnunet.remote(dataset, configuration, fold, trainer, plans, input_dir, output_dir, checkpoint,
+                              save_probabilities)
+    elif action == "gpu":
+        shell_gpu.remote(cmd, max_gpu_hours)
     else:
-        raise SystemExit(f"unknown action {action!r}: use check | cpu | gpu | train")
+        raise SystemExit(f"unknown action {action!r}: use check | train | predict | gpu (CPU work runs locally)")
