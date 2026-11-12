@@ -6,7 +6,7 @@ All code is in `infra/modal/tem_modal.py`; the nnU-Net trainer variants are in `
 **Status:** the smoke check passed on 12 Nov. Results:
 - Container: NVIDIA L40S (44.4 GiB usable), torch 2.15.0+cu132, CUDA available.
 - Libraries: cellpose 4.2.1.1, and our nnU-Net trainers import.
-- Volume: created, but the data has not been uploaded yet.
+- Volume: created, and the data is uploaded (266 images + 266 masks, verified 12 Nov).
 
 ## 1. Account and budget
 
