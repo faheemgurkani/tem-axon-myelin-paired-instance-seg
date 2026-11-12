@@ -23,16 +23,16 @@ All code is in `infra/modal/tem_modal.py`; the nnU-Net trainer variants are in `
 | nnU-Net writes `checkpoint_latest` only every **50 epochs** (`save_every = 50`, nnUNetTrainer.py:216) | Our trainer `nnUNetTrainer_250epochs_ckpt10` is identical to `nnUNetTrainer_250epochs` except it checkpoints every 10 epochs, so a preemption loses at most 10 epochs |
 | nnU-Net only discovers trainers inside its own package | The image copies `trainers.py` into `nnunetv2/training/nnUNetTrainer/variants/tem/` |
 | Volumes need `commit()` to publish writes and `reload()` to see other containers' writes; background commits also run | `_sh` commits after every command, and `train_nnunet` reloads before checking for checkpoints |
-| `gpu=` accepts strings (`"L4"`, `"A10G"`, `"L40S"`, `"A100-80GB"`, `"H100"`) or a fallback list | The GPU type comes from the `TEM_MODAL_GPU` environment variable and defaults to `L40S` |
+| `gpu=` accepts strings (`"L4"`, `"A10G"`, `"L40S"`, `"A100-80GB"`, `"H100"`) or a fallback list | The GPU type comes from the `TEM_MODAL_GPU` environment variable and defaults to `L4` (budget decision, §3a) |
 | `cpu=` counts physical cores, and Modal sets `OMP_NUM_THREADS` from it | We request 8 cores and 32 GiB of RAM. `nnUNet_n_proc_DA=8`, because nnU-Net's augmentation is CPU-bound |
 
 ## 3. Cost (approximate list prices, per hour; check modal.com/pricing)
 
 | GPU | VRAM | GPU $/h | + 8 cores + 32 GiB (~$0.65/h) | Fits |
 |---|---|---|---|---|
-| L4 | 24 GB | ~0.80 | ~1.45 | ResEnc-M; ResEnc-L is borderline |
+| **L4 (default since 12 Nov)** | 24 GB | ~0.80 | **~1.45** | ResEnc-M easily (8 GB target); ResEnc-L (24 GB target) is borderline |
 | A10G | 24 GB | ~1.10 | ~1.75 | ResEnc-M; ResEnc-L is borderline |
-| **L40S (default)** | 48 GB | ~1.95 | **~2.60** | ResEnc-L with headroom |
+| L40S | 48 GB | ~1.95 | ~2.60 | ResEnc-L with headroom |
 | A100-80GB | 80 GB | ~2.50 | ~3.15 | Everything |
 | H100 | 80 GB | ~3.95 | ~4.60 | Everything |
 
@@ -50,6 +50,36 @@ GPU prices come from third-party aggregators that agree with each other (Spheron
 | AxonPath inference | under $1 | Or run it locally |
 
 That leaves at least $45 for C2/C3 runs in week 2.
+
+## 3a. Budget decision: $10 for days 0–5 (12 Nov)
+
+The owner capped this phase at **$10**. Choice: **L4 + nnU-Net ResEnc-M** (replaces L40S + ResEnc-L).
+
+**Why a big GPU isn't needed here:**
+- This is a 2D U-Net with tens of millions of parameters, not a billion-parameter LLM. ResEnc-M is planned for 8 GB of VRAM and ResEnc-L for 24 GB (nnU-Net planners).
+- At this scale nnU-Net 2D is usually limited by CPU augmentation, not GPU compute. A faster GPU mostly waits on the CPU workers.
+
+**Why L4:**
+- It is the cheapest Modal GPU that fits ResEnc-M with room to spare.
+- It has fp16 tensor throughput comparable to A10G.
+- Its weakness is memory bandwidth: about 300 GB/s versus 600 GB/s for A10G. So per epoch it may be up to ~1.5× slower than A10G, at ~0.7× the price.
+- T4 is cheaper per hour but roughly 2× slower, with no better value.
+
+**Why ResEnc-M rather than L:**
+- The plan already allowed it (D-09/D-10: "ResEnc-L if ≥ 24 GB, else ResEnc-M").
+- L costs roughly 2× the compute per step.
+- With $10, a full L run probably doesn't fit.
+
+**What $10 buys:** about 6.9 L4-hours at ~$1.45/h (GPU + 8 cores + 32 GiB). **Spending plan:**
+
+| Item | Estimate |
+|---|---|
+| Preprocessing (CPU) | < $0.50 |
+| 5-epoch timing run | ~$0.30 |
+| B1 fold 0 (250 epochs) | ~$5–8 if an epoch takes 50–80 s (unmeasured) |
+| Validation inference | < $0.50 |
+
+**Rule:** if the timing run implies 250 epochs > $8, cut to 150 epochs (`nnUNetTrainer_150epochs`-style variant), log it under D-10, and check the loss curve. Cellpose fine-tuning (T-10) waits for more credit, or runs at ×6 downsampling on L4 if money is left.
 
 ## 4. Layout
 
@@ -75,7 +105,7 @@ $M volume put tem-axon-myelin data/raw/train-dataset /data/raw/train-dataset
 $M run infra/modal/tem_modal.py
 
 # CPU job (conversion, plan_and_preprocess)
-$M run infra/modal/tem_modal.py --action cpu --cmd "nnUNetv2_plan_and_preprocess -d 501 -c 2d -pl nnUNetPlannerResEncL"
+$M run infra/modal/tem_modal.py --action cpu --cmd "nnUNetv2_plan_and_preprocess -d 501 -c 2d -pl nnUNetPlannerResEncM"
 
 # measure seconds per epoch first (D-10), then the real run; --detach keeps it alive if the laptop sleeps
 $M run infra/modal/tem_modal.py --action train --trainer nnUNetTrainer_5epochs_ckpt1

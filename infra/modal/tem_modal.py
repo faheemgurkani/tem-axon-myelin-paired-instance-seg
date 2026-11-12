@@ -28,7 +28,9 @@ import modal
 
 # Inside the container this module sits at /root/tem_modal.py; local paths are only read when building locally.
 REPO = Path(__file__).resolve().parents[2] if modal.is_local() else Path("/root/repo")
-GPU = os.environ.get("TEM_MODAL_GPU", "L40S")  # 48 GB: fits ResEnc-L (needs 24 GB). See doc 13 for costs.
+# L4 (24 GB) is the best value for a 2D U-Net on a small budget: ResEnc-M targets 8 GB VRAM and nnU-Net 2D
+# training is largely CPU-bound (augmentation). Override with TEM_MODAL_GPU=A10G/L40S. See doc 13 §3.
+GPU = os.environ.get("TEM_MODAL_GPU", "L4")
 CPU = 8.0  # nnU-Net augmentation is CPU-bound (nnUNet_n_proc_DA)
 MEMORY_MB = 32768
 HOUR = 60 * 60
@@ -162,7 +164,7 @@ def main(
     configuration: str = "2d",
     fold: str = "0",
     trainer: str = "nnUNetTrainer_250epochs_ckpt10",
-    plans: str = "nnUNetResEncUNetLPlans",
+    plans: str = "nnUNetResEncUNetMPlans",
 ) -> None:
     if action == "check":
         gpu_check.remote()

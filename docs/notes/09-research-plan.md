@@ -327,3 +327,4 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
   - Smoke check on an L40S passed: torch 2.15.0+cu132, CUDA available, 44.4 GiB.
   - GPU containers can be preempted, so training retries with `--c`. New trainer `nnUNetTrainer_250epochs_ckpt10` (D-10): the schedule is unchanged; it only checkpoints more often.
   - Budget: about 30 L40S-hours. Epoch time is still unmeasured; the next step measures it with the 5-epoch trainer.
+- 2026-11-12: **budget for days 0–5 = $10.** Default GPU changed to **L4** and plans to **ResEnc-M** (D-09/D-10 fallback branch; reasons in [13](13-modal.md) §3a): about 6.9 L4-hours. Measure the epoch time first; if 250 epochs would cost more than $8, cut epochs and log it. Data upload to the private Volume started (3.1 GB).
