@@ -87,7 +87,7 @@ image = (
 )
 
 app = modal.App("tem-axon-myelin", image=image)
-common = dict(volumes={VOL: volume}, cpu=CPU, memory=MEMORY_MB)
+common = {"volumes": {VOL: volume}, "cpu": CPU, "memory": MEMORY_MB}
 
 
 def _sh(cmd: str) -> None:

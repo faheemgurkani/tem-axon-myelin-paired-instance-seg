@@ -14,7 +14,7 @@ from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 
 class nnUNetTrainer_250epochs_ckpt10(nnUNetTrainer):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
-                 device: torch.device = torch.device('cuda')):
+                 device: torch.device = torch.device('cuda')):  # noqa: B008 (nnU-Net's signature)
         super().__init__(plans, configuration, fold, dataset_json, device)
         self.num_epochs = 250
         self.save_every = 10
@@ -24,7 +24,7 @@ class nnUNetTrainer_5epochs_ckpt1(nnUNetTrainer):
     """Smoke test: 5 epochs, checkpoint every epoch. Used to measure seconds per epoch (D-10)."""
 
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
-                 device: torch.device = torch.device('cuda')):
+                 device: torch.device = torch.device('cuda')):  # noqa: B008 (nnU-Net's signature)
         super().__init__(plans, configuration, fold, dataset_json, device)
         self.num_epochs = 5
         self.save_every = 1
