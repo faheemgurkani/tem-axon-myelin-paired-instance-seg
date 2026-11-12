@@ -197,9 +197,18 @@ def train_nnunet(dataset: str, configuration: str, fold: str, trainer: str, plan
     src = next(Path(ENV["nnUNet_preprocessed"]).glob(f"Dataset{dataset}_*"), None)
     if src is None:
         raise SystemExit(f"No preprocessed Dataset{dataset} on the Volume. Preprocess locally and upload it first.")
+    # A sequential copytree ran at ~19 MB/s (7.1 GB in 376 s, timing run 13 Nov). Volume reads parallelise well,
+    # so copy with 32 threads.
     t0 = time.time()
-    shutil.copytree(src, f"{LOCAL_PRE}/{src.name}", dirs_exist_ok=True)
-    print(f"staged {src.name} to local disk in {time.time() - t0:.0f} s")
+    dst_root = Path(LOCAL_PRE) / src.name
+    files = [p for p in src.rglob("*") if p.is_file()]
+    for d in {dst_root / p.relative_to(src).parent for p in files}:
+        d.mkdir(parents=True, exist_ok=True)
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(32) as ex:
+        list(ex.map(lambda p: shutil.copyfile(p, dst_root / p.relative_to(src)), files))
+    print(f"staged {src.name} ({len(files)} files) to local disk in {time.time() - t0:.0f} s")
     env = {**os.environ, "nnUNet_preprocessed": LOCAL_PRE}
 
     cont = " --c" if any(results.glob(f"{run_dir}/checkpoint_*")) else ""

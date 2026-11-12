@@ -188,14 +188,54 @@ Compare model violation rates with **6.1%**, not with 0.
 - AxonPath is far from its own paper's numbers. **That is not evidence against AxonPath**: it is zero-shot at 3.7× its training pixel size, on another lab's tissue and with another annotation convention. It is reported as "off-the-shelf", not as "AxonPath's capability".
 - The F1 CI half-width (0.039) is larger than H1's 0.03 threshold. Comparing two conditions must therefore use **paired** bootstrap differences (same resampled groups), as `day4_oracles.py` does, not overlapping marginal CIs.
 
-## T-10 Cellpose-SAM (B3)
+## T-10 Cellpose-SAM (B3): reduced to zero-shot (D-26)
 
-Status: see §Budget below.
+**Why reduced:**
+- The fine-tune planned in T-10 needs GPU time.
+- After the timing run, B1 alone is budgeted at about $7–8.5 of the $10.
+- A Cellpose-SAM fine-tune (a ViT-L backbone, ~300 M parameters) plus inference doesn't fit the remainder with any safety margin.
 
-## Budget and GPU log (Modal, L4)
+**What was run instead:** `baselines/cellpose_sam/zeroshot.py`.
+- `cpsam_v2` zero-shot, **locally on the M4's GPU (MPS)**, at ×1/6 (12.9 nm/px), with default thresholds.
+- About 8 s per image.
+- The `cpsam_v2` weights (1.15 GB) were downloaded by Cellpose on first use, into `~/.cellpose/models`.
 
-| Run | GPU-h | Est. cost | Notes |
+**What Cellpose does on TEM zero-shot** (`data/processed/day4/cellpose_zs_check.png`, local):
+- It **tiles the entire image into cell-like regions**: every myelinated fiber (axon + its ring) gets one region, but so do unmyelinated axons and other processes.
+- Boundaries between touching fibers run along their contact line.
+- The median region diameter is 54 px at ×6 ≈ 700 nm, close to the median fiber (755 nm).
+- So it is a whole-fiber *instance partition* with no notion of "myelinated".
+
+**How it becomes a baseline ("cellpose_b1"):** each region is split by B1's semantics:
+- axon = the largest B1-axon component inside the region, holes filled;
+- myelin = B1-myelin inside the region minus the axon;
+- regions without an axon or without myelin (background "cells") are dropped.
+
+This is an *instance-first* grouping, the C2 idea, using a generalist with no training. Its comparison with B1 + watershed isolates the effect of grouping, because the pixels (B1's) are the same.
+
+## Budget and GPU log (Modal, L4 at ~$1.21/h incl. 6 cores + 16 GiB)
+
+| Run | Container time | Est. cost | Result |
 |---|---|---|---|
-| Smoke checks (12–13 Nov) | ~0.03 | ~$0.05 | L40S + L4 |
+| Smoke checks (12–13 Nov, L40S + L4) | ~3 min | ~$0.05 | OK |
+| **Timing run** (`nnUNetTrainer_5epochs_ckpt1`, 2d_bigpatch, cap 0.3 h) | 18 min (cap reached in epoch 3) | ~$0.36 | See below |
+| **B1** (`nnUNetTrainer_150epochs_ckpt10_es`, 2d_bigpatch, fold 0, cap 7 h) | running | ≤ $8.5 | — |
 
-(Updated as runs complete.)
+**Timing run findings** (`data/nnunet/logs/modal_timing_run.log`, GPU log `data/processed/modal_runs/…5epochs….csv`):
+
+| | Measured |
+|---|---|
+| Staging 7.1 GB from Volume to local disk with sequential `copytree` | **376 s** (19 MB/s), wasting 6 GPU-minutes per container start |
+| Same staging with 32 threads (B1 run) | **3 s** |
+| Epoch 0 (includes `torch.compile`) | 398 s |
+| **Epoch 1 (steady state)** | **142.5 s** (250 iterations × batch 3 × 896×1152) |
+| GPU utilisation, epoch 0 | mean 40%, median 0% (compiling) |
+| **GPU utilisation, steady state** | **mean 97%, median 98%, p10 92%** |
+| GPU memory | 9.2 GB of 22 GB |
+
+**Consequences:**
+- **The L4 is compute-bound.** The 6 CPU cores keep up with augmentation, so more cores would not speed anything up. (The doc-13 rule "below ~70% → add cores" does not fire.)
+- 250 epochs ≈ 9.9 GPU-h ≈ $12 doesn't fit.
+- Capping wall-time would stop the poly learning-rate schedule half way, at a high LR. **The schedule was shortened to 150 epochs instead** (`nnUNetTrainer_150epochs_ckpt10_es`), so the LR anneals to ~0. Early stopping (patience 30, min epoch 60) may stop it earlier. That is D-10, revised.
+- Compile warm-up (~4 min) is paid again after every preemption. That is accepted, because preemptions are rare.
+- Memory use (9.2 GB) leaves room for a larger batch. Not used, since the GPU is already saturated.

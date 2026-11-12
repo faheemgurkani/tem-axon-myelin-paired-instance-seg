@@ -87,6 +87,20 @@ class nnUNetTrainer_250epochs_ckpt10_es(nnUNetTrainer_250epochs_ckpt10):
         self.on_train_end()
 
 
+class nnUNetTrainer_150epochs_ckpt10_es(nnUNetTrainer_250epochs_ckpt10_es):
+    """B1 on a $10 budget (D-10 revised, 13 Nov). The timing run measured 142 s per epoch on an L4 with the
+    2d_bigpatch configuration. So 250 epochs ≈ 9.9 GPU-h ≈ $12 does not fit, while 150 epochs ≈ 5.9 GPU-h does.
+
+    The schedule length is cut instead of capping wall-time, so that nnU-Net's poly learning rate still decays
+    to ~0 at the end. Early stopping (patience 30, min 60 epochs) still applies.
+    """
+
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 device: torch.device = torch.device('cuda')):  # noqa: B008 (nnU-Net's signature)
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 150
+
+
 class nnUNetTrainer_5epochs_ckpt1(nnUNetTrainer):
     """Timing run: 5 epochs, checkpoint every epoch. Used to measure seconds per epoch (D-10)."""
 
@@ -95,3 +109,7 @@ class nnUNetTrainer_5epochs_ckpt1(nnUNetTrainer):
         super().__init__(plans, configuration, fold, dataset_json, device)
         self.num_epochs = 5
         self.save_every = 1
+
+    def perform_actual_validation(self, save_probabilities: bool = False):
+        # A 5-epoch model's full-image validation is meaningless and costs ~10–20 GPU-minutes; skip it.
+        self.print_to_log_file("Timing run: final validation skipped.")

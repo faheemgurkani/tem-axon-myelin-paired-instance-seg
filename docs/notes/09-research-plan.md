@@ -98,7 +98,7 @@ once annotation noise is accounted for? And does a decoder that makes each fiber
 | D-07 | HD95 = max of the two directed 95th percentiles (MONAI-style), per image per compartment, in nm (× 2.152); if one side is empty, use the image diagonal 10,936 nm | The spec doesn't say which variant; this is the most common in medical segmentation (report A evaluator table) | Stable, documented HD95. Sensitivity reported for the other variants | Organiser code |
 | D-08 | Always report fiber recall and matched count next to g-MAE | g-MAE ignores misses → gameable (report A) | Reviewers can see whether a low g-MAE was bought by skipping fibers | — |
 | D-09 | B1 = nnU-Net v2, 2D, **ResEnc-L** plans, labels {0 bg, 1 axon, 2 myelin, 3 ignore}, then a shared watershed pairing | nnU-Net is the established bar (Isensee 2024; ASTIH baseline). nnU-Net's ignore label must be the highest integer and is excluded from the loss (nnU-Net docs) | Dice near ASTIH-level (axon ≥ 0.95, myelin ≥ 0.88 expected on our harder, noisier data) | Dice far below → check normalisation/patch size before anything else |
-| D-10 | B1 trains 250 epochs (`-tr nnUNetTrainer_250epochs`, name verified in nnU-Net 2.8.1), one dev fold first. Plans: ResEnc-L if the GPU has ≥ 24 GB, else ResEnc-M | 1000 epochs × 5 folds doesn't fit 2 weeks. nnU-Net usually plateaus well before 1000 epochs on 2D data (to verify on our loss curve) | ≤ 1 day of GPU per run (estimate). On Modal, the run uses `nnUNetTrainer_250epochs_ckpt10_es`: 250-epoch cap, checkpoint every 10 epochs (GPUs are preemptible), **early stopping** when the EMA pseudo-Dice gains ≤ 0.001 for 30 epochs (never before epoch 60), and final validation with `--val_best` ([13](13-modal.md) §3b). Log the stop epoch. Caveat: the poly LR schedule is defined over 250 epochs | Loss still falling at 250 → continue with `--c` |
+| D-10 | B1 trains 250 epochs (`-tr nnUNetTrainer_250epochs`, name verified in nnU-Net 2.8.1), one dev fold first. Plans: ResEnc-L if the GPU has ≥ 24 GB, else ResEnc-M | 1000 epochs × 5 folds doesn't fit 2 weeks. nnU-Net usually plateaus well before 1000 epochs on 2D data (to verify on our loss curve) | ≤ 1 day of GPU per run (estimate). **Revised 13 Nov after the timing run (142 s/epoch on L4, 97% GPU utilisation): `nnUNetTrainer_150epochs_ckpt10_es`.** The schedule is 150 epochs so the poly LR still anneals within the $10 budget (≈ 5.9 GPU-h), with a hard cap of 7 GPU-h. The original plan used `nnUNetTrainer_250epochs_ckpt10_es`: 250-epoch cap, checkpoint every 10 epochs (GPUs are preemptible), **early stopping** when the EMA pseudo-Dice gains ≤ 0.001 for 30 epochs (never before epoch 60), and final validation with `--val_best` ([13](13-modal.md) §3b). Log the stop epoch. Caveat: the poly LR schedule is defined over 250 epochs | Loss still falling at 250 → continue with `--c` |
 | D-11 | Shared semantic→instance pairing for every semantic baseline: marker watershed. Seeds = connected components of predicted axon (holes filled, ≥ 50 px); landscape = −EDT of (axon∪myelin); mask = axon∪myelin; then keep fibers with exactly one axon CC and a non-empty ring, writing 2k/2k+1 | One pairing module means baselines differ only in representation. Seeds from components, not integer centroids, avoid ADS's centroid-outside-concave-axon failure (report A) | Pairing behaviour identical across baselines; isolates the representation effect | — |
 | D-12 | B3 = Cellpose-SAM (`cpsam_v2`) trained on **filled fibers** (X∪X+1 as one instance) at **6× downsampling** (12.9 nm/px; was 4×, corrected 12 Nov because Cellpose-SAM's training range is 7.5–120 px, see [12](12-day0-5-resources.md)); axon/myelin split inside each fiber from B1's semantic probabilities | Fiber median diameter 755 nm = 351 px is far above Cellpose's training range (7.5–120 px); ×6 gives a median of 59 px and a 5–95% range of 37–99 px. Fibers are filled because a ring's centre lies in its hole, so flows to the centre fail on rings (report A). ASTIH Cellpose got the highest precision (0.990) | High precision, lower recall than B1, mirroring ASTIH (P 0.990 / R 0.797) | Small fibers lost at ×6 → try ×4 with `diameter` set |
 | D-13 | AxonPath zero-shot: rescale our images 2.152→8 nm/px (×0.269), percentile-normalise (1–99%), run the bundled `em` weights (= `em_cns`), smoke-tested at ~2 s/image on MPS, upsample instances back with nearest neighbour; compare its `InnerCylinder` (axon + tongue) with our axon | Our GT counts the tongue as axon (E4/[10](10-eda.md)); AxonPath's model was trained at 8 nm/px (report B) | A strong, independent pairing-rule baseline; possibly weaker Dice from domain shift | Zero-shot unusable → fine-tune only if day 4 time allows; otherwise report as is |
@@ -112,6 +112,9 @@ once annotation noise is accounted for? And does a decoder that makes each fiber
 | D-21 | Training-label cleaning: drop the 47 orphan IDs → ignore; the 296 topology-defect fibers → ignore (train only, never in eval) | E4 | Cleaner supervision; eval stays faithful to the official GT | — |
 | D-22 | Statistics: bootstrap 1,000× over **overlap groups** (cluster bootstrap), paired between methods; 95% CI | Images in a group aren't independent (E8) | Honest CIs; differences inside the ceilings are flagged | — |
 | D-23 | Deferred: dual-radius polar head, SSL pretraining, μSAM, AxonPath data conversion, test-set pseudo-labelling, any challenge submission | Time budget; E3 | — | Days left over after T-14 |
+| D-24 (13 Nov) | B1 trains with configuration `2d_bigpatch`: patch 896×1152, batch 3, inheriting everything else from the planner's `2d` (448×576, batch 13) | The planner's patch (0.96×1.24 µm) is smaller than a median fiber (755 nm = 351 px; 95th percentile 595 px), so a patch rarely shows a fiber with its touching neighbours. Pixels per step are nearly equal (3.10 M vs 3.35 M px), so the cost per step is the same | The same or better semantic Dice; better separation on touching fibers | B1 Dice far below the ceiling → run the default patch as an ablation |
+| D-25 (13 Nov) | Overlap groups v2: 8 more pairs found after the EDA registration bug was fixed (22 groups, 52 images); splits regenerated before any training | Five of the new pairs crossed the v1 dev split (leakage) ([15](15-day2-evaluator.md) §T-07) | No tissue on both sides of any split | An overlap found later that crosses a split → report it as a limitation; do not re-split after results |
+| D-26 (13 Nov) | T-10 reduced to **Cellpose-SAM zero-shot** (local, MPS, ×6), with B1's semantics splitting each instance into axon/ring. Fine-tuned B3 deferred | $10 GPU budget: B1 takes ≈ $7–8.5 (timing run: 142 s/epoch on L4) | An instance-first comparison at no GPU cost | Money left after B1 → fine-tune |
 
 ## 5. Task list (day by day)
 
@@ -119,7 +122,7 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 0 — prerequisites (before day 1)
 
-- [ ] **T-00 Compute and permissions**
+- [x] **T-00 Compute and permissions**
   - **Status 12 Nov:** the local Mac has no CUDA GPU. Resources are collected in [12](12-day0-5-resources.md).
   - **Update 12 Nov (evening):** compute is now **Modal**, with an L40S 48 GB GPU and $80 of credit ([13](13-modal.md)). The smoke check passed. The repo has also moved to a 2 TB external disk with about 1 TB free. Data uploaded to the Volume (266 + 266 files, verified).
   - **Do:**
@@ -132,17 +135,17 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 1 — data plumbing and splits
 
-- [ ] **T-01 Loader** (`src/axon_myelin_seg/data/io.py`)
+- [x] **T-01 Loader** (`src/axon_myelin_seg/data/io.py`)
   - **Do:** read uint8 images and uint16 masks with tifffile; validate the shape is 3008×4096; return (image, mask, name). Add the helpers from `encoding.py`.
   - **Why:** single entry point; EDA confirmed there is no metadata to parse ([10](10-eda.md) §1).
   - **Expect:** 266/266 load; 0 shape mismatches.
   - **Done when:** a unit test loads 3 samples and checks dtype and shape.
-- [ ] **T-02 Training-label cleaner** (`data/cleaning.py`)
+- [x] **T-02 Training-label cleaner** (`data/cleaning.py`)
   - **Do:** produce a copy of the masks where orphan IDs and topology-defect fibers become ignore (D-21). Log the counts.
   - **Why:** E4.
   - **Expect:** 47 orphan IDs and ~296 fibers converted, matching [10](10-eda.md).
   - **Done when:** the counts match the EDA within ±1.
-- [ ] **T-03 Splits** (`data/splits.py`, `configs/splits/dev.json`, `cv3.json`)
+- [x] **T-03 Splits** (`data/splits.py`, `configs/splits/dev.json`, `cv3.json`)
   - **Do:**
     - Groups are the overlap groups; every other image is its own group.
     - Stratify by fiber-density tercile.
@@ -154,7 +157,7 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 2 — evaluator (C1 core)
 
-- [ ] **T-04 Official replica** (`evaluation/official.py`)
+- [x] **T-04 Official replica** (`evaluation/official.py`)
   - **Do:**
     - Mask GT label 1 in both maps.
     - Axon = even ≥ 2; myelin = odd ≥ 3.
@@ -166,14 +169,14 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
   - **Why:** D-05–D-08.
   - **Expect:** GT vs GT gives Dice 1, HD95 0 and g-MAE 0. Shifting GT by 1 px changes g-MAE by about 0.005 (§1 sensitivity).
   - **Done when:** both tests pass.
-- [ ] **T-05 Pairing & instance diagnostics** (`evaluation/diagnostics.py`)
+- [x] **T-05 Pairing & instance diagnostics** (`evaluation/diagnostics.py`)
   - **Do:**
     - Fiber F1@0.5/0.75, PQ, merges (a pred fiber overlapping ≥ 2 GT fibers each by ≥ 20% of GT area) and splits (the reverse).
     - **Pairing correctness** per matched fiber: pred axon is one connected component, fully enclosed by its own ring, and IoU with the GT axon ≥ 0.5.
     - **Pairing-violation rate** on all predictions: axon without ring, ring without axon, axon touching background, ring with Euler number ≠ 0.
   - **Why:** C1. Nobody measures pairing correctness (report B).
   - **Expect:** GT vs GT gives 0 violations except the known 3.7% topology defects. Report those as the "GT violation rate" baseline.
-- [ ] **T-06 FP/FN taxonomy** (`evaluation/taxonomy.py`)
+- [x] **T-06 FP/FN taxonomy** (`evaluation/taxonomy.py`)
   - **Do:** every unmatched predicted fiber gets one class:
     - (a) **unlabelled real fiber**: ≥ 50% overlap with a ring candidate from `scripts/eda/unl_loc.py` that has d ≥ 300 nm and is not a gap
     - (b) **interstitial gap**: ≥ 75% of its outer boundary adjacent to myelin of ≥ 2 different GT fibers
@@ -185,7 +188,7 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
   - **Why:** E5 and E6. This is what separates selection from separation.
   - **Expect:** on GT-derived perturbations, the classes behave as constructed.
   - **Done when:** a hand-made toy example covering each class passes.
-- [ ] **T-07 Ceiling check**
+- [x] **T-07 Ceiling check**
   - **Do:** run T-04/T-05 on the aligned overlap pairs (0055/0212, 0024/0141, 0091/0201, 0054/0152, 0236/0257), treating one tile as the "prediction".
   - **Why:** validates the evaluator against [11](11-deep-eda.md) and fixes the noise ceilings we compare against.
   - **Expect:** axon Dice ≈ 0.98–0.99, myelin ≈ 0.90–0.97, g-MAE ≈ 0.006. Record bootstrap CI widths for H1's 0.03 threshold.
@@ -193,7 +196,7 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 3 — baselines start
 
-- [ ] **T-08 nnU-Net dataset + B1 training**
+- [~] **T-08 nnU-Net dataset + B1 training** (dataset, plans, preprocessing and upload done; training running on Modal since 13 Nov, see [16](16-day3-baselines.md))
   - **Do:**
     - Convert to nnU-Net format (Dataset501_TEMAxonMyelin, 2D, `.png` or `.tif` with `_0000` channel suffix).
     - Labels: {background 0, axon 1, myelin 2, ignore 3}. Label 1 → 3; cleaned defects → 3.
@@ -202,17 +205,17 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
   - **Why:** D-09, D-10, D-03. `--npz` keeps softmax for the oracle and C3 experiments.
   - **Expect:** a 2D patch on the order of 1024² chosen by the planner; training ≤ ~1 day (estimate); val Dice axon ≥ 0.95, myelin ≥ 0.88.
   - **If not:** Dice < 0.85 myelin → check intensity normalisation (nnU-Net z-score is fine for 2D grey) and that ignore really is the highest label.
-- [ ] **T-09 Shared pairing module** (`postprocessing/pairing.py`), per D-11
+- [x] **T-09 Shared pairing module** (`postprocessing/pairing.py`), per D-11
   - **Expect:** when run on **GT semantics**, it reproduces GT instances with fiber F1@0.5 high (≥ 0.95, expected) but lower *per-fiber myelin IoU on touching fibers*. The watershed line between touching sheaths is a guess.
   - **This number is itself result R1.**
-- [ ] **T-10 B3 Cellpose**
+- [~] **T-10 B3 Cellpose** (reduced to zero-shot, D-26)
   - **Do:**
     - Filled-fiber instance masks at ×4 downsampling, with label 1 set to 0 and excluded via masks.
     - Fine-tune `cpsam` for about 100 epochs on dev-train.
     - Predict, upsample, and split each fiber with B1's axon probability: axon = largest CC of p_axon > 0.5 inside the fiber, holes filled, eroded 1 px from the fiber edge. The rest is myelin.
   - **Why:** D-12.
   - **Expect:** precision > B1's, recall < B1's (the ASTIH pattern).
-- [ ] **T-11 AxonPath zero-shot**, per D-13
+- [x] **T-11 AxonPath zero-shot**, per D-13
   - **Expect:** reasonable fiber recall; Dice lower than B1 because of the domain and scale shift. Possibly a lower pairing-violation rate than B1, since it has explicit fibre instances.
 
 ### Day 4 — scoring and oracles
@@ -337,3 +340,16 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
   - the 5-epoch timing run first
 
   The `shell_cpu` function was removed. The GPU container now requests 6 cores and 16 GiB (~$1.21/h on L4, ~8 h for $10). The resume check now matches both `.pth` (2.8.1) and `.safetensors` (master) checkpoints. L4 smoke check passed.
+- 2026-11-13 (day 1, [14](14-day1-data-plumbing.md)): T-01–T-03 done.
+  - 266/266 load; 47 orphans; 296 defect fibers, as expected.
+  - Splits are frozen (dev 213/53, cv3).
+  - Fixed a stale editable install left over from the repo move.
+- 2026-11-13 (day 2, [15](15-day2-evaluator.md)): evaluator done (T-04–T-06), with tests.
+  - **T-07 found a bug in the EDA overlap registration (inverted ECC direction).** Fixed, 18/22 pairs register (was 5), and 8 new overlapping pairs turned up, 5 of which crossed the dev split. Groups v2 and splits regenerated before any training (D-25).
+  - **Ceiling:** human vs human fiber F1@0.5 = 0.929, with **0 merges/splits**: all disagreement is selection. Axon/myelin Dice 0.987/0.951, g-MAE 0.0067.
+- 2026-11-13 (day 3, [16](16-day3-baselines.md)): nnU-Net Dataset501 converted and preprocessed locally.
+  - D-24 big patch. Uploaded to Modal; the first upload failed silently and a chunked uploader was added.
+  - **R1:** the pairing rule on GT semantics gives F1 0.99994 and g-MAE 0.0017, so the rule is not an error source.
+  - **AxonPath zero-shot:** F1 0.784, Dice 0.71/0.62, g-MAE 0.060. Separation is only 9% of its errors.
+  - **Timing run:** 142 s/epoch, 97% GPU utilisation (compute-bound). D-10 revised to 150 epochs with early stopping.
+  - B1 launched on an L4 with a 7 GPU-h cap. T-10 reduced to Cellpose zero-shot (D-26).
