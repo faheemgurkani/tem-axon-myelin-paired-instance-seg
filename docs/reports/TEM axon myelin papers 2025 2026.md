@@ -45,3 +45,17 @@ Scope: papers from 2025 up to 13 Nov 2026 that are relevant to our data (mouse c
 - In the browser, the Springer "Download PDF" click and the MICCAI open-access PDF produced no file in `~/Downloads` after 40+ s, and Chrome's PDF viewer stayed blank.
 - All papers above were read as full-text HTML (PMC, bioRxiv, Springer through institutional access), except Bukas et al. and Chuter et al., for which only the abstract was read.
 - No PDFs were added to `docs/references/papers/`.
+
+## 5. Addendum: is there a paper that introduced the dataset, and who cites it?
+
+**No.** A second, deeper search covered:
+- the organiser's and PI's Google Scholar records;
+- the donor lab's 2024–26 EM papers;
+- exact-phrase searches for the challenge on Scholar, the web and GitHub;
+- the HHMI dataset catalogue.
+
+None of them turned up a publication that introduces or uses this data. The two donor-lab EM papers use different instruments and tissue:
+- *Glia* 2024: Hitachi 7000 at 44,000×;
+- *Nature Communications* 2026: spinal cord.
+
+So there are no citing papers to analyse, and no published findings to compare with ours. The first papers on this data would be SIPAIM 2026 challenge entries (conference 18–20 Nov 2026); re-check after it. Details: `research_notes/…/00_dataset_source.md`.
