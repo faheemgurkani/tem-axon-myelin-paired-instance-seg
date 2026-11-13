@@ -104,6 +104,7 @@ And does a decoder that is nested by construction remove (b)?
   4. If it doesn't reproduce, fix the evaluator before trusting any result.
   5. Note that TEM1's instance GT is itself watershed-derived, which limits pairing claims there.
   6. Run our taxonomy on TEM1: is ASTIH's low precision at IoU 0.5 (0.747, against Dice 0.974) selection (our main finding, replicated) or low_iou? Use TEM1's 20 subject IDs for an animal-level bootstrap. No independent group has published on TEM1 yet ([report](../reports/ASTIH%20TEM1%20citation%20analysis.md)).
+  7. *Proposed (owner to approve):* also use **AxonPath CC TEM** (Zenodo 23084690, CC-BY, 20 images, 2,074 fibers with annotated fiber ⊃ inner cylinder ⊃ axon). Unlike TEM1, its pairs are annotated, not watershed-derived, so it can test the pairing metric and H5. See [similar-datasets report](../reports/Similar%20datasets%202023%202026%20citation%20analysis.md).
 - **T-18 Short paper** (4 pages, MIDL short format): decomposition table, ceilings, gaming curve, limitations (selective annotation, rule-derived TEM1 pairing, no animal IDs).
   - Later venues: a method paper at MICCAI / ISBI 2027 if C3 or H5 work; a journal extension (MedIA / TMI) with external datasets.
 
