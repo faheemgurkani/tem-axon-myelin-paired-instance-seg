@@ -1,0 +1,8 @@
+# Dataset source (checked 13 Nov 2026)
+
+- Challenge repo alexandrojim/tem-challenge, latest commit 862d6ff (11 Nov 2026, "update challenge"). No paper, DOI, citation or licence anywhere in content/, js/ or the README. Data is shared only through ICM OneDrive links (js/config.js).
+- Data page: 400 TEM images (266 train + 134 test), mouse corpus callosum, Paris Brain Institute (ICM); AMT NS12, 100 kV, x3000, 2.152 nm/px, 480 ms x 4 frames averaged, gamma 1.0. Says the acquisition values are "read directly from the embedded metadata" (our copies carry no TIFF metadata; see notes/02).
+- Image donors (acknowledgments.md): B. Nait-Oumesmar (ICM PI, myelin repair / MS), B. Hassan (ICM PI, brain wiring), D. Racoceanu (ICM-Sorbonne PI), T. Karam and L.-M. Ghayad (ICM PhD students), K. Ourahmoun (ICM.Quant).
+- Annotators: S. Rajabzadeh, K. Ourahmoun (ICM.Quant), D. Jimenez (PUCP).
+- Web searches (organisers, donors, ICM.Quant + axon/myelin/TEM) found **no publication introducing or using this dataset**. Conclusion: the dataset is new and unpublished; the challenge is its first release. Likely origin: the donors' own biology studies (Nait-Oumesmar: lysolecithin/demyelination corpus-callosum models), consistent with the pathology seen in EDA. Unconfirmed: ask the organisers (already in 07-plan open questions).
+- A web-search summary claimed the challenge's CC images "come from the AxonPath training dataset". This is **not supported**: it conflates a HHMI PR about AxonPath data (Zenodo 23084690, Edinburgh/Valencia, ~2.10 nm/px, labels 0-3) with the challenge. The challenge site credits ICM donors only.
