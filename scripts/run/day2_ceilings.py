@@ -1,10 +1,10 @@
 """T-07: annotation-noise ceilings from overlapping tiles, scored with our evaluator.
 
-Twenty-two pairs of training tiles show the same tissue, annotated independently (docs/notes/11-deep-eda.md §D).
+Twenty-two pairs of training tiles show the same tissue, annotated independently (docs/notes/02-challenge-and-data.md §4).
 Treating tile A's annotation as GT and tile B's annotation, warped into A's frame, as the "prediction" gives the
 score of a *second annotator*. No model can be expected to beat it reliably.
 
-Registration (fixes a bug in scripts/eda/overlap_agree.py, see docs/notes/15-day2-evaluator.md §T-07):
+Registration (fixes a bug in scripts/eda/overlap_agree.py, see docs/notes/05-results.md §2):
 - Initialise from the ORB similarity A→B in data/processed/eda/overlap.csv.
 - Refine with ECC (affine, 1/2 resolution) using template = A and input = B, so the warp maps A coords → B coords,
   the same direction as the initialisation.
@@ -13,7 +13,7 @@ Registration (fixes a bug in scripts/eda/overlap_agree.py, see docs/notes/15-day
 Pairs scored:
 - the 22 EDA pairs (≥ 20 ORB inliers);
 - every other pair from the full 710-row ORB scan that reached NCC ≥ 0.8 after the corrected ECC
-  (results/day2/registration_scan_all710.csv). Those are *new* overlaps the EDA missed; see doc 15 §T-07.
+  (results/day2/registration_scan_all710.csv). Those are *new* overlaps the EDA missed; see docs/notes/05-results.md §2.
 
 Fairness rule: pixels that are label 1 in *either* annotation are ignored. A fiber cut by B's tile border is
 label 1 in B but whole in A, and that is not annotator disagreement.

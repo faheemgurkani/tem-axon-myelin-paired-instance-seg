@@ -11,7 +11,7 @@ The problem statement and benchmark protocol come from the
 
 Each myelinated fiber is a linked pair: axon `X` (even ≥ 2) and its myelin ring `X+1`. Label `0` is background and `1`
 is artifacts (ignored). Outputs are `uint16` instance maps. Evaluation: Dice (axon/myelin), HD95 in nm, and per-fiber
-g-ratio MAE, combined by aggregate rank. Full spec: [`docs/notes/01-challenge-spec.md`](docs/notes/01-challenge-spec.md).
+g-ratio MAE, combined by aggregate rank. Full spec: [`docs/notes/02-challenge-and-data.md`](docs/notes/02-challenge-and-data.md).
 
 ## Research question and roadmap (plan v2)
 
@@ -25,9 +25,13 @@ fiber's axon and ring nested by construction remove the pairing part?
 4. Our method (if go): nested-by-construction decoder; otherwise learning with incomplete fiber annotation
 5. Replication on public data (ASTIH TEM1)
 
-Full plan: [`docs/notes/09-research-plan.md`](docs/notes/09-research-plan.md).
+**Status (13 Nov 2026):** steps 1–3 done. B1 (nnU-Net + watershed) reaches fiber F1@0.5 0.904, against a human-vs-human ceiling of 0.929.
+Separation/pairing causes 0.6% of fiber errors and selection causes most of them, so the go/no-go is **NO-GO** and the project continues with the error decomposition and incomplete-annotation learning.
+A post-hoc finding, that grouping drives g-ratio error, is recorded as a candidate hypothesis.
 
-Research notes: [`docs/notes/00-index.md`](docs/notes/00-index.md).
+Full plan: [`docs/notes/07-plan.md`](docs/notes/07-plan.md).
+
+Research notes: start with the study guide, [`docs/notes/01-study-guide.md`](docs/notes/01-study-guide.md).
 
 ## Layout
 

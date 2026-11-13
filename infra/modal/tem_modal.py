@@ -5,7 +5,7 @@ CPU work runs on the local Mac (M4):
 - pairing, evaluation and analysis
 
 Modal is used only for training and inference, so we don't pay for cloud CPU-only containers. See
-docs/notes/13-modal.md §3b for the full split and the GPU-seconds rules.
+docs/notes/06-compute-and-reproduce.md §1, §3 for the full split and the GPU-seconds rules.
 
 State lives on one private Modal Volume, ``tem-axon-myelin``:
 
@@ -14,7 +14,7 @@ State lives on one private Modal Volume, ``tem-axon-myelin``:
     /vol/nnUNet_results/                            checkpoints, logs, validation softmax (.npz)
     /vol/runs/                                      GPU-utilisation logs, budget ledgers, predictions
 
-Usage (from the repo root; see docs/notes/13-modal.md §5):
+Usage (from the repo root; see docs/notes/06-compute-and-reproduce.md §5):
 
     modal run infra/modal/tem_modal.py                                      # GPU smoke check (~1 min)
     modal run infra/modal/tem_modal.py --action train --trainer nnUNetTrainer_5epochs_ckpt1 --max-gpu-hours 0.3
@@ -33,7 +33,7 @@ import modal
 # Inside the container this module sits at /root/tem_modal.py; local paths are only read when building locally.
 REPO = Path(__file__).resolve().parents[2] if modal.is_local() else Path("/root/repo")
 # L4 (24 GB) is the best value for a 2D U-Net on a small budget. ResEnc-M targets 8 GB of VRAM, and nnU-Net 2D
-# training is largely CPU-bound (augmentation). Override with TEM_MODAL_GPU=A10G or L40S. See doc 13 §3a.
+# training is largely CPU-bound (augmentation). Override with TEM_MODAL_GPU=A10G or L40S. See docs/notes/06-compute-and-reproduce.md §3.
 GPU = os.environ.get("TEM_MODAL_GPU", "L4")
 # The GPU container's own CPU feeds the GPU with augmented batches during training, which can't move to the Mac
 # (every batch would cross the network). Six cores is the smallest number that should keep an L4 busy. The GPU log
@@ -57,7 +57,7 @@ ENV = {
     "PYTHONUNBUFFERED": "1",
 }
 
-# Versions match the local .venv (docs/notes/12-day0-5-resources.md §2–3). PyPI's Linux torch wheels bundle CUDA.
+# Versions match the local .venv (docs/notes/06-compute-and-reproduce.md §2). PyPI's Linux torch wheels bundle CUDA.
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("git", "libgl1", "libglib2.0-0")

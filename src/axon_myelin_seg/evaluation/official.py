@@ -1,4 +1,4 @@
-"""Replica of the official challenge metrics (T-04; docs/notes/01-challenge-spec.md, Evaluation).
+"""Replica of the official challenge metrics (T-04; docs/notes/02-challenge-and-data.md §1).
 
 The challenge defines Dice (axon, myelin), HD95 in nm, and the g-ratio MAE over fibers matched by IoU on the fiber
 mask (X ∪ X+1). It does not publish code, so the ambiguous details are decisions:

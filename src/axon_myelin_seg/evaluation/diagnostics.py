@@ -21,7 +21,7 @@
 
   These checks run on the raw prediction, not on the ignore-masked one. The same checks on GT give the
   "GT violation rate". For example, 2.2% of GT axons touch background
-  (docs/notes/10-eda.md), so this is the floor a method should be compared against.
+  (docs/notes/05-results.md §3), so this is the floor a method should be compared against.
 """
 
 import numpy as np

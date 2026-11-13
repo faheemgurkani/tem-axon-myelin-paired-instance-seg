@@ -1,6 +1,6 @@
 """T-10 (reduced, D-12 revised 13 Nov): Cellpose-SAM *zero-shot* fiber instances on dev-val, locally on MPS.
 
-The fine-tuned B3 of the plan does not fit the $10 GPU budget once B1 is paid for (docs/notes/16-day3-baselines.md
+The fine-tuned B3 of the plan does not fit the $10 GPU budget once B1 is paid for (docs/notes/04-methods.md §4
 §T-10). This zero-shot run costs nothing and asks one question: does an instance-first generalist find the fibers?
 
 - Images are downscaled ×1/6 (2.152 → 12.9 nm/px), so the median fiber is ~59 px across, inside Cellpose-SAM's
@@ -8,7 +8,7 @@ The fine-tuned B3 of the plan does not fit the $10 GPU budget once B1 is paid fo
 - `cpsam_v2`, diameter=None (the SAM backbone is size-invariant), default flow and cellprob thresholds.
 - Masks are upscaled back with nearest neighbour.
 - Cellpose segments whatever looks like "a cell". In TEM that could be whole fibers (ring + axon) or only the
-  light axon interiors. Which one it does is reported (doc 16).
+  light axon interiors. Which one it does is reported (docs/notes/05-results.md).
 - The axon/myelin split inside each instance needs B1's semantics. It is done in scripts/run/day4_cellpose_split.py
   after B1 finishes.
 

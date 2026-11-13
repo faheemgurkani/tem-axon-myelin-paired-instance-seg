@@ -12,4 +12,4 @@ data/
 ```
 
 Challenge data: download from the Dataset section of https://alexandrojim.github.io/tem-challenge/ (ICM OneDrive).
-Licence and redistribution terms are unstated, so never commit or re-host it. External datasets: see `docs/notes/07-datasets.md`.
+Licence and redistribution terms are unstated, so never commit or re-host it. External datasets: see `docs/notes/02-challenge-and-data.md` §5.

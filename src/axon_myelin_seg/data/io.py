@@ -1,6 +1,6 @@
 """Reading images and uint16 masks; writing uint16 predictions (T-01).
 
-The challenge release has no metadata files: the filename (``sample_XXXX.tif``) is the only key (docs/notes/10-eda.md §1).
+The challenge release has no metadata files: the filename (``sample_XXXX.tif``) is the only key (docs/notes/02-challenge-and-data.md §2).
 """
 
 from pathlib import Path

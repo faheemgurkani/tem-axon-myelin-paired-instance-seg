@@ -13,7 +13,7 @@ Unmatched **predicted** fibers (not counting the ignored ones on GT label 1):
    - in the 5-px band just outside it, ≥ 75% of labelled pixels are GT myelin, from ≥ 2 different GT fibers.
 
    This is the light triangle between touching sheaths that looks like "an axon inside a ring", although the ring
-   belongs to the neighbours (docs/notes/11-deep-eda.md §B).
+   belongs to the neighbours (docs/notes/02-challenge-and-data.md §3).
 2. ``unlabelled_real``. Two conditions:
    - ≥ 50% of the predicted axon lies on GT background;
    - it overlaps a *ring candidate* by ≥ 50% of the smaller of the two areas.

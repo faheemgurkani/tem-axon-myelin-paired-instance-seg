@@ -6,11 +6,11 @@ upscaled back to full resolution with nearest neighbour.
 
 Mapping AxonPath outputs to our encoding, per AxonPath fibre k:
 - axon (2k) = AxonPath *inner cylinder* k (axon + inner tongue). Our GT counts the inner tongue as axon
-  (docs/notes/10-eda.md), so this is the like-for-like choice. AxonPath's "axon" excludes the tongue.
+  (docs/notes/02-challenge-and-data.md §3), so this is the like-for-like choice. AxonPath's "axon" excludes the tongue.
 - myelin (2k+1) = fibre k minus inner cylinder k.
 - If a fibre has no inner cylinder, AxonPath's own *axon* instance for that fibre is used instead (fallback).
   This was added after the first run (v1) dropped 834 of 3,277 fibres (25%) for lacking an inner cylinder;
-  see docs/notes/16-day3-baselines.md. A fibre with neither is dropped, since it has no axon and is therefore not
+  see docs/notes/05-results.md §3. A fibre with neither is dropped, since it has no axon and is therefore not
   a fiber in our encoding. Both counts are logged.
 
 AxonPath pairs axons to fibres with its own rule (map_axon_labels_to_fibres / segment_inner_cylinders), not with

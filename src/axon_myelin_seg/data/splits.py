@@ -1,6 +1,6 @@
 """Leakage-free splits (T-03, D-03): grouped by overlap group, stratified by fiber-density tercile.
 
-Why groups: 40 images form 18 groups of tiles that show the *same tissue* (docs/notes/11-deep-eda.md §D). If two of
+Why groups: 52 images form 22 groups of tiles (v2, D-25) that show the *same tissue* (docs/notes/02-challenge-and-data.md §4). If two of
 them land on opposite sides of a split, the model is validated on tissue it trained on. Every image that is not in
 ``configs/splits/overlap_groups.json`` is its own group.
 
