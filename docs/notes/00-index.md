@@ -32,3 +32,8 @@ Raw snapshot of the challenge website content: [`../references/challenge-site-sn
 - [11 — Deep EDA: label quality, image forensics, FP patterns, leakage](11-deep-eda.md)
 - [12 — Day 0–5 resources, verified facts and GPU pre-flight](12-day0-5-resources.md)
 - [13 — Cloud compute on Modal: setup, budget, commands](13-modal.md)
+- [14 — Day 1: data plumbing, label cleaning, splits (T-01–T-03)](14-day1-data-plumbing.md)
+- [15 — Day 2: evaluator, taxonomy, ceilings (T-04–T-07)](15-day2-evaluator.md)
+- [16 — Day 3: baselines, R1, AxonPath, Cellpose, B1 launch (T-08–T-11)](16-day3-baselines.md)
+- [17 — Day 4: B1 outcome, scoring and oracle experiments (T-12, T-13)](17-day4-scoring-oracles.md)
+- [18 — Day 5: H1 GO/NO-GO decision (T-14) → **NO-GO**](18-day5-go-no-go.md)

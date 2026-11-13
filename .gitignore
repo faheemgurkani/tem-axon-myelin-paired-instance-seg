@@ -37,3 +37,6 @@ external/
 
 # personal TODO (never commit)
 docs/TODO.md
+
+# per-fiber GT-derived measurements (fine-grained derivative of unlicensed annotations): keep local
+results/day5/fibers_*.csv

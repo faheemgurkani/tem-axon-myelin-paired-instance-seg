@@ -84,6 +84,9 @@ once annotation noise is accounted for? And does a decoder that makes each fiber
 - **H3:** C3 raises recall on the overlap-disagreement fibers (fibers labelled in one tile, background in the other) by ≥ 10 points,
   and moves no official metric outside the B1 CI.
 - **H4:** the ranking of methods (B1 vs C2/C3) on challenge data is the same on ASTIH TEM1.
+- **H5 (added 13 Nov, post hoc, NOT pre-registered; see [18](18-day5-go-no-go.md) §3):** grouping/ring topology is a main source of *g-ratio* error even when it is negligible for detection.
+  - Evidence on B1: O-sep cuts g-MAE 0.0160 → 0.0093 (−42%). Instance-first grouping with the same pixels beats the watershed on g by 0.0046 [0.0031, 0.0061]. Fibers with broken predicted rings carry 56% of the g error.
+  - Status: a candidate for the next phase. It needs an owner decision and a fresh, pre-registered rule before it can drive any method choice.
 
 ## 4. Decision register
 
@@ -98,7 +101,7 @@ once annotation noise is accounted for? And does a decoder that makes each fiber
 | D-07 | HD95 = max of the two directed 95th percentiles (MONAI-style), per image per compartment, in nm (× 2.152); if one side is empty, use the image diagonal 10,936 nm | The spec doesn't say which variant; this is the most common in medical segmentation (report A evaluator table) | Stable, documented HD95. Sensitivity reported for the other variants | Organiser code |
 | D-08 | Always report fiber recall and matched count next to g-MAE | g-MAE ignores misses → gameable (report A) | Reviewers can see whether a low g-MAE was bought by skipping fibers | — |
 | D-09 | B1 = nnU-Net v2, 2D, **ResEnc-L** plans, labels {0 bg, 1 axon, 2 myelin, 3 ignore}, then a shared watershed pairing | nnU-Net is the established bar (Isensee 2024; ASTIH baseline). nnU-Net's ignore label must be the highest integer and is excluded from the loss (nnU-Net docs) | Dice near ASTIH-level (axon ≥ 0.95, myelin ≥ 0.88 expected on our harder, noisier data) | Dice far below → check normalisation/patch size before anything else |
-| D-10 | B1 trains 250 epochs (`-tr nnUNetTrainer_250epochs`, name verified in nnU-Net 2.8.1), one dev fold first. Plans: ResEnc-L if the GPU has ≥ 24 GB, else ResEnc-M | 1000 epochs × 5 folds doesn't fit 2 weeks. nnU-Net usually plateaus well before 1000 epochs on 2D data (to verify on our loss curve) | ≤ 1 day of GPU per run (estimate). **Revised 13 Nov after the timing run (142 s/epoch on L4, 97% GPU utilisation): `nnUNetTrainer_150epochs_ckpt10_es`.** The schedule is 150 epochs so the poly LR still anneals within the $10 budget (≈ 5.9 GPU-h), with a hard cap of 7 GPU-h. The original plan used `nnUNetTrainer_250epochs_ckpt10_es`: 250-epoch cap, checkpoint every 10 epochs (GPUs are preemptible), **early stopping** when the EMA pseudo-Dice gains ≤ 0.001 for 30 epochs (never before epoch 60), and final validation with `--val_best` ([13](13-modal.md) §3b). Log the stop epoch. Caveat: the poly LR schedule is defined over 250 epochs | Loss still falling at 250 → continue with `--c` |
+| D-10 | B1 trains 250 epochs (`-tr nnUNetTrainer_250epochs`, name verified in nnU-Net 2.8.1), one dev fold first. Plans: ResEnc-L if the GPU has ≥ 24 GB, else ResEnc-M | 1000 epochs × 5 folds doesn't fit 2 weeks. nnU-Net usually plateaus well before 1000 epochs on 2D data (to verify on our loss curve) | ≤ 1 day of GPU per run (estimate). **Revised 13 Nov after the timing run (142 s/epoch on L4, 97% GPU utilisation): `nnUNetTrainer_150epochs_ckpt10_es`.** The schedule is 150 epochs so the poly LR still anneals within the $10 budget (≈ 5.9 GPU-h), with a hard cap of 7 GPU-h. The original plan used `nnUNetTrainer_250epochs_ckpt10_es`: 250-epoch cap, checkpoint every 10 epochs (GPUs are preemptible), **early stopping** when the EMA pseudo-Dice gains ≤ 0.001 for 30 epochs (never before epoch 60), and final validation with `--val_best` ([13](13-modal.md) §3b). Log the stop epoch. Caveat: the poly LR schedule is defined over 250 epochs | Loss still falling at 250 → continue with `--c`. **Outcome (13 Nov):** B1 ran all 150 epochs; early stopping never fired (longest stale stretch 19 epochs under the min_delta rule, which has Keras semantics: the reference best only moves on a > 0.001 gain), best EMA at epoch 134, $7.69 ([17](17-day4-scoring-oracles.md) §1.1) |
 | D-11 | Shared semantic→instance pairing for every semantic baseline: marker watershed. Seeds = connected components of predicted axon (holes filled, ≥ 50 px); landscape = −EDT of (axon∪myelin); mask = axon∪myelin; then keep fibers with exactly one axon CC and a non-empty ring, writing 2k/2k+1 | One pairing module means baselines differ only in representation. Seeds from components, not integer centroids, avoid ADS's centroid-outside-concave-axon failure (report A) | Pairing behaviour identical across baselines; isolates the representation effect | — |
 | D-12 | B3 = Cellpose-SAM (`cpsam_v2`) trained on **filled fibers** (X∪X+1 as one instance) at **6× downsampling** (12.9 nm/px; was 4×, corrected 12 Nov because Cellpose-SAM's training range is 7.5–120 px, see [12](12-day0-5-resources.md)); axon/myelin split inside each fiber from B1's semantic probabilities | Fiber median diameter 755 nm = 351 px is far above Cellpose's training range (7.5–120 px); ×6 gives a median of 59 px and a 5–95% range of 37–99 px. Fibers are filled because a ring's centre lies in its hole, so flows to the centre fail on rings (report A). ASTIH Cellpose got the highest precision (0.990) | High precision, lower recall than B1, mirroring ASTIH (P 0.990 / R 0.797) | Small fibers lost at ×6 → try ×4 with `diameter` set |
 | D-13 | AxonPath zero-shot: rescale our images 2.152→8 nm/px (×0.269), percentile-normalise (1–99%), run the bundled `em` weights (= `em_cns`), smoke-tested at ~2 s/image on MPS, upsample instances back with nearest neighbour; compare its `InnerCylinder` (axon + tongue) with our axon | Our GT counts the tongue as axon (E4/[10](10-eda.md)); AxonPath's model was trained at 8 nm/px (report B) | A strong, independent pairing-rule baseline; possibly weaker Dice from domain shift | Zero-shot unusable → fine-tune only if day 4 time allows; otherwise report as is |
@@ -115,6 +118,7 @@ once annotation noise is accounted for? And does a decoder that makes each fiber
 | D-24 (13 Nov) | B1 trains with configuration `2d_bigpatch`: patch 896×1152, batch 3, inheriting everything else from the planner's `2d` (448×576, batch 13) | The planner's patch (0.96×1.24 µm) is smaller than a median fiber (755 nm = 351 px; 95th percentile 595 px), so a patch rarely shows a fiber with its touching neighbours. Pixels per step are nearly equal (3.10 M vs 3.35 M px), so the cost per step is the same | The same or better semantic Dice; better separation on touching fibers | B1 Dice far below the ceiling → run the default patch as an ablation |
 | D-25 (13 Nov) | Overlap groups v2: 8 more pairs found after the EDA registration bug was fixed (22 groups, 52 images); splits regenerated before any training | Five of the new pairs crossed the v1 dev split (leakage) ([15](15-day2-evaluator.md) §T-07) | No tissue on both sides of any split | An overlap found later that crosses a split → report it as a limitation; do not re-split after results |
 | D-26 (13 Nov) | T-10 reduced to **Cellpose-SAM zero-shot** (local, MPS, ×6), with B1's semantics splitting each instance into axon/ring. Fine-tuned B3 deferred | $10 GPU budget: B1 takes ≈ $7–8.5 (timing run: 142 s/epoch on L4) | An instance-first comparison at no GPU cost | Money left after B1 → fine-tune |
+| D-27 (13 Nov) | **H1 = NO-GO** → plan branch C1 + C3 (days 6–8). C2 is not built on the strength of H1 | B1: O-sep gain −0.0014 [−0.0058, +0.0030] vs ≥ 0.03 needed; O-sel +0.016 (strict) / +0.074 (broad); separation share 0.6% vs ≥ 30% ([18](18-day5-go-no-go.md)) | C1 is delivered as the main contribution; C3 targets selection | Owner adopts H5 with a pre-registered rule → C2 returns as a *morphometry* method (first test: GPU-free ring closing + instance-first regrouping on B1) |
 
 ## 5. Task list (day by day)
 
@@ -196,7 +200,7 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 3 — baselines start
 
-- [~] **T-08 nnU-Net dataset + B1 training** (dataset, plans, preprocessing and upload done; training running on Modal since 13 Nov, see [16](16-day3-baselines.md))
+- [x] **T-08 nnU-Net dataset + B1 training** (done 13 Nov: 150/150 epochs, best EMA epoch 134, 6.34 L4-hours, $7.69; val Dice axon 0.882 / myelin 0.861, **below the expectation below**: the shortfall is selection, see [17](17-day4-scoring-oracles.md) §1, §4)
   - **Do:**
     - Convert to nnU-Net format (Dataset501_TEMAxonMyelin, 2D, `.png` or `.tif` with `_0000` channel suffix).
     - Labels: {background 0, axon 1, myelin 2, ignore 3}. Label 1 → 3; cleaned defects → 3.
@@ -220,8 +224,8 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 4 — scoring and oracles
 
-- [ ] **T-12 Score B1/B3/AxonPath** on dev-val with T-04–T-06 and cluster-bootstrap CIs (D-22).
-- [ ] **T-13 Oracle experiments** (on B1, then on the others):
+- [x] **T-12 Score B1/B3/AxonPath** on dev-val with T-04–T-06 and cluster-bootstrap CIs (D-22). Done 13 Nov ([17](17-day4-scoring-oracles.md) §4): F1@0.5 B1 0.904 [0.881, 0.928], Cellpose+B1 0.885, AxonPath 0.784; g-MAE 0.016 / 0.0114 / 0.060.
+- [x] **T-13 Oracle experiments** (on B1, then on the others). Done 13 Nov ([17](17-day4-scoring-oracles.md) §5). **Expectation partly wrong:** O-sel was the largest gain, as expected; but O-sep gave **no** F1 gain on B1 (−0.001), not a modest one; and O-sep cut g-MAE by 42%, which was not anticipated.
   - **O-sel (oracle selection):** drop predicted fibers of taxonomy classes (a) and (c) → Δ precision and F1 = cost of selection.
   - **O-sep (oracle separation):** take the GT fiber instances (X∪X+1 regions) and fill the axon/myelin *compartments from B1's predicted semantics* inside each GT fiber → ΔF1, Δg-MAE = cost of grouping/pairing.
   - **O-pair-GT:** GT semantics → T-09 watershed (= R1). This is the error of the pairing *rule* with perfect pixels.
@@ -231,7 +235,7 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
 
 ### Day 5 — decision
 
-- [ ] **T-14 GO/NO-GO**
+- [x] **T-14 GO/NO-GO** → **NO-GO** (13 Nov, [18](18-day5-go-no-go.md)). All three H1 conditions failed on B1; the same holds on AxonPath and Cellpose+B1.
   - **Do:** apply the H1 rule to the T-13 numbers with CIs. Write the decision, the numbers and a one-paragraph interpretation into the Log.
   - **Expect:** a decision either way. Both branches below are fully planned.
 
@@ -353,3 +357,17 @@ Status markers: `[ ]` open, `[x]` done, `[~]` partial. Each task: **Do / Why / E
   - **AxonPath zero-shot:** F1 0.784, Dice 0.71/0.62, g-MAE 0.060. Separation is only 9% of its errors.
   - **Timing run:** 142 s/epoch, 97% GPU utilisation (compute-bound). D-10 revised to 150 epochs with early stopping.
   - B1 launched on an L4 with a 7 GPU-h cap. T-10 reduced to Cellpose zero-shot (D-26).
+- 2026-11-13 (day 4, [17](17-day4-scoring-oracles.md)): **B1 done**.
+  - 150/150 epochs; early stopping never fired (the min_delta rule's reference only moves on a > 0.001 gain; longest stale stretch 19). Best EMA 0.8743 at epoch 134; 6.34 L4-hours, no preemption, GPU utilisation 94%; **$7.69**.
+  - **Environment incident #2:** 109 launchers in `.venv/bin` (activate, pytest, modal, nnUNetv2_*) still executed the old repo copy's venv. Fixed by rewriting the paths. Earlier results are unaffected: the old copy only has stubs, so a wrong-venv run would have crashed.
+  - **T-12:** F1@0.5 B1 0.904 [0.881, 0.928] (ceiling 0.929), Cellpose+B1 0.885, AxonPath 0.784. g-MAE 0.016 / 0.0114 / 0.060. Our Dice equals nnU-Net's own (axon 0.8822 vs 0.8823), an independent evaluator check.
+  - **Deviations from expectations:**
+    - B1 val Dice 0.882 / 0.861 vs the expected ≥ 0.95 / ≥ 0.88. The cause is selection (O-sel-broad → 0.948 / 0.908), so D-24's fallback is not triggered.
+    - Cellpose+B1 has *higher recall, lower precision* than B1; the opposite of the ASTIH pattern expected in T-10, because ours is zero-shot and partitions the whole image.
+  - **T-13:** separation is 0.6% of B1's 331 errors (2 merges, 0 splits, 0 gap FPs). O-sep gain −0.001; O-sel +0.016 / broad +0.074; O-bnd +0.023 at F1@0.75.
+    - **Unexpected:** O-sep cuts g-MAE by 42% (0.016 → 0.0093). 28% of matched B1 fibers have broken predicted rings, carrying 56% of the g error.
+    - The B1 FP gallery shows ~7/16 real (thin-myelin) fibers, ~7 abnormal profiles and ~2 fragments.
+- 2026-11-13 (day 5, [18](18-day5-go-no-go.md)): **T-14: H1 = NO-GO (D-27).** No condition met, none borderline. The plan proceeds to the NO-GO branch (C1 + C3).
+  - **H5** recorded (post hoc, not pre-registered): grouping/ring topology drives g-ratio error. It is the owner's call whether to pre-register it.
+  - **Budget:** $8.16 of the $10 spent (Modal billing summary); $1.84 left. T-15′ (3-fold out-of-fold B1 ≈ $23 + retrain ≈ $8) does **not** fit the cap. Options are in [18](18-day5-go-no-go.md) §4.
+  - Days 6–8 were not started (out of scope for this run).

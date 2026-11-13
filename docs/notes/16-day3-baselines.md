@@ -217,9 +217,10 @@ This is an *instance-first* grouping, the C2 idea, using a generalist with no tr
 
 | Run | Container time | Est. cost | Result |
 |---|---|---|---|
-| Smoke checks (12–13 Nov, L40S + L4) | ~3 min | ~$0.05 | OK |
-| **Timing run** (`nnUNetTrainer_5epochs_ckpt1`, 2d_bigpatch, cap 0.3 h) | 18 min (cap reached in epoch 3) | ~$0.36 | See below |
-| **B1** (`nnUNetTrainer_150epochs_ckpt10_es`, 2d_bigpatch, fold 0, cap 7 h) | running | ≤ $8.5 | — |
+| Smoke checks (12–13 Nov, L40S + L4) | ~3 min | $0.02 (billing) | OK |
+| **Timing run** (`nnUNetTrainer_5epochs_ckpt1`, 2d_bigpatch, cap 0.3 h) | 18 min (cap reached in epoch 3) | $0.37 (billing) | See below |
+| **B1** (`nnUNetTrainer_150epochs_ckpt10_es`, 2d_bigpatch, fold 0, cap 7 h) | **6.34 h** (150/150 epochs, no early stop, no preemption) | **$7.69** (Modal billing) | Best EMA 0.874 at epoch 134; val Dice 0.882 / 0.861. Scored in [17](17-day4-scoring-oracles.md) |
+| **Total, Modal billing summary (Nov 2026)** | | **$8.16 of $10** | $1.84 left |
 
 **Timing run findings** (`data/nnunet/logs/modal_timing_run.log`, GPU log `data/processed/modal_runs/…5epochs….csv`):
 
@@ -239,3 +240,5 @@ This is an *instance-first* grouping, the C2 idea, using a generalist with no tr
 - Capping wall-time would stop the poly learning-rate schedule half way, at a high LR. **The schedule was shortened to 150 epochs instead** (`nnUNetTrainer_150epochs_ckpt10_es`), so the LR anneals to ~0. Early stopping (patience 30, min epoch 60) may stop it earlier. That is D-10, revised.
 - Compile warm-up (~4 min) is paid again after every preemption. That is accepted, because preemptions are rare.
 - Memory use (9.2 GB) leaves room for a larger batch. Not used, since the GPU is already saturated.
+
+**Next:** B1's outcome, the scoring of all baselines and the oracle experiments are in [17](17-day4-scoring-oracles.md). The H1 decision is in [18](18-day5-go-no-go.md).
