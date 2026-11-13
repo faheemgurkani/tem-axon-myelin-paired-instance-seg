@@ -1,4 +1,6 @@
-# Challenge submission template
+# Challenge submission template (not used)
+
+We did not register for SIPAIM 2026, and no submission is planned (D-23). The template is kept because the challenge's required layout defines the `train.py` / `predict.py` entry points.
 
 ```text
 TeamOrLastName_Institution_SIPAIM2026.zip
@@ -7,4 +9,4 @@ TeamOrLastName_Institution_SIPAIM2026.zip
 └── predictions/               # uint16 .tif/.png, same filenames as the test images
 ```
 
-Build it with `python scripts/package_submission.py`.
+`scripts/package_submission.py` is a stub.

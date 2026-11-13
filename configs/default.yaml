@@ -1,26 +1,32 @@
-# Defaults follow docs/reports/"TEM axon myelin segmentation review.md" (evaluator table). Every switch is reported in a sensitivity table.
+# Evaluator choices for every ambiguity in the challenge spec (docs/notes/04-methods.md §2; decisions D-03–D-08, D-22).
+# The values below are what src/axon_myelin_seg/evaluation/ implements today.
+# Status: no code reads this file yet. The evaluator hard-codes these defaults, and scripts/evaluate.py is a stub.
+# The alternatives after "|" are the planned sensitivity switches (T-16′ in docs/notes/07-plan.md).
 data:
-  root: data/raw/challenge
+  root: data/raw/train-dataset          # train_samples/, train_instance_labels/
   pixel_size_nm: 2.152
-  image_size: [3008, 4096]   # H, W
+  image_size: [3008, 4096]              # H, W (numpy order)
   ignore_label: 1
 split:
-  file: configs/splits/image_level_5fold_seed0.json   # frozen once created; committed
-  group_by: image          # animal / block once metadata is known
-  n_folds: 5
-  heldout_fraction: 0.2    # ~53 images, never used for tuning
+  dev: configs/splits/dev.json          # fold 0 of 5: 213 train / 53 val; frozen
+  cv3: configs/splits/cv3.json          # 3-fold for final numbers; frozen
+  groups: configs/splits/overlap_groups.json   # v2: 22 groups / 52 images; every other image is its own group
+  method: StratifiedGroupKFold, stratified by group fiber-density tercile, seed 0
 evaluation:
-  artifact_policy: remove_gt1_from_both      # | drop_adjacent_boundary_points
+  artifact_policy: remove_gt1_from_both      # D-05
+  pred_on_ignore_fraction: 0.5               # a predicted fiber ≥ 50% on GT label 1 is ignored (neither TP nor FP)
   dice_aggregation: per_image                # | pooled | matched_instance_mean
   dice_both_empty: nan                       # | one
-  hd95_mode: max_directed_p95                # | pooled_percentile (panoptica) | surfel_weighted (DeepMind) | per_instance
-  hd95_boundary: inner                       # | outer | both
-  hd95_one_empty: image_diagonal             # ~10,936 nm; | inf
-  match_iou_threshold: 0.5                   # | 0.0 (hungarian any-overlap) | 0.1 | 0.3 | 0.75
-  match_algorithm: greedy                    # | hungarian (identical above 0.5)
-  pairing_validity: strict                   # unpaired IDs count in Dice/HD95 but cannot match; | lenient
-  border_fibers: include                     # | exclude_morphometry | exclude_matching
-  g_ratio_definition: equivalent_circle      # = sqrt(A_axon / A_fiber); | min_feret (sensitivity only)
-  report_fiber_recall_with_g_mae: true
-  ranking: aggregate_then_rank               # | rank_then_aggregate; tiebreak = lower HD95_Mean
-  bootstrap_samples: 1000
+  hd95_mode: max_directed_p95                # D-07 | pooled_percentile (panoptica) | surfel_weighted (DeepMind) | per_instance
+  hd95_boundary: compartment_mask_edges      # every edge of the axon / myelin mask (the myelin's inner and outer contours)
+  hd95_one_empty: image_diagonal             # 10,936 nm | inf
+  match_iou_threshold: 0.5                   # D-06 | 0.3 (ASTIH also reports) | 0.75
+  match_algorithm: greedy                    # identical to hungarian above 0.5
+  pairing_validity: strict                   # unpaired IDs count in Dice/HD95 but cannot match
+  border_fibers: as_in_gt                    # border-cut fibers are GT label 1, hence ignored
+  g_ratio_definition: equivalent_circle      # sqrt(A_axon / A_fiber) | min_axis | feret (sensitivity only)
+  g_mae_pooling: fiber_weighted              # mean over all matched fibers of all images
+  report_fiber_recall_with_g_mae: true       # D-08
+  f1_aggregation: micro                      # summed TP/FP/FN over images
+  bootstrap: {samples: 1000, unit: overlap_group, ci: 0.95, paired_for_differences: true}   # D-22
+  ranking: not_implemented                   # planned: aggregate_then_rank, tiebreak = lower HD95_Mean

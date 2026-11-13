@@ -1,4 +1,3 @@
-# Baseline: micro_sam
+# Baseline: micro_sam (deferred)
 
-See docs/notes/04-methods.md §4. Put the wrapper, config and run notes here.
-All outputs go through `axon_myelin_seg.postprocessing.pairing` and `axon_myelin_seg.evaluation`.
+Not implemented. Deferred by D-23 (time and GPU budget); see `docs/notes/07-plan.md`.

@@ -1,4 +1,6 @@
-# Baseline: axondeepseg
+# Baseline: axondeepseg (deferred)
 
-See docs/notes/04-methods.md §4. Put the wrapper, config and run notes here.
-All outputs go through `axon_myelin_seg.postprocessing.pairing` and `axon_myelin_seg.evaluation`.
+Not implemented. Deferred by D-23 (time and GPU budget); see `docs/notes/07-plan.md`.
+
+AxonDeepSeg / ASTIH code is used instead in task T-17: reproducing ASTIH's TEM1 numbers with our evaluator. The clones are in `external/ASTIH` and `external/axondeepseg`.
+Their centroid-seeded watershed is the pairing rule that our component-seeded one (`postprocessing/pairing.py`) improves on.
