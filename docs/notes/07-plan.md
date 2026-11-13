@@ -87,6 +87,7 @@ And does a decoder that is nested by construction remove (b)?
   3. Retrain B1 with them (≈ $8).
   4. Evaluate on (i) the official metrics and (ii) the overlap-disagreement fibers. These are the only fibers where a "miss" is known to be a real fiber. Expect H3.
   - **Cheaper variants:** 60-epoch folds (~2.4 h each); or use the dev-fold B1 only and skip out-of-fold labels for train images.
+  - **Novelty check (14 Nov, [report](../reports/C3%20incomplete%20label%20learning%20novelty.md)):** the ignore mechanism is nnU-Net's own ignore label (Gotkowski 2024), and the closest prior work is LNQ 2023 (atlas-weighted loss for selectively labelled lymph nodes; recall +3 points). Add baselines: soft down-weighting, a PU loss, and a random-ignore control with the same pixel budget. H3's ≥ 10 points may be optimistic; record the outcome against it, without editing H3.
 - **T-16′ Full C1 analyses** (local CPU, no GPU):
   - decomposition for every baseline (done);
   - **recall-vs-g-MAE gaming curve:** drop fibers by size or confidence and plot g-MAE against recall;
