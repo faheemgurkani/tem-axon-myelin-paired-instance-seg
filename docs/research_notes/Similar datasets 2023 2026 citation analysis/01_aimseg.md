@@ -1,6 +1,6 @@
 # AimSeg corpus-callosum TEM (PLoS Comput Biol 2023; Zenodo 8351731 / 6327209 / 8021007)
 
-## Introducing paper (read in full, PMC10691719)
+## Introducing paper (read in full, PMC10691719; local PDF: docs/references/papers/pcbi.1010845.pdf, 21 pp.)
 Carrillo-Barbera, Rondelli, Morante-Redolat, Vernay, Williams, Bankhead. PLoS Comput Biol 19(11):e1010845, 17 Nov 2023. Edinburgh (Williams lab) + Valencia.
 - **Data:** adult mouse CC, **remyelinating after a unilateral toxin-induced demyelinating lesion** + healthy control. JEOL JEM-1400 Plus, GATAN OneView, 7.1k x, 4096x4096, **2.1046 nm/px** (8.62 x 8.62 um) - acquisition very close to ours (2.152 nm/px). Downsampled x4 (8.42 nm/px) for the tool.
 - Splits: classifier training 5 images from 1 mouse; **validation GT 5 images / 4 mice**; **control GT 3 images / 1 healthy mouse**. One expert annotator (QuPath).
