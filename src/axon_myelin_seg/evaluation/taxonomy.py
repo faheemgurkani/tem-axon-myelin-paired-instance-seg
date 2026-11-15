@@ -52,13 +52,18 @@ SEPARATION_GT = ("merged", "split")
 SELECTION_PRED = ("unlabelled_real",)
 
 
-def ring_candidates(image: np.ndarray, gt: np.ndarray, ds: int = 4, min_d_nm: float = 300.0) -> np.ndarray:
+def ring_candidates(image: np.ndarray, gt: np.ndarray, ds: int = 4, min_d_nm: float = 300.0,
+                    px_nm: float = 2.152) -> np.ndarray:
     """Label map (full resolution) of unlabelled ring-candidate *holes*. Same algorithm as scripts/eda/unl_loc.py.
 
     - Smooth the image.
     - Threshold half-way between the GT myelin and GT background medians.
     - Open the dark mask, then take the holes enclosed by dark bands.
     - Keep holes that are ≥ 300 nm in equivalent diameter, solid (solidity ≥ 0.8), and not mostly labelled.
+
+    The smoothing and opening act in downsampled pixels, so for other datasets pick ``ds`` so that ``ds * px_nm``
+    stays near the challenge's 8.6 nm (TEM1 2.36 nm/px -> ds 4; TEM2 4.93 nm/px -> ds 2). ``px_nm`` converts the
+    diameter and maximum-area limits; the defaults reproduce the challenge behaviour exactly.
     """
     img = image[::ds, ::ds].astype(np.float32)
     m = gt[::ds, ::ds]
@@ -73,8 +78,9 @@ def ring_candidates(image: np.ndarray, gt: np.ndarray, ds: int = 4, min_d_nm: fl
     keep = np.zeros(L.max() + 1, np.int32)
     k = 0
     for p in regionprops(L):
-        d_nm = 2 * np.sqrt(p.area * ds * ds / np.pi) * 2.152
-        if d_nm < min_d_nm or p.area * ds * ds > 1.2e6 or p.solidity < 0.8:
+        d_nm = 2 * np.sqrt(p.area * ds * ds / np.pi) * px_nm
+        area_nm2 = p.area * ds * ds * px_nm * px_nm
+        if d_nm < min_d_nm or area_nm2 > 1.2e6 * 2.152 ** 2 or p.solidity < 0.8:
             continue
         vals = m[L == p.label]
         if (vals >= 2).mean() > 0.5 or (vals == 1).mean() > 0.5:

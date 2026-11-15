@@ -1,0 +1,35 @@
+{
+ "TEM1": {
+  "images": 158,
+  "px_nm": 2.36,
+  "ds": 4,
+  "candidates": 49,
+  "fibers": 7841,
+  "candidates_per_100um2_bg": 1.2822036491023652,
+  "fibers_per_100um2_img": 103.60848985400747,
+  "unlabelled_share_u": 0.006210392902408111,
+  "u_per_image_median": 0.0
+ },
+ "TEM2_test": {
+  "images": 21,
+  "px_nm": 4.93,
+  "ds": 2,
+  "candidates": 0,
+  "fibers": 292,
+  "candidates_per_100um2_bg": 0.0,
+  "fibers_per_100um2_img": 158.91585081336945,
+  "unlabelled_share_u": 0.0,
+  "u_per_image_median": 0.0
+ },
+ "ours": {
+  "images": 266,
+  "px_nm": 2.152,
+  "ds": 4,
+  "candidates": 433,
+  "fibers": 8015,
+  "candidates_per_100um2_bg": 5.062705395302328,
+  "fibers_per_100um2_img": 52.80798254377455,
+  "unlabelled_share_u": 0.05125473484848485,
+  "u_per_image_median": 0.03571428571428571
+ }
+}

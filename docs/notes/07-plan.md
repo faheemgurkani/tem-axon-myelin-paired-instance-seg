@@ -31,6 +31,7 @@ And does a decoder that is nested by construction remove (b)?
 | **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) |
 | H4 | The method ranking is the same on ASTIH TEM1 | Open (T-17) |
 | **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in §7.2 |
+| **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) | Open. Full rule in §7.4. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise |
 
 ## 3. Decision register (compact)
 
@@ -65,6 +66,9 @@ And does a decoder that is nested by construction remove (b)?
 | **D-27** | **H1 = NO-GO → branch C1 + C3**; no C2 on the strength of H1 | 13 Nov. Revisit only if the owner pre-registers H5 |
 | **D-28** | GPU budget: $60 ceiling including the $8.16 spent, released in tranches. A ≈ $23 (cap $26) T-21; B ≈ $15.4 (cap $17) C3 pilot with 2 arms; C ≈ $15.4 (cap $17) C3 full; ~$12 reserve. Each tranche opens on a gate; C2 is outside it | 15 Nov. The earlier "pilot ≈ $8" costed one arm only. T-15′'s dev-only cheaper variant is ruled out: B1's dev model has seen the training images, so its probabilities there would bias the ignore masks |
 | **D-29** | H5 adopted and pre-registered. Metric: equivalent-circle g, matching IoU > 0.5, paired cluster bootstrap. H5a: O-sep Δg-MAE ≥ 25% relative, CI excludes 0. H5b: defective fibers ≤ 35% of fibers but ≥ 40% of \|g err\|, and ≥ 50% of O-sep's reduction. H5c: post-processing tuned on dev and frozen captures ≥ 50% of O-sep's gain, ΔF1@0.5 and Δrecall lower CI ≥ −0.005. Gate 3a: H5a fails → reject; H5a+H5c → measurement finding, no C2; H5a only → C2 candidate (new budget) | 15 Nov. Amendments only before any T-21 prediction exists, with a logged reason |
+| **D-30** | AxonPath CC TEM approved as an external dataset (T-17 item 7): download and check now, score only after Gate 0. AxonPath's own model is **never** scored on it (tile-level training split) | 15 Nov (engineer, delegated) |
+| **D-31** | H6 rewritten from the completeness audit (TEM1 near-complete, ours selective) and pre-registered as H6a/H6b. TEM2 rule deferred until full-image TEM2 is audited | 15 Nov. Premise reversal logged in §6 and §7.4 |
+| **D-32** | B4: primary per-fiber g = equivalent-circle D_A/D_F (challenge = ADS default). Also report D_A and D_F errors; population summaries use the g' cline (D_A-on-D_F slope with intercept), never mean g or a regression of g on diameter (Gow 2026); bin by fiber diameter; with/without oblique fibers. Yardstick (B5): smallest meaningful group shift ≈ 0.03, disease 0.05–0.10 | 15 Nov. Evidence: `docs/research_notes/Phase 0b evidence/02_gow_g_ratio.md`, `06_g_effect_sizes_B5.md` |
 
 ## 4. Tasks
 
@@ -180,6 +184,19 @@ And does a decoder that is nested by construction remove (b)?
   - Full rationale in §7. No compute was used and nothing was spent (total still $8.16).
   - Commits: `c829031` (decisions, report); the follow-up commit adds §7, the evidence note and the status updates in 01/02/06 and the README.
   - **Owner action open:** set a $60 Modal workspace spend limit.
+- **15 Nov, Phase 0b** (evidence in `docs/research_notes/Phase 0b evidence/` 01–08):
+  - **Read in full:** Gow 2026 (B4 → D-32), Chuter 2026 (now published in *Bioengineering*, not a bioRxiv preprint; corrects the 13 Nov note), Bukas 2026 (boundary-style batch effects; hard ignore is safer than pseudo-labels for C3), BMVC 2021 (an oracle ignore helps a lot, pseudo-labels help more), Vădineanu 2024 (random omission only).
+  - **Read in part:** ReCo-I2P (abstract and reviews; size-based simulated omission).
+  - **Bi-Polar Mask** is still paywalled; no institutional access in the browser.
+  - **2026 sweep:** the MICCAI open-access index lists only 313 papers; no hit there. New must-cite: Parikh et al., NeurIPS 2026 (Confident-Learning audit of label bias in segmentation).
+  - **AxonDeepSeg** reviewed (D2): centroid pairing, g = ADS default.
+  - **Released models:** TEM1 model is leakage-free on `sub-nyuMouse26`; TEM2 is in-animal; AxonPath is tile-level (D-30).
+  - **Data:** TEM1 complete (158 images, 7,841 fibers); TEM2 test ROIs (21); TEM2 DANDI and AxonPath still downloading.
+  - **Label mapping** passed the by-eye test.
+  - **Completeness audit:** ours u 5.1% (~83% real fibers by eye, ~60% of them abnormal) vs TEM1 u 0.6% (~88% interstitial gaps). **The C4 premise reverses:** TEM1 is near-complete, and ours is the selective set. The 13 Nov "F1 follows completeness" claim is contradicted → **D-31** H6 rewritten and pre-registered.
+  - **New idea (B5):** protocol selection can bias group-mean g more than segmentation does; to test in T-16′.
+  - **C3 caveat:** report FPs on protocol-excluded abnormal fibers in the pilot.
+  - No compute was spent.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
@@ -249,3 +266,37 @@ H5b is interpretive. It decides whether the paper may say "ring topology", or on
   2. model-seeded ground truth that favours model-like predictions;
   3. an in-animal test split.
 - **Change:** a completeness audit on both datasets (Phase 0b) replaces the assumption, and H6 is written from its result.
+
+### 7.4 Phase 0b decisions (15 Nov 2026)
+
+**D-30, AxonPath CC TEM.** Approved for download and checks. Its 8 AimSeg-derived images are flagged.
+- AxonPath's released `em_cns` model trained on tiles from every image, so it is **never** scored there.
+- The dataset serves GT-only analyses (completeness, pairing metric on GT, H5 checks) and scoring of *our* models.
+
+**D-31, H6 rewritten from the completeness audit, then pre-registered.**
+
+*Why rewritten.* The plan's H6 ("selection share high on TEM1, low on TEM2") assumed TEM1 was selectively labelled ("full rings only"). Same-detector audit (`07_external_datasets.md` §4):
+
+| | u | Candidates that are real fibers (by eye, 48) | Real unlabelled per labelled fiber |
+|---|---|---|---|
+| Ours | 5.1% | ~83% | ≈ 4.2% |
+| TEM1 | 0.6% | ~8% | ≈ 0.05% |
+
+The premise is reversed. Nothing had been scored on TEM1, so rewriting is legitimate. This entry is the log of it.
+
+*H6 (C1's mechanism outside our data).* If selection errors track label incompleteness, a near-complete dataset shows a small selection share of errors.
+- **H6a (primary).** On TEM1's leakage-free test subject `sub-nyuMouse26` (8 images, 503 fibers), using ASTIH's released TEM1 model (`default-TEM-model` r20240403) with **ADS's own post-processing**, scored by our evaluator at IoU > 0.5 with ASTIH's convention (border fibers scored):
+  - **strict selection share** = unlabelled_real / (FP + FN) **≤ 5%** (ours, B1: 18.4%), **and**
+  - **broad selection share** = (unlabelled_real + other_bg) / (FP + FN) **≤ 39%** (half of B1's 78.9%).
+- **H6b (secondary).** The most frequent TEM1 FP class is **not** unlabelled_real. All classes are reported, plus the share of errors on border-touching fibers (33% of TEM1 fibers touch the border).
+- **Prerequisite (gate).** T-17 first reproduces ASTIH's TEM1 numbers with that model and pipeline (±0.01 Dice, ±0.03 F1@0.5, IoU threshold set explicitly). If it doesn't reproduce, H6 is **not run** until the evaluator or pipeline difference is found.
+- **Statistics.** One test animal, so there is no animal-level inference. Image-level bootstrap over 8 images, reported as a limitation. Sensitivity: the ring-candidate detector at ds 3 and 5.
+- **Outcomes:**
+  - H6a holds → C1's mechanism replicates: selection errors scale with how incomplete the labels are, and TEM1's low precision has another cause, named by H6b's class table.
+  - H6a fails → errors on unlabelled structures arise even with near-complete labels. Part of what we call "selection" on our data may then be model over-prediction. Revisit C1's wording, and weight T-20 (by-eye audit) as decisive.
+- **TEM2.** Deferred. The 600×600 test ROIs are too small for the detector. The TEM2 rule is written after auditing the full DANDI images, before any TEM2 score.
+- **Amendments** only before the first TEM1 prediction exists, with a logged reason.
+
+**D-32, primary g (B4) and yardstick (B5).** See the register row and `02_gow_g_ratio.md` / `06_g_effect_sizes_B5.md`.
+- Gow's critique targets population-level g estimation, not per-fiber D_A/D_F. So the challenge's equivalent-circle g stays primary, and the g' cline is used for group summaries.
+- Group bias matters for biology. B1's bias (−0.0002) is far below the ~0.03 smallest meaningful shift, so H5's relevance must be argued per fiber (share of fibers with |g error| > 0.03).
