@@ -155,6 +155,15 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
   - Not yet adopted. Audit issues: t_k must come from B1 zero-shot (leakage); the budget (≈ $72) exceeds the $60 ceiling; T-20 is the anchor; r ≈ 0.93 is an upper bound.
 - **Next:** Phase 1 (expert review T-20 + T-23/H7, T-16′, H5c, then T-21).
 
+**Phase 1 (16 Nov; numbers in [05](05-results.md) §8):**
+- Selection dominates the errors of **all three** models.
+- g-MAE can't be gamed by dropping small fibers, but dropping the hardest 5% cuts it by 27%, so recall always goes beside it.
+- Perimeter-based g is unsafe for comparing methods.
+- **H5c frozen** (nearest-axon regrouping; 54% of the perfect-grouping gain on dev, in-sample).
+- **T-21 running** on Modal.
+- H7: the automatic ring tracer failed its own accuracy check, so only the count bias (H7b) has a provisional value: **≈ 6.5% of myelinated fibers uncounted**.
+- **Gate 1 waits only on the expert ratings.**
+
 **Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).
 2. **H5.** "Grouping and ring topology drive g-ratio error". It is post hoc, so it needs a pre-written rule before it can justify reviving C2 as a *morphometry* method.
