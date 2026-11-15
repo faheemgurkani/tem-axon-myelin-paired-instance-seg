@@ -215,6 +215,10 @@ And does a decoder that is nested by construction remove (b)?
   - **Expert review packet built (D-33):** 260 blind items, `scripts/run/expert_review_packet.py` → `data/processed/expert_review/` (local only; contains challenge crops).
   - **TEM1 groups:** the Jelescu 2016 design was read (33 EM mice: 9 Ctl, 12 Cpz6, 12 Cpz12). TEM1 holds 20, mapping unpublished. A GT proxy (3 clusters) puts the test mouse `sub-nyuMouse26` in the **control-like** cluster, so H6 on TEM1 mostly tests healthy tissue (a limitation, reported with H6). An email to the ASTIH authors is drafted, not sent.
   - **Assessment of C1/C3/H5 standings:** `docs/research_notes/Phase 0b evidence/09_standings_after_phase0.md`.
+  - **Overlooked gaps (owner question), proposals awaiting a decision** (`11_overlooked_gaps.md`):
+    1. run our B1 on the near-complete outside sets and measure recall by fiber type, which also gives C3 a large known-positive test set;
+    2. protocol bias on mean g and fiber counts as a named C1 result;
+    3. abnormal fibers as an explicit third class (a C3 design option).
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
