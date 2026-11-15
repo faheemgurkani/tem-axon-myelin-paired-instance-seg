@@ -69,6 +69,7 @@ And does a decoder that is nested by construction remove (b)?
 | **D-30** | AxonPath CC TEM approved as an external dataset (T-17 item 7): download and check now, score only after Gate 0. AxonPath's own model is **never** scored on it (tile-level training split) | 15 Nov (engineer, delegated) |
 | **D-31** | H6 rewritten from the completeness audit (TEM1 near-complete, ours selective) and pre-registered as H6a/H6b. TEM2 rule deferred until full-image TEM2 is audited | 15 Nov. Premise reversal logged in §6 and §7.4 |
 | **D-32** | B4: primary per-fiber g = equivalent-circle D_A/D_F (challenge = ADS default). Also report D_A and D_F errors; population summaries use the g' cline (D_A-on-D_F slope with intercept), never mean g or a regression of g on diameter (Gow 2026); bin by fiber diameter; with/without oblique fibers. Yardstick (B5): smallest meaningful group shift ≈ 0.03, disease 0.05–0.10 | 15 Nov. Evidence: `docs/research_notes/Phase 0b evidence/02_gow_g_ratio.md`, `06_g_effect_sizes_B5.md` |
+| **D-33** | Blind expert review: T-20 (61 `unlabelled_real` + 40 `other_bg`) and the completeness-audit candidates (159), 260 items in one shuffled packet. Pass rules fixed before rating: T-20 ≥ 70% real (expert); κ ≥ 0.6 between expert and owner; ours ≥ 70% real; each external ≤ 25% real (else that dataset's H6 run waits for a re-check) | 15 Nov. Protocol: `docs/research_notes/Phase 0b evidence/10_expert_review_protocol.md` |
 
 ## 4. Tasks
 
@@ -209,6 +210,11 @@ And does a decoder that is nested by construction remove (b)?
     - the by-eye audit counts need a domain expert (with T-20);
     - TEM1's per-mouse condition is missing (ask the ASTIH authors, or use the GT-g proxy).
   - **Owner actions:** the $60 Modal spend limit; the Bi-Polar Mask PDF via Sir Faizan.
+- **15 Nov, follow-ups:**
+  - **Modal workspace usage limit set to $60** in the dashboard (Settings → Usage & billing → Usage limit; Modal's default was $105; $8.07 used). The separate card "spend limit" was left untouched.
+  - **Expert review packet built (D-33):** 260 blind items, `scripts/run/expert_review_packet.py` → `data/processed/expert_review/` (local only; contains challenge crops).
+  - **TEM1 groups:** the Jelescu 2016 design was read (33 EM mice: 9 Ctl, 12 Cpz6, 12 Cpz12). TEM1 holds 20, mapping unpublished. A GT proxy (3 clusters) puts the test mouse `sub-nyuMouse26` in the **control-like** cluster, so H6 on TEM1 mostly tests healthy tissue (a limitation, reported with H6). An email to the ASTIH authors is drafted, not sent.
+  - **Assessment of C1/C3/H5 standings:** `docs/research_notes/Phase 0b evidence/09_standings_after_phase0.md`.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 

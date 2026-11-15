@@ -106,3 +106,43 @@ No image hash check is needed. AxonPath's 8 AimSeg images are flagged by name in
 5. **TEM1's per-mouse condition is not in the metadata**, so "score control animals only" can't be done as planned.
    - Proxy: stratify mice by GT median g (cuprizone raises g); report it as a proxy.
    - Or ask the ASTIH authors for the mapping.
+
+## 6. TEM1 per-mouse condition (15 Nov): what is known, a proxy, and a request
+
+**Known design** (Jelescu 2016, PMC4851889, read 15 Nov; Fig. 2A, counts of EM mice in red):
+- 36 female C57BL/6 mice in three diet arms of 12: **Ctl**, **Cpz6** (6 weeks of 0.2% cuprizone, then recovery), **Cpz12** (12 weeks, then recovery).
+- EM at weeks 6, 12 and 18:
+
+| Arm | Wk 6 | Wk 12 | Wk 18 | EM mice |
+|---|---|---|---|---|
+| Ctl | 3 | 3 | 3 | 9 |
+| Cpz6 | 6 (on cuprizone) | 6 (after 6 wk recovery) | — | 12 |
+| Cpz12 | — | 6 (on cuprizone) | 6 (after recovery) | 12 |
+
+- **TEM1 holds 20 of these 33 mice. Which ones is not published**; `participants.tsv` has species only.
+- The paper's g is an aggregate (tAVF / (MVF + tAVF)). Its EM labels were "full myelin rings" from threshold + connected components.
+
+**Proxy from the labels** (`scripts/run/phase0b_tem1_condition_proxy.py` → `results/phase0b/tem1_mouse_proxy.csv`):
+- Features per mouse: myelinated fibers per 100 µm², myelin volume fraction, median per-fiber g, share of fibers with g > 0.85.
+- Grouping: k-means into 3 clusters on standardised features. **Exploratory, not truth.**
+
+| Cluster | Mice | Fibers per 100 µm² | MVF | Median g | g > 0.85 | Reading |
+|---|---|---|---|---|---|---|
+| 0 | 25, **26 (test)**, 27, 30, 35, 36 | 139 | 0.26 | 0.78 | 7% | **control-like**: dense, well myelinated |
+| 1 | 07, 09, 10, 11, 12, 15, 28, 29 | 93 | 0.18 | 0.75 | 5% | **demyelinated**: fewer fibers; survivors keep thick myelin (low g) |
+| 2 | 13, 14, 31, 32, 33, 34 | 86 | 0.14 | 0.81 | 19% | **remyelinating**: few fibers, many with thin new myelin |
+
+**Consequences:**
+- **The leakage-free test mouse `sub-nyuMouse26` looks control-like.** H6a/H6b on TEM1 therefore mostly test *healthy* tissue, and this goes in H6's report as a limitation.
+- A small selection share there would not show that cuprizone tissue is completely labelled.
+- **Sensitivity readout for H6** (no extra leakage): the per-cluster completeness audit is GT-only, so it can be run on all 20 mice.
+- The proxy can't separate "control" from "fully recovered". Mouse IDs 07–15 against 25–36 may reflect sacrifice batches; unknown.
+
+**Draft request to the ASTIH authors** (for the owner to send; not sent):
+> Subject: TEM1 (DANDI 001436): per-mouse diet group and timepoint
+>
+> Dear Dr Collin and Prof. Cohen-Adad,
+> thank you for releasing ASTIH. We are using TEM1 (DANDI 001436, v0.250512.1625) for an external evaluation of axon–myelin segmentation. The participants file lists species only. Could you share, for the 20 subjects (sub-nyuMouse07 … sub-nyuMouse36), the diet group (control, Cpz6, Cpz12) and sacrifice week from Jelescu et al. 2016? We would cite the dataset and acknowledge the help.
+> Kind regards, …
+
+Recipient addresses are on the ASTIH paper and the DANDI page. Sending it is the owner's decision.
