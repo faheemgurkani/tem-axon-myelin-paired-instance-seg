@@ -34,7 +34,7 @@ And does a decoder that is nested by construction remove (b)?
 | **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. **H6c (TEM2, added 15 Nov after its audit, before any TEM2 score):** the same two thresholds on TEM2's external test set. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) on each dataset | Open. Full rule in §7.4. **Limitation (15 Nov):** the leakage-free TEM1 test mouse looks control-like (proxy), so a TEM1 pass speaks mainly for healthy tissue. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise |
 | **H7** *(added 15 Nov, D-34; C1)* | The labelling protocol biases the morphometric endpoint. **Two-sided.** H7a: including the expert-confirmed skipped fibers shifts mean per-fiber g by \|Δ\| ≥ 0.03. H7b: the protocol under-counts myelinated fibers by ≥ 5%. H7c: it changes the share of fibers with g > 0.85 by ≥ 2 points (absolute) | Planned (T-23). **Feasibility caveat written before any data:** Δ mean g ≈ p·(g_skipped − g_labelled); at p ≈ 5% H7a needs a g difference ≈ 0.6 and will almost surely fail. It is kept to report honestly; H7b/H7c are the better-powered readouts. "Masks disease" needs per-image condition (A2). Full rule §7.5 |
 | **H8** *(added 15 Nov, D-34; C1, + C3 outside test)* | Training on selective labels creates a hidden stratification. On near-complete outside data, B1's recall gap (thin-myelin minus normal fibers) is worse than a reference model trained on complete labels. Holds if (gap_B1 − gap_ref) ≤ −0.10 with a mouse-bootstrap CI below 0 | Planned (T-22). Tests **thin-myelin** fibers only (outside sets also exclude degenerating rings). The reference must be leakage-free and see thin fibers, so it needs a TEM1 fold holding out the remyelinating-like mice (≈ $8, reserve). Full rule §7.5 |
-| H9 *(proposed 15 Nov, not adopted; C3 methods route)* | On the TEM1 controlled two-part omission benchmark (T-24), the fiber-level selection-gated soft ignore beats **both** hard ignore and the random-ignore control on normal-fiber recall against protocol truth (paired mouse-bootstrap CI > 0), **and** its protocol-violation rate is ≤ the naive arm's + 0.05. Official metrics never decide | Draft; fixed on adoption, before any run. Design: [C3 methodology report](../reports/C3%20methodology%20design.md); audit findings in the log (15 Nov) |
+| **H9** *(pre-registered 15 Nov, D-35; C3)* | On the TEM1 controlled two-part omission benchmark (T-24), the fiber-level selection-gated soft ignore (R4) beats **both** hard ignore (R2) and the random-ignore control (R3) on normal-fiber recall against protocol truth (paired mouse-bootstrap 95% CI of each difference > 0), **and** its protocol-violation rate is ≤ the naive arm's (R1) + 0.05. Official metrics never decide | Open. Full rule and simulation parameters in §7.6. R5–R7 run only if H9 holds |
 
 ## 3. Decision register (compact)
 
@@ -74,6 +74,8 @@ And does a decoder that is nested by construction remove (b)?
 | **D-32** | B4: primary per-fiber g = equivalent-circle D_A/D_F (challenge = ADS default). Also report D_A and D_F errors; population summaries use the g' cline (D_A-on-D_F slope with intercept), never mean g or a regression of g on diameter (Gow 2026); bin by fiber diameter; with/without oblique fibers. Yardstick (B5): smallest meaningful group shift ≈ 0.03, disease 0.05–0.10 | 15 Nov. Evidence: `docs/research_notes/Phase 0b evidence/02_gow_g_ratio.md`, `06_g_effect_sizes_B5.md` |
 | **D-33** | Blind expert review: T-20 (61 `unlabelled_real` + 40 `other_bg`) and the completeness-audit candidates (159), 260 items in one shuffled packet. Pass rules fixed before rating: T-20 ≥ 70% real (expert); κ ≥ 0.6 between expert and owner; ours ≥ 70% real; each external ≤ 25% real (else that dataset's H6 run waits for a re-check) | 15 Nov. Protocol: `docs/research_notes/Phase 0b evidence/10_expert_review_protocol.md` |
 | **D-34** | Integrate the validated gap findings into the plan (owner instruction 15 Nov). **Adopted:** H7 (protocol bias on g and counts, two-sided, T-23), H8 (hidden stratification on outside data with a complete-label reference arm, T-22; also C3's outside test), C3 evaluation on known positives only. **C1 add-ons:** PQ-style g-quality metric (cite PQ), "repeat-annotation agreement" wording for the overlap ceiling, and the lower-bound note on the selection share. **Gate 1 option only:** an abnormal-fiber class (prior art Zepf 2023, Parikh 2026, MicroStructFormer). **Dropped:** the SIPAIM-winners test. Corrections: TEM1 is near-complete, not selective; Parikh is an arXiv preprint (NeurIPS unconfirmed); Chuter is a journal paper | 15 Nov. `docs/reports/Overlooked gaps validation.md` + §7.5 |
+| **D-35** | **C3 methods route adopted** (owner, 15 Nov): fiber-level SAR selection-gated soft ignore in the B1 recipe; TEM1 controlled benchmark T-24; H9 pre-registered; t_k from B1 zero-shot (leak-free); T-20 as the anchor of a(x); r swept 0.88–0.96 | 15 Nov. §7.6 |
+| **D-36** | **Budget ceiling raised to $75** (owner, 15 Nov), enforced as the Modal workspace usage limit ($75, set 15 Nov). Tranches re-planned to fit, caps included; **compute map: every non-GPU step runs locally on the M4, Modal only for GPU training and inference** | 15 Nov. §7.6 |
 
 ## 4. Tasks
 
@@ -121,6 +123,8 @@ And does a decoder that is nested by construction remove (b)?
   2. correct the skip rate for detector recall (thin rings missed);
   3. compute Δ mean g, Δ count, Δ share g > 0.85, two-sided, bootstrap over overlap groups;
   4. per-cluster on TEM1 as context.
+
+- **T-24 TEM1 controlled two-part omission benchmark (C3, H9; D-35):** see §7.6 for the steps and the compute map.
 
 **Both branches:**
 - **T-17 ASTIH TEM1 (day 9):**
@@ -423,3 +427,62 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   3. **T-20 is the anchor for the protocol score a(x)** on our data, not a deferred extra (the report calls it deferred; the packet is ready, waiting for an expert). Without it, C3 is mostly a benchmark paper.
   4. **r ≈ 0.93 (18/136 overlap discordance) mixes random misses with inconsistent protocol judgements**, so the 7% is an upper bound on pure random misses. Proposed: the expert rates the 18 disagreement fibers normal vs abnormal (an addendum to D-33); sweep r over 0.88–0.96.
   - Unchanged: ≈ 1 in 3 for a methods paper; official metrics will barely move; H3 likely fails. Order: SIPAIM novelty recheck → T-20 (+ addendum) → T-22 B1 inference on TEM1 → shared TEM1 reference → 4-run pilot → R5–R7 only on an H9 pass.
+- **15 Nov, owner decisions:**
+  - **D-35:** C3 methods route adopted; H9 pre-registered (§7.6).
+  - **D-36:** ceiling $75. Modal usage limit set to $75 in the dashboard ($8.07 used). Tranches re-planned to fit with caps.
+  - **Compute rule restated:** CPU locally, Modal for GPU only.
+  - Next IDs: D-37, T-25, H10.
+
+### 7.6 D-35 and D-36: C3 methods route, H9 rule, budget and compute map (15 Nov 2026)
+
+**D-35, the method** (design: [C3 methodology report](../reports/C3%20methodology%20design.md); audit: §6 log, 15 Nov).
+- Fiber-level selection model: s_k ~ Bernoulli(t_k · r · (1 − a_k)). The posterior probability that candidate k is a missed normal fiber is q_k, and its background weight is w_k = 1 − q_k, painted over the whole fiber (dilated 1–2 px into background only).
+- A hard-gated three-band variant is reported as an ablation. **No pseudo-positives.**
+- Inputs:
+  - **t_k** = B1 zero-shot fiber probability on TEM1 (B1 never saw TEM1). Never the complete-label reference (it saw the deleted labels) or an in-sample arm.
+  - **r** estimated from a simulated second labelling draw on ≈ 136 fibers (the overlap analogue); sweep 0.88–0.96.
+  - **a(x)** = logistic regression on 5–10 fiber features, fitted on a simulated "expert" subset of known stratum membership. On our data (R7) it is anchored by T-20 expert ratings, or else the stated novelty assumption.
+
+**H9: simulation parameters, fixed before any run.**
+- **Substrate:** TEM1, converted with `astih_to_pairs`.
+- **Train / test:** the same mouse split as the H8 reference: test = cluster-2 (remyelinating-like) mice + 2 control-like mice, per `results/phase0b/tem1_mouse_proxy.csv`; train = the rest.
+- **Protocol stratum**, deleted with p = 0.9, on training labels only:
+  - GT fibers with g > 0.85 (thin myelin);
+  - **or** g < 0.65 (thick myelin);
+  - **or** fiber eccentricity > 0.9 (oblique).
+- **Random misses:** delete 7% of the remaining training fibers. Seed 0; sensitivity seeds 1–2 only if budget remains.
+- **Test truth:** protocol truth = full labels minus the stratum. Known positives = normal (non-stratum) test fibers.
+- **Endpoints:**
+  - primary: normal-fiber recall at IoU > 0.5 against protocol truth;
+  - co-primary guard: protocol-violation rate (share of stratum fibers predicted as fibers);
+  - secondary: "hard normal" recall (the tercile of normal fibers nearest the stratum boundary by â), F1/PQ against protocol truth, g-MAE + recall + g-quality, AUC of â, error of r̂.
+- **Rule:** R4 − R2 > 0 **and** R4 − R3 > 0 on the primary endpoint (paired mouse-bootstrap, 1,000 resamples, 95% CI lower bounds > 0), **and** violation(R4) ≤ violation(R1) + 0.05.
+- **Escalation:** R5–R7 only if H9 holds. Otherwise stop: the analysis paper stands alone.
+- **H3** is reported on our 18 fibers as secondary (expected to fail; not edited).
+
+**D-36: tranches at a $75 ceiling** (spent $8.16; caps sum to ≈ $75; per-run cost ≈ $7.7 at 150 epochs and ≈ $4.1 at 80 epochs on an L4).
+
+| Tranche | Runs (all GPU, Modal) | Est. | Cap | Opens when |
+|---|---|---|---|---|
+| A | T-21 cv3 out-of-fold B1 (3 folds, 150 ep) + fold predictions | ≈ $23 | $25 | H5c frozen |
+| B0 | B1 zero-shot inference on TEM1/TEM2/AxonPath (T-22) ≈ $1 · TEM1 5-epoch timing run ≈ $0.4 · shared complete-label TEM1 reference (H8 + T-24, 150 ep) ≈ $7.7 | ≈ $9.1 | $9.5 | Gate 1 passed; T-17 reproduced |
+| B | C3 pilot R1–R4 (TEM1, 80 ep) + test predictions | ≈ $16.4 | $17 | B0 done; H9 fixed (done) |
+| C | R5 SCAR ablation, R6 oracle ignore (80 ep), R7 selection-gated on our dev fold (150 ep) | ≈ $15.9 | $15.3 → **R6 is cut first** if C would exceed its cap | H9 holds |
+
+- Totals: estimates ≈ $72.6; caps ≈ $75.0.
+- **No reserve is left. Overrun rule:** a tranche that overruns is paid by cutting the next tranche in this order: R6 → R5 → R7. **The ceiling is never exceeded.**
+- Every launch states its cost, runs a 5-epoch timing run when the configuration changes, and uses `--max-gpu-hours` and the `*_ckpt10` resumable trainers.
+
+**D-36: compute map** (owner rule, 15 Nov: run everything that isn't GPU work locally; Modal only while a GPU is needed).
+
+| Step | Where | Notes |
+|---|---|---|
+| External-data conversion, simulated omission labels, mouse split | **M4 (CPU)** | `data/external.py`; deterministic, seed 0 |
+| nnU-Net `plan_and_preprocess` for TEM1 (and the fold splits) | **M4 (CPU)** | then upload the preprocessed folder once with `infra/modal/upload_dir.py` (batched, resumable; count files) |
+| Candidate mining (ring detector), fiber features, selection-model fit, q_k and weight maps | **M4 (CPU)** | Weight maps are written as per-case arrays next to the preprocessed data and uploaded with it; **no CPU work in Modal functions** |
+| B1 zero-shot inference on outside data (t_k and H8) | **Modal GPU** (`--action predict`) | ≈ $1; the M4/MPS would take hours. Input images are uploaded once |
+| All training (T-21, the reference, R1–R7) and their test predictions | **Modal GPU** | Preemptible, `ckpt10`, `--max-gpu-hours`, fast local-disk staging, GPU-utilisation log |
+| Pairing (D-11), scoring, taxonomy, oracles, bootstrap, H5/H6/H7/H8/H9 analysis, T-20 scoring | **M4 (CPU)** | Download only predicted label maps and summaries (never npz bulk; fetch files one by one and count) |
+| The soft-weight trainer subclass (~50 lines) | Written and unit-tested **locally** (CPU, tiny synthetic case) before any GPU run | Avoids debugging on paid GPU time |
+
+**Efficiency rules:** keep GPU containers single-use (no warm pool); no idle GPU while data copies (already 3 s staging); never re-upload unchanged data (the uploader skips same-size files); batch all predictions of a run into the same container as its training where the app allows.
