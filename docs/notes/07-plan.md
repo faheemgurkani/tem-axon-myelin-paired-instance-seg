@@ -5,6 +5,7 @@
 - When an outcome differs from its expectation, write it in the **Log** and update the decision. Never silently edit an expectation.
 - Cite the IDs in commit messages.
 - Time budget: 10 working days. Days 0–5 are done.
+- From 15 Nov, the order of work, the gates and the to-do list live in the owner's local `PLAN.md` (not committed). This file keeps the record: hypotheses, decisions, task definitions, risks and the log.
 
 ## 1. Question and contributions
 

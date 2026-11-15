@@ -40,3 +40,8 @@ docs/TODO.md
 
 # per-fiber GT-derived measurements (fine-grained derivative of unlicensed annotations): keep local
 results/day5/fibers_*.csv
+
+docs/self_study_notes/
+
+# owner's forward plan and to-do (never commit)
+PLAN.md
