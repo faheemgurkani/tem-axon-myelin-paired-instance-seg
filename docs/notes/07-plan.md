@@ -250,6 +250,14 @@ And does a decoder that is nested by construction remove (b)?
     - Baselines: naive, hard ignore, LNQ, nnPU, pseudo-labels, random-ignore control.
     - About 6–10 runs: this exceeds the remaining tranches unless B and C are redirected (budget decision needed).
   - **Proposal only** (would get D-35, T-24, H9); the full text is in the owner's local plan, Phase 3b. Order: C3 pilot first, then grow it only on a pre-set win over the random-ignore control.
+- **15 Nov, C3 methodology deep research** ([report](../reports/C3%20methodology%20design.md)):
+  - **No in-domain or out-of-domain method conditions on *why* objects are unlabelled.** EM methods (SPOCO, WDA-Net, SomaNet, LSD masking) and detection, cell, lesion and remote-sensing methods all assume random or size-based omission.
+  - **The right formal family is propensity-weighted PU under SAR**, not class-dependent MNAR. Our omission is two mechanisms: random misses (identifiable) and protocol exclusions (propensity ≈ 0; negatives for the protocol output).
+  - **Recommended:** fiber-level, selection-gated soft ignore in the unchanged B1 recipe, with no pseudo-positives (Bukas).
+  - **Primary evaluation:** a controlled TEM1 benchmark with two-part simulated omission, because our data has only ~18 known positives.
+  - **Overlap tiles as capture–recapture** give a random-miss recall r ≈ 0.93 (independence unconfirmed).
+  - **Budget:** a 4-run pilot gate + 3 runs, ≈ $33.
+  - Not adopted; it feeds the proposed D-35/T-24/H9.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
