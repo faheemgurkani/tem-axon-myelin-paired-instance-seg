@@ -92,7 +92,7 @@ The old copy in `~/Local Projects/` is left for the owner to delete.
 | **Total compute, Nov 2026 (`modal billing summary`)** | **$8.16**, covered by credit |
 | Volume storage | $0, within the free allowance (metered $6.81) |
 
-**$1.84 is left.** Any further GPU work needs the owner to raise the cap first.
+**$1.84 was left under the days 0–5 cap.** On 15 Nov **D-28** retired that cap and set a **$60 ceiling including spend**, released in tranches. A: T-21 ≈ $23, cap $26. B: C3 pilot ≈ $15.4, cap $17. C: C3 full ≈ $15.4, cap $17. Reserve ≈ $12. Each tranche opens on a gate ([07](07-plan.md) §7.1). Owner action: set a $60 Modal workspace spend limit.
 
 Check spend with `modal billing summary` / `modal billing report --for "this month"`.
 

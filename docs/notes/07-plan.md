@@ -1,4 +1,4 @@
-# 07 — Research plan: hypotheses, decisions, next tasks, log (plan v2, updated 13 Nov 2026)
+# 07 — Research plan: hypotheses, decisions, next tasks, log (plan v2, updated 15 Nov 2026)
 
 **Rules for this file:**
 - Every decision (D-xx) and task (T-xx) has an ID.
@@ -30,7 +30,7 @@ And does a decoder that is nested by construction remove (b)?
 | H2 | C2 cuts (merge + split + gap FP) by ≥ 30% vs B1 and AxonPath, with Dice within B1's CI | Moot: B1 already has 2 such errors in 1,619 fibers |
 | **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) |
 | H4 | The method ranking is the same on ASTIH TEM1 | Open (T-17) |
-| **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in the owner's `PLAN.md` §7.2 and the D-29 row below |
+| **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in §7.2 |
 
 ## 3. Decision register (compact)
 
@@ -175,4 +175,77 @@ And does a decoder that is nested by construction remove (b)?
 - **15 Nov, Phase 0 (T-19 and the organiser questions deferred):**
   - **D-28** budget in tranches (ceiling $60).
   - **D-29** H5 pre-registered, with T-21 as its unseen confirmation set.
-  - **C4 checked:** TEM2's completeness is plausible but not established, with three confounds (phenotype, model-seeded GT, in-animal split; [report](../reports/TEM2%20label%20completeness%20check.md)). A completeness audit on TEM1/TEM2 now precedes H6.
+  - **C4 checked:** TEM2's completeness is plausible but not established, with three confounds (phenotype, model-seeded GT, in-animal split; [report](../reports/TEM2%20label%20completeness%20check.md), evidence in `docs/research_notes/TEM2 label completeness check/`). A completeness audit on TEM1/TEM2 now precedes H6.
+  - New task **T-21** (cv3 out-of-fold B1 = tranche A). The C3 pilot was re-costed from ≈ $8 (one arm) to ≈ $15.4 (two arms).
+  - Full rationale in §7. No compute was used and nothing was spent (total still $8.16).
+  - Commits: `c829031` (decisions, report); the follow-up commit adds §7, the evidence note and the status updates in 01/02/06 and the README.
+  - **Owner action open:** set a $60 Modal workspace spend limit.
+
+## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
+
+These are the complete records behind D-28, D-29 and the C4 check, so the reasoning survives outside the owner's local `PLAN.md`. The decisions were made by the research engineer (Claude Code), with authority delegated by the owner on 15 Nov. T-19 and the organiser questions (A1–A3) were deferred by the owner.
+
+### 7.1 D-28: GPU budget, released in tranches
+
+**State:** $8.16 spent of the $80 Modal credit. The days 0–5 cap of $10 is retired.
+**Decision:** a total ceiling of **$60 including what is already spent**, released one tranche at a time. Each tranche opens only when its condition is met, and each launch still follows the owner's planning rule (`PLAN.md` §1, rule 6): state the cost, run a 5-epoch timing run if the configuration changed, and cap with `--max-gpu-hours`.
+
+| Tranche | What | Estimate | Hard cap | Opens when |
+|---|---|---|---|---|
+| A | **T-21** cv3 out-of-fold B1: 3 folds × ~6.3 L4-h | ≈ $23 | $26 | Gate 0 passed and the H5c post-processing frozen (no oracle use of non-dev images before that) |
+| B | C3 pilot: hard ignore + random-ignore control, 2 × B1 recipe | ≈ $15.4 | $17 | Gate 1 passed, the power check shows H3 is testable, and the D-18 detector's recall is checked |
+| C | C3 full: soft down-weighting + PU loss | ≈ $15.4 | $17 | Pilot: hard ignore beats the control on overlap-disagreement recall (paired CI > 0) |
+| Reserve | Timing runs, preemption reruns, external inference if the M4 is too slow | — | ≈ $12 | Case by case, logged |
+
+**Why this shape:**
+- **Tranche A comes first because it pays three times.** D-03 promised 3-fold final numbers for C1, and so far we only have dev. H5 needs images nobody has looked at. C3's ignore masks need out-of-fold probabilities: B1's dev model has seen the 213 training images, so its probabilities there would mark almost no unlabelled fiber as confident, and the masks would be biased. So the "cheaper variant" in §4 T-15′ (dev-fold B1 only) is **ruled out** for C3.
+- **The C3 pilot was under-costed:** "≈ $8" covered one arm. A pilot without the random-ignore control can't separate "targeting skipped fibers helps" from "less supervision helps", so both arms are needed.
+- **C2 is outside this budget.** If Gate 3a makes C2 a candidate, that needs a new decision.
+- **$60 leaves ~$20 of credit untouched** for whatever the reviewers ask for.
+- **Owner action:** set a Modal workspace spend limit of $60 (Settings → Usage & Billing), so the ceiling is enforced by Modal and not only by us.
+
+### 7.2 D-29: H5 adopted and pre-registered
+
+**Why adopt it:** it costs no extra GPU (it rides on tranche A), it is the only route by which C2 could return, and a g-ratio finding matters to biologists more than F1 does. **Why the rule is strict:** H5 came from the dev images, and one regrouping of dev images (Cellpose+B1) has already captured ~69% of O-sep's g gain there. **No dev image can confirm anything.**
+
+**Common rules**
+- **Confirmation set:** the 213 non-dev images, predicted by the T-21 fold models (each image by the model that didn't train on it). The 53 dev images are for development only.
+- **Metric:** fiber-weighted g-MAE with the challenge's equivalent-circle g, matching at IoU > 0.5 (D-06). H5 was observed on this definition. The B4 primary definition, once chosen, is reported as sensitivity only and does not decide H5.
+- **CIs:** 95% paired cluster bootstrap over overlap groups, 1,000 resamples (D-22).
+- **"Defective" fiber:** as in `scripts/run/day5_analysis.py`: on the raw predicted fiber, ring Euler ≠ 0, or axon touches background, or axon in more than one component.
+
+| ID | Claim | Rule (holds if all parts hold) | Dev value (for reference, not evidence) |
+|---|---|---|---|
+| **H5a** (primary) | Grouping drives g error | O-sep cuts base g-MAE by **≥ 25% relative**, and the CI of Δg-MAE excludes 0 | −42% |
+| **H5b** | Ring topology carries the grouping effect | Defective fibers are ≤ 35% of matched fibers but carry **≥ 40%** of total \|g error\|, **and ≥ 50% of O-sep's total \|g error\| reduction** comes from fibers defective in the base prediction | 28% of fibers / 56% of error; the reduction share was never computed |
+| **H5c** (actionable) | Simple post-processing recovers it | A rule-based post-processing (ring closing + instance-first regrouping of B1's pixels), **tuned on dev only and frozen before scoring**, captures **≥ 50% of O-sep's g-MAE gain** (point estimate, with a Δg-MAE CI vs base excluding 0), **and** costs ΔF1@0.5 ≥ −0.005 and Δrecall ≥ −0.005 (lower CI bounds) | Cellpose+B1 ≈ 69%, but with −0.019 F1, which would fail the guard |
+
+**Why these thresholds:**
+- H5a's 25% is about half the dev effect. Dev-selected effects shrink on new data, and a smaller effect would not justify a method paper.
+- H5c's guards stop it winning by dropping hard fibers (g-MAE ignores misses).
+- Whether a given g-MAE change *matters biologically* is deferred to B5. It doesn't decide H5.
+
+**Outcomes (Gate 3a):**
+
+| H5a | H5c | Conclusion |
+|---|---|---|
+| fails | — | H5 rejected; the dev finding doesn't generalise. Report it as a negative result |
+| holds | holds | **Measurement finding:** grouping matters for g, and a cheap rule fixes most of it. No new decoder |
+| holds | fails | **C2 for morphometry becomes a candidate** (new budget decision) |
+
+H5b is interpretive. It decides whether the paper may say "ring topology", or only "grouping".
+
+**Secondary, exploratory (not confirmatory):** the same three measures on AxonPath CC TEM, the only external set with hand-annotated pairs. A model trained on those images would leak, so these results only add context.
+
+**Amendments:** allowed only during Phase 0b, with a logged reason, and only before any T-21 prediction exists.
+
+### 7.3 C4: TEM2 label completeness, checked
+
+**Plausible, not established** ([report](../reports/TEM2%20label%20completeness%20check.md)):
+- The labels started from AxonDeepSeg pseudo-labels that were corrected by hand. The whole scene was labelled, including unmyelinated axons and OL classes.
+- But no completeness audit is reported, and the correction emphasis was fiber *separation*.
+- **Three confounds** could each explain TEM2's 0.949 vs TEM1's 0.791 without any difference in completeness:
+  1. phenotype: hypomyelination with normal thickness, so few abnormal profiles;
+  2. model-seeded ground truth that favours model-like predictions;
+  3. an in-animal test split.
+- **Change:** a completeness audit on both datasets (Phase 0b) replaces the assumption, and H6 is written from its result.

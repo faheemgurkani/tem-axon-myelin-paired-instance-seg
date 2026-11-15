@@ -1,4 +1,4 @@
-# 01 — Study guide: the whole project, start to now (state on 13 Nov 2026)
+# 01 — Study guide: the whole project, start to now (state on 15 Nov 2026)
 
 Read this file first. It tells the story once and gives only the headline numbers. Each section points to the file holding the details.
 
@@ -127,7 +127,13 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - The project's main contribution is **C1**, the error decomposition: "on this data, fiber errors are selection, not pairing".
 - The next method work is **C3**, which handles incomplete annotation.
 
-**Open, and the owner's decision:**
+**Decided in Phase 0 (15 Nov; full records in [07](07-plan.md) §7):**
+- **D-28 budget:** a $60 ceiling including spend, released in tranches tied to gates. First comes T-21, a 3-fold out-of-fold B1 (≈ $23). It gives C1 its 3-fold numbers, H5 an unseen test set, and C3 unbiased ignore masks.
+- **D-29 H5:** pre-registered as H5a–c. Only the 213 non-dev images can confirm it, because the dev images have already been studied too closely.
+- **C4:** TEM2's labels are not shown to be complete, so a completeness audit comes before H6.
+- The order of work now lives in the owner's local `PLAN.md`: Phase 0b (reading and external data) → Gate 0 → Phase 1 …
+
+**Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).
 2. **H5.** "Grouping and ring topology drive g-ratio error". It is post hoc, so it needs a pre-written rule before it can justify reviving C2 as a *morphometry* method.
    - The cheapest first test uses no GPU: close broken rings and regroup B1's pixels instance-first.

@@ -124,7 +124,7 @@ The submission format (zip with `method_description.pdf`, `code/{train.py, predi
 | Dataset | Content | Pixel size | Use |
 |---|---|---|---|
 | **ASTIH TEM1** (DANDI 001436, CC-BY) | Mouse CC, control + cuprizone, 158 images, 7,711 fibers; semantic masks; test subject `sub-nyuMouse26` | 2.36 nm | **External replication** (T-17): has a published reference (nnU-Net Dice 0.974/0.924, fiber F1@0.5 0.791) |
-| ASTIH TEM2 (DANDI 001350) | Mouse CC, unmyelinated axons labelled | 4.93 nm | Hard negatives |
+| ASTIH TEM2 (DANDI 001350) | Mouse CC, unmyelinated axons labelled | 4.93 nm | Hard negatives; negative control for C1 (H6). **Completeness not established** (C4, 15 Nov: model-seeded labels, hypomyelination phenotype, in-animal test split); audit before use |
 | **AxonPath data** (Zenodo 23084690, CC-BY) | 20 mouse CC TEM (2,074 fibers) + other nerves; **fiber instance IDs** + axon / inner tongue / myelin | ~2.10 nm | Closest to the challenge; conversion deferred |
 | AimSeg GT (Zenodo 8351731) | 8 mouse CC TEM, remyelination | 8.42 nm | Superseded by AxonPath |
 | ASTIH SEM1 / BF1 / BF2, WMMD, CEM500K, … | Other modalities, or unlabelled | various | Pretraining only |

@@ -51,7 +51,12 @@ Results on 53 held-out dev images (1,619 fibers), with 95% cluster-bootstrap CIs
 - **Selection is.** 78% of B1's errors are predictions on fibers the annotators left unlabelled, and selection is the only thing two humans disagree on.
 - **Grouping does matter for the g-ratio.** Perfect grouping cuts B1's g-MAE by 42%, and fibers with broken predicted rings carry 56% of the g error. This is recorded as a post-hoc hypothesis (H5).
 
-Next steps, pending a budget decision: C3, more C1 analyses, ASTIH TEM1 replication.
+**Update, 15 Nov (Phase 0):**
+- GPU budget set in gated tranches (D-28).
+- H5 pre-registered, to be confirmed on unseen out-of-fold images (D-29).
+- TEM2's label completeness found unproven (C4).
+
+Next: reading and external-data checks (TEM1, TEM2, AxonPath CC TEM), then more C1 analyses, H5 and C3. See [`docs/notes/07-plan.md`](docs/notes/07-plan.md) §7.
 
 All results: [`docs/notes/05-results.md`](docs/notes/05-results.md).
 
