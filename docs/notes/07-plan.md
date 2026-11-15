@@ -197,6 +197,18 @@ And does a decoder that is nested by construction remove (b)?
   - **New idea (B5):** protocol selection can bias group-mean g more than segmentation does; to test in T-16′.
   - **C3 caveat:** report FPs on protocol-excluded abnormal fibers in the pilot.
   - No compute was spent.
+- **15 Nov, Phase 0b completed:**
+  - **AxonPath CC TEM** downloaded (MD5 matches Zenodo), converted from GeoJSON and checked by eye. Its 8 AimSeg images are identified by name. Audit: u 0.7%, and the only real unlabelled fibers are 2 degenerating figures (protocol exclusions); no normal-looking misses.
+  - **Real unlabelled per labelled fiber:** ours ≈ 4.2% ≫ TEM2 ≈ 0.3% > AxonPath ≈ 0.1% > TEM1 ≈ 0.05%.
+  - **Gate 0: PASSED** (engineer, delegated):
+    1. No paper does C1's error decomposition or C3's selective-omission framing. The sweep covered the MICCAI 2026 OA subset; Parikh et al. (NeurIPS 2026) is must-cite.
+    2. External data and models are usable, with the leakage limits in note 05.
+    3. H6 is written (H6a, H6b, H6c).
+  - **Carried forward, not blocking:**
+    - Bi-Polar Mask (paywalled; affects only the C2/H5 containment wording, Phase 3a);
+    - the by-eye audit counts need a domain expert (with T-20);
+    - TEM1's per-mouse condition is missing (ask the ASTIH authors, or use the GT-g proxy).
+  - **Owner actions:** the $60 Modal spend limit; the Bi-Polar Mask PDF via Sir Faizan.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 

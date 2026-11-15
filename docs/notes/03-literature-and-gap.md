@@ -72,3 +72,8 @@ See [05](05-results.md) for the numbers.
    - Grouping and ring topology barely affect detection, but they account for ~40% of B1's g-ratio error.
    - An instance-first grouping of the *same* pixels already lowers g-MAE.
    - If confirmed under a pre-written rule, the nested-by-construction idea comes back, motivated by **morphometry**, not detection. That fits the field's known weakness: g-ratio is the worst-reproduced measurement (optic-nerve R² 0.805).
+4. **Correction (15 Nov, Phase 0b audit):**
+   - The similar-datasets report's reading "fiber F1 follows label completeness" (TEM2 0.949 vs TEM1 0.791) does **not** hold.
+   - By the same detector, TEM1 is the *most* complete set (≈ 0.05% real unlabelled per labelled fiber), yet it has the lowest published F1. Its low precision must therefore come from something other than selection; H6b tests what.
+   - Selective omission is specific to **our** dataset (≈ 4.2%). AxonPath excludes only degenerating figures.
+   - Evidence: `docs/research_notes/Phase 0b evidence/07_external_datasets.md` §4.

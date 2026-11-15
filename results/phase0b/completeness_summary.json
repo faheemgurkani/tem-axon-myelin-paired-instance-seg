@@ -6,7 +6,7 @@
   "candidates": 49,
   "fibers": 7853,
   "candidates_per_100um2_bg": 1.282203643496235,
-  "fibers_per_100um2_img": 103.76705405222812,
+  "fibers_per_100um2_img": 103.81156708975621,
   "unlabelled_share_u": 0.0062009617818273854,
   "u_per_image_median": 0.0
  },
@@ -17,7 +17,7 @@
   "candidates": 0,
   "fibers": 292,
   "candidates_per_100um2_bg": 0.0,
-  "fibers_per_100um2_img": 158.91585081336945,
+  "fibers_per_100um2_img": 159.39834707984767,
   "unlabelled_share_u": 0.0,
   "u_per_image_median": 0.0
  },
@@ -28,7 +28,7 @@
   "candidates": 433,
   "fibers": 8015,
   "candidates_per_100um2_bg": 5.062705395302328,
-  "fibers_per_100um2_img": 52.80798254377455,
+  "fibers_per_100um2_img": 61.7404919942333,
   "unlabelled_share_u": 0.05125473484848485,
   "u_per_image_median": 0.03571428571428571
  },
@@ -39,8 +39,19 @@
   "candidates": 60,
   "fibers": 4234,
   "candidates_per_100um2_bg": 2.7712474218682903,
-  "fibers_per_100um2_img": 99.28674341661144,
+  "fibers_per_100um2_img": 99.31787665998608,
   "unlabelled_share_u": 0.013972985561248253,
   "u_per_image_median": 0.010291716315812702
+ },
+ "AxonPath": {
+  "images": 20,
+  "px_nm": 2.1,
+  "ds": 4,
+  "candidates": 15,
+  "fibers": 2009,
+  "candidates_per_100um2_bg": 2.4743008023898985,
+  "fibers_per_100um2_img": 136.61653973575645,
+  "unlabelled_share_u": 0.007411067193675889,
+  "u_per_image_median": 0.0034482758620689655
  }
 }

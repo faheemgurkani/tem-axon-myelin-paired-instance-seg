@@ -21,7 +21,12 @@ import numpy as np
 import pandas as pd
 from scipy import ndimage as ndi
 
-from axon_myelin_seg.data.external import astih_to_pairs, split_axonmyelin
+from axon_myelin_seg.data.external import (
+    astih_to_pairs,
+    axonpath_geojson_to_pairs,
+    normalise_to_uint8,
+    split_axonmyelin,
+)
 from axon_myelin_seg.data.io import list_samples, load_sample
 from axon_myelin_seg.evaluation.taxonomy import ring_candidates
 
@@ -51,6 +56,19 @@ def astih_iter(root: Path):
         yield p.name, subj, img, pairs
 
 
+AXONPATH = EXT / "axonpath_zenodo/CorpusCallosum_Mus_TEM_000/raw"
+# the 8 images AxonPath re-annotated from AimSeg (names in AimSeg's Zenodo 8351731 archives); "subject" column = source
+AIMSEG = {"4946_3_1_72_18_0003", "7_EM1_3_10D_N_P_0002", "7_EM1_3_10D_N_P_0004", "8_E72_18_0014", "E72_21_0003",
+          "exp69_72_EM10N_NOLPC_P5_0001", "exp69_72_EM10N_NOLPC_P5_0002", "exp69_72_EM10N_NOLPC_P5_0004"}
+
+
+def axonpath_iter():
+    for p in sorted((AXONPATH / "images").glob("*.tif")):
+        img = normalise_to_uint8(iio.imread(p))
+        pairs, _ = axonpath_geojson_to_pairs(AXONPATH / "annotations" / f"{p.stem}.geojson", img.shape)
+        yield p.name, "aimseg" if p.stem in AIMSEG else "new", img, pairs
+
+
 def ours_iter():
     for name in list_samples():
         img, gt = load_sample(name)
@@ -63,6 +81,7 @@ DATASETS = {
     "TEM1": (lambda: astih_iter(EXT / "001436"), 2.36, 4),
     "TEM2_test": (lambda: astih_iter(TEM2_TEST), 4.93, 2),
     "TEM2_dandi": (lambda: astih_iter(EXT / "001350"), 4.93, 2),
+    "AxonPath": (axonpath_iter, 2.10, 4),  # 1.75–2.11 nm per image; 2.10 for all (one image at 1.75)
 }
 
 
@@ -114,7 +133,7 @@ def main() -> None:
             fib = np.unique(gt[gt >= 2] // 2)
             bg_um2 = (gt == 0).sum() * (px_nm / 1000) ** 2
             rows.append({"image": img_name, "subject": subj, "n_candidates": len(ids), "n_fibers": len(fib),
-                         "bg_um2": bg_um2, "img_um2": gt.size * (px_nm / 1000) ** 2})
+                         "bg_um2": bg_um2, "img_um2": (gt != 1).sum() * (px_nm / 1000) ** 2})
             if len(ids):
                 com = ndi.center_of_mass(cand > 0, cand, ids)
                 cand_pool += [(img_name, int(cy), int(cx)) for cy, cx in com]

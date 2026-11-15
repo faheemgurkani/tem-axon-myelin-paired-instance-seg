@@ -133,6 +133,15 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - **C4:** TEM2's labels are not shown to be complete, so a completeness audit comes before H6.
 - The order of work now lives in the owner's local `PLAN.md`: Phase 0b (reading and external data) → Gate 0 → Phase 1 …
 
+**Phase 0b (15 Nov; evidence in `docs/research_notes/Phase 0b evidence/`, decisions in [07](07-plan.md) §7.4):**
+- Three external datasets were downloaded and checked: ASTIH TEM1 and TEM2, and AxonPath CC TEM.
+- **The same unlabelled-ring detector shows our dataset is the selectively labelled one.**
+  - Real unlabelled fibers per labelled fiber: ours ≈ 4.2%, TEM2 ≈ 0.3%, AxonPath ≈ 0.1%, TEM1 ≈ 0.05%.
+  - In TEM1, TEM2 and AxonPath almost all candidates are gaps between rings.
+- So the old idea that TEM1 was the "selective" set was wrong. H6 was rewritten **before any external score**: on near-complete TEM1 and TEM2, selection should be a small share of errors.
+- **Primary g stays equivalent-circle** (Gow 2026 criticises population g fits, not per-fiber D_A/D_F). The smallest meaningful group shift is ≈ 0.03.
+- **Gate 0 passed.** Next is Phase 1 (T-20 audit, T-16′ analyses, H5c development, then T-21).
+
 **Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).
 2. **H5.** "Grouping and ring topology drive g-ratio error". It is post hoc, so it needs a pre-written rule before it can justify reviving C2 as a *morphometry* method.

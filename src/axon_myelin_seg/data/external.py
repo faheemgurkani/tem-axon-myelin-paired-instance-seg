@@ -102,3 +102,80 @@ def _split_by_holes(comp: np.ndarray, a: np.ndarray, m: np.ndarray) -> list[tupl
     region = watershed(ndi.distance_transform_edt(markers == 0), markers, mask=comp)
     return [(a & (region == r), m & (region == r)) for r in range(1, len(with_axon) + 1)
             if (a & (region == r)).any() and (m & (region == r)).any()]
+
+
+def axonpath_geojson_to_pairs(path, shape: tuple[int, int]) -> tuple[np.ndarray, ConversionReport]:
+    """AxonPath QuPath GeoJSON (Fibre ⊃ InnerCylinder ⊃ Axon, plus the annotated ROI 'unclassified') -> uint16 pairs.
+
+    Our axon includes the inner tongue (D-13), so axon = InnerCylinder and myelin = Fibre − InnerCylinder.
+    Each InnerCylinder goes to the Fibre it overlaps most. Outside the ROI, and fibres without an inner cylinder,
+    become 1 (ignore): only the ROI was annotated.
+    """
+    import json
+
+    import cv2
+
+    def raster(geom) -> tuple[tuple[slice, slice], np.ndarray] | None:
+        """Rasterise inside the polygon's bounding box (full-size masks per polygon are far too slow)."""
+        polys = [geom["coordinates"]] if geom["type"] == "Polygon" else geom["coordinates"]
+        pts = np.concatenate([np.asarray(ring, float) for poly in polys for ring in poly[:1]])
+        y0, x0 = max(int(np.floor(pts[:, 1].min())), 0), max(int(np.floor(pts[:, 0].min())), 0)
+        y1, x1 = min(int(np.ceil(pts[:, 1].max())) + 1, shape[0]), min(int(np.ceil(pts[:, 0].max())) + 1, shape[1])
+        if y1 <= y0 or x1 <= x0:
+            return None
+        sl = (slice(y0, y1), slice(x0, x1))
+        m = np.zeros((y1 - y0, x1 - x0), np.uint8)
+        for poly in polys:
+            for j, ring in enumerate(poly):
+                r = np.round(np.asarray(ring, float) - [x0, y0]).astype(np.int32)
+                cv2.fillPoly(m, [r], 1 if j == 0 else 0)  # scanline fill; exterior fills, holes clear
+        return sl, m.astype(bool)
+
+    with open(path) as fh:
+        g = json.load(fh)
+    feats = g["features"] if isinstance(g, dict) else g
+    by: dict[str, list] = {"Fibre": [], "InnerCylinder": [], "unclassified": []}
+    for f in feats:
+        name = ((f.get("properties") or {}).get("classification") or {}).get("name", "unclassified")
+        if name in by and f.get("geometry"):
+            r = raster(f["geometry"])
+            if r is not None:
+                by[name].append(r)
+    out = np.ones(shape, np.uint16)  # outside the ROI = ignore
+    for sl, m in by["unclassified"]:
+        out[sl][m] = 0
+    fib_lab = np.zeros(shape, np.int32)
+    for i, (sl, m) in enumerate(by["Fibre"], start=1):
+        fib_lab[sl][m] = i
+    inner = np.zeros(shape, np.int32)  # fibre id that owns each inner-cylinder pixel
+    for sl, m in by["InnerCylinder"]:
+        ids, cnt = np.unique(fib_lab[sl][m & (fib_lab[sl] > 0)], return_counts=True)
+        if len(ids):
+            inner[sl][m] = int(ids[np.argmax(cnt)])
+    rep = ConversionReport(0, 0, 0, 0, 0)
+    k = 0
+    for i, (sl, _) in enumerate(by["Fibre"], start=1):
+        fm = fib_lab[sl] == i
+        if not fm.any():
+            continue
+        a = fm & (inner[sl] == i)
+        if not a.any():
+            rep.n_no_axon += 1
+            out[sl][fm] = 1
+            continue
+        m = fm & ~a
+        if not m.any():
+            rep.n_no_myelin += 1
+            out[sl][fm] = 1
+            continue
+        k += 1
+        out[sl][a] = 2 * k
+        out[sl][m] = 2 * k + 1
+    rep.n_fibers = k
+    return out, rep
+
+
+def normalise_to_uint8(img: np.ndarray, lo: float = 1, hi: float = 99) -> np.ndarray:
+    """Percentile stretch for float images (AxonPath raw TIFFs are float32 with negative values)."""
+    a, b = np.percentile(img, [lo, hi])
+    return (np.clip((img - a) / max(b - a, 1e-6), 0, 1) * 255).astype(np.uint8)
