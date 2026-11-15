@@ -240,3 +240,64 @@ The per-fiber table `results/day5/fibers_b1.csv` is git-ignored, because it is a
 **H1 = NO-GO**, unambiguously. AxonPath and Cellpose+B1 also fail it. Per D-15 the rule is applied as written.
 
 The g-ratio finding (§4, §6) is recorded as **H5**. It is not used to overturn the decision, because it was not pre-registered.
+
+## 8. Phase 1 (15–16 Nov): C1 analyses, H5c development, provisional H7
+
+All on the 53 dev-val images unless stated; CPU on the M4. Scripts: `scripts/run/phase1_*.py`; numbers: `results/phase1/`.
+
+**Error breakdown for every model** (from `results/day4/summary_*.json`). Selection dominates for all three, not just nnU-Net:
+
+| Model | F1@0.5 | Errors | Strict selection | **Broad selection** | Separation | Boundary | GT missed |
+|---|---|---|---|---|---|---|---|
+| B1 | 0.904 | 331 | 18.4% | **78.9%** | 0.6% | 6.6% | 13.9% |
+| Cellpose+B1 | 0.885 | 409 | 17.4% | **80.7%** | 1.0% | 9.8% | 8.6% |
+| AxonPath | 0.784 | 787 | 11.2% | **68.2%** | 9.0% | 10.5% | 12.2% |
+
+**T-16′ C1 analyses** (`phase1_c1_analyses.py`, `c1_analyses.json`). Validated: B1 F1 0.904, g-MAE 0.0160 and myelin HD95 555 nm reproduce day 4 exactly.
+
+| | B1 | Cellpose+B1 | AxonPath |
+|---|---|---|---|
+| g-MAE: equivalent circle (primary) [95% CI] | 0.0160 [0.0139, 0.0182] | **0.0114** [0.0101, 0.0128] | 0.060 |
+| g-MAE: minor axis / Feret / perimeter | 0.021 / 0.027 / 0.051 | 0.014 / 0.015 / 0.075 | 0.067 / 0.065 / 0.090 |
+| g bias: equivalent circle / perimeter | −0.0002 / −0.043 | +0.003 / −0.074 | +0.030 / +0.019 |
+| g-quality, s = 0.10 (s = 0.05) | 0.766 (0.661) | **0.785** (0.696) | 0.396 (0.197) |
+| Bland–Altman g: bias, LoA | −0.0002, ±0.057 | +0.003, ±0.035 | +0.030, ±0.16 |
+| Bland–Altman D_F / D_A bias (nm) | −2.5 / −2.0 | −7.8 / −2.8 | +5.9 / +25.8 |
+| g-MAE by fiber-diameter quartile (small → large) | 0.017 / 0.016 / 0.016 / 0.015 | 0.012 / 0.011 / 0.011 / 0.011 | 0.057 / 0.065 / 0.062 / 0.055 |
+| Oblique GT fibers (eccentricity > 0.9) | 1.7%; g-MAE without them 0.0159 | 0.0114 | 0.059 |
+| Myelin HD (nm): official / mean-P95 / HD100 | 555 / 327 / 1643 | 552 / 312 / 1659 | 977 / 561 / 1992 |
+
+**Reading:**
+- **Perimeter-based g is unsafe** for comparing methods: large negative bias from rough outlines, and it flips the B1 vs Cellpose+B1 order. Minor axis and Feret keep the order.
+- **Rank stability:** the order is stable on 9 of 11 metrics. Perimeter g and HD100 swap B1 and Cellpose+B1; AxonPath is always last.
+- **Gaming curve** (`c1_gaming_curves.csv`):
+  - dropping B1's *smallest* fibers barely helps (g-MAE 0.0160 → 0.0142 at half recall), so g-MAE isn't gameable by size here;
+  - dropping the **worst 5%** gives 0.0116 (−27%, Cellpose level) for −5 points of recall, and the worst 20% gives 0.0073;
+  - so recall must always sit next to g-MAE (D-08). g-quality combines both.
+- g error is flat across fiber size (binned by fiber diameter, as D-32 requires). Oblique fibers are too rare to matter.
+
+**H5c development, DEV ONLY** (`phase1_h5c_dev.py`, `h5c_dev_summary.json`). Target: ≥ 50% of O-sep's g gain (0.0160 → 0.0093), with ΔF1 and Δrecall ≥ −0.005.
+
+| Variant | F1@0.5 | Recall | g-MAE | Share of O-sep gain |
+|---|---|---|---|---|
+| V0, current D-11 (−EDT of foreground) | 0.9040 | 0.9629 | 0.0160 | 0% |
+| **V1, nearest axon (EDT from axons)** | **0.9048** | **0.9660** | **0.0124** | **54%** |
+| V2, axon-radius-weighted (axomyelin prior) | 0.9035 | 0.9660 | 0.0134 | 39% |
+| V3, V2 + ring closing | 0.9035 | 0.9660 | 0.0134 | 39% |
+
+- **V1 frozen** as `pairing.semantic_to_paired_instances_h5c` at commit **7c673ca**.
+- The 54% is in-sample (dev chose it) and is expected to shrink. Confirmation is H5c on the 213 non-dev T-21 images.
+
+**18-fiber addendum** (`expert_review_addendum.py`): reproduced the repeat-annotation disagreements exactly (11 A-only + 7 B-only = 18). The blind packet is in `data/processed/expert_review_addendum/` (local only).
+
+**T-23 (H7), PROVISIONAL** (`phase1_h7_protocol_bias.py`, `h7_provisional.json`):
+- **Outer-ring tracer validation on 7,967 labelled fibers:**
+  - v1: bias −0.051, LoA ±0.079;
+  - v2 (dark band opened with a 5-px disk): bias −0.025, LoA ±0.088, MAE 0.037;
+  - **fails the pre-set gate** (|bias| ≤ 0.02, LoA ≤ 0.08), so **H7a and H7c are not reportable from automatic tracing**. They need expert or hand tracing. Iteration was stopped after one principled revision, to avoid tuning to the gate.
+- **Detector recall on labelled fibers: 65%** (the ring detector finds about 2 in 3 real fibers as dark-ringed holes).
+- **H7b, provisional: the protocol under-counts myelinated fibers by 6.5% [5.5%, 7.5%]**, which would pass H7b (CI lower bound ≥ 5%). It assumes:
+  - the 83% real share of candidates (Claude's single rating);
+  - the 65% recall measured on normal fibers.
+  - **Confirmatory only with the D-33 expert ratings.**
+- Mean-g shift with the (biased) traced g: about −0.005, tiny, as the arithmetic caveat predicted.

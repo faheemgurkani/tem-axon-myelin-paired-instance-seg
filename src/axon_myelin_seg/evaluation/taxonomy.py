@@ -53,7 +53,7 @@ SELECTION_PRED = ("unlabelled_real",)
 
 
 def ring_candidates(image: np.ndarray, gt: np.ndarray, ds: int = 4, min_d_nm: float = 300.0,
-                    px_nm: float = 2.152) -> np.ndarray:
+                    px_nm: float = 2.152, skip_labelled_filter: bool = False) -> np.ndarray:
     """Label map (full resolution) of unlabelled ring-candidate *holes*. Same algorithm as scripts/eda/unl_loc.py.
 
     - Smooth the image.
@@ -64,6 +64,8 @@ def ring_candidates(image: np.ndarray, gt: np.ndarray, ds: int = 4, min_d_nm: fl
     The smoothing and opening act in downsampled pixels, so for other datasets pick ``ds`` so that ``ds * px_nm``
     stays near the challenge's 8.6 nm (TEM1 2.36 nm/px -> ds 4; TEM2 4.93 nm/px -> ds 2). ``px_nm`` converts the
     diameter and maximum-area limits; the defaults reproduce the challenge behaviour exactly.
+    ``skip_labelled_filter=True`` keeps holes inside labelled fibers too (used only to measure the detector's recall
+    on labelled fibers, Phase 1 T-23); the intensity threshold still comes from the GT.
     """
     img = image[::ds, ::ds].astype(np.float32)
     m = gt[::ds, ::ds]
@@ -83,7 +85,7 @@ def ring_candidates(image: np.ndarray, gt: np.ndarray, ds: int = 4, min_d_nm: fl
         if d_nm < min_d_nm or area_nm2 > 1.2e6 * 2.152 ** 2 or p.solidity < 0.8:
             continue
         vals = m[L == p.label]
-        if (vals >= 2).mean() > 0.5 or (vals == 1).mean() > 0.5:
+        if not skip_labelled_filter and ((vals >= 2).mean() > 0.5 or (vals == 1).mean() > 0.5):
             continue
         k += 1
         keep[p.label] = k

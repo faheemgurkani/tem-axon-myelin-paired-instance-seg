@@ -1,0 +1,49 @@
+{
+ "status": "PROVISIONAL (real share 0.83 from one non-expert rater; confirmatory run needs D-33)",
+ "tracer_validation": {
+  "n": 7967,
+  "traced_share": 0.9998744979919679,
+  "bias": -0.025438213429447267,
+  "loa_half": 0.08751587375122341,
+  "mae": 0.03661145841163754
+ },
+ "tracer_ok_for_g": false,
+ "detector_recall_on_labelled": 0.6512299196787149,
+ "n_candidates": 433,
+ "n_labelled": 7968,
+ "estimate": {
+  "count_bias": 0.06477374517652867,
+  "d_mean_g": -0.00541808735435906,
+  "d_tail_085": 0.0006880186564631061,
+  "g_labelled": 0.7486672631052382,
+  "g_skipped_traced": 0.6650209131899588
+ },
+ "ci95": {
+  "count_bias": [
+   0.05542547852810381,
+   0.07455725700378468
+  ],
+  "d_mean_g": [
+   -0.006576493278934042,
+   -0.004356374370794973
+  ],
+  "d_tail_085": [
+   -0.0005813181639189127,
+   0.0021341414520014766
+  ],
+  "g_labelled": [
+   0.7447883011291816,
+   0.7525794220250964
+  ],
+  "g_skipped_traced": [
+   0.6531341157399289,
+   0.6768155616997829
+  ]
+ },
+ "rules": {
+  "H7a": "|d_mean_g| >= 0.03, CI excludes 0",
+  "H7b": "count_bias CI lower >= 0.05",
+  "H7c": "|d_tail_085| >= 0.02, CI excludes 0"
+ },
+ "note": "Tracer failed its validation gate: H7a/H7c not reportable from traced g; H7b only."
+}

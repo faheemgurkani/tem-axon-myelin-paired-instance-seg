@@ -7,6 +7,7 @@
 - Time budget: 10 working days. Days 0–5 are done.
 - From 15 Nov, the order of work, the gates and the to-do list live in the owner's local `PLAN.md` (not committed). This file keeps the record: hypotheses, decisions, task definitions, risks and the log.
 
+
 <!-- toc -->
 **Contents**
 
@@ -504,3 +505,22 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
 | The soft-weight trainer subclass (~50 lines) | Written and unit-tested **locally** (CPU, tiny synthetic case) before any GPU run | Avoids debugging on paid GPU time |
 
 **Efficiency rules:** keep GPU containers single-use (no warm pool); no idle GPU while data copies (already 3 s staging); never re-upload unchanged data (the uploader skips same-size files); batch all predictions of a run into the same container as its training where the app allows.
+- **16 Nov, Phase 1 executed** (owner: "start and complete Phase 1 end to end"; numbers in [05](05-results.md) §8):
+  - **TOC** added to `PLAN.md` and this file (`scripts/toc.py`; re-run after heading changes).
+  - **Wording:** `02` §2 "textbook g trend" corrected (an artefact of plotting g against axon diameter).
+  - **Error breakdown:** selection dominates all three models (broad share 79% / 81% / 68%).
+  - **T-16′ done:**
+    - perimeter g is unsafe (biased, flips ranks);
+    - rankings are stable on 9 of 11 metrics;
+    - g-MAE isn't gameable by fiber size, but dropping the worst 5% of fibers cuts it by 27%;
+    - g-quality: Cellpose+B1 0.785 > B1 0.766;
+    - g error is flat across fiber diameter; oblique fibers are 1.7%.
+  - **H5c developed on dev and frozen at 7c673ca:** nearest-axon watershed, 54% of O-sep's gain on dev (in-sample), guards pass.
+  - **T-21 launched (tranche A, ≈ $23, caps 6.8 GPU-h × 3)** on Modal: folds 1 and 3 training normally (~147 s/epoch); fold 2 is waiting for an L4 (no cost while queued).
+  - **18-fiber addendum packet built** (exact reproduction).
+  - **T-23 provisional:**
+    - tracer **failed** its validation gate (bias −0.025 after one revision), so H7a/H7c need expert or hand tracing;
+    - detector recall 65%;
+    - **H7b provisional 6.5% [5.5, 7.5]** (passes the rule if the expert confirms the real share);
+    - `ring_candidates` gained `skip_labelled_filter` (default unchanged; tests pass).
+  - **Gate 1: NOT passed yet.** It waits on the D-33 expert ratings (T-20 ≥ 70% real, κ ≥ 0.6); everything else in Phase 1 is done or running.
