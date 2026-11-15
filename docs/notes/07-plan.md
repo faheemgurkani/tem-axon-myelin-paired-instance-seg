@@ -243,6 +243,13 @@ And does a decoder that is nested by construction remove (b)?
     - H7a is arithmetically bounded (Δ mean g ≈ p·Δg; at p ≈ 5% it would need Δg ≈ 0.6), so H7b/H7c were added as the powered readouts;
     - H8's leakage-free reference (ASTIH TEM1 model, test mouse 26) holds only ~14 thin-myelin fibers, so the reference arm needs a TEM1 fold that holds out the remyelinating-like mice (≈ $8 from the reserve).
   - **Corrections propagated across the docs:** TEM1 near-complete (not selective); C3 *does* have an outside test (thin fibers, H8); Parikh = arXiv preprint; Chuter = journal; the protocol-bias premise is two-sided; the overlap ceiling = repeat-annotation agreement.
+- **15 Nov, publication assessment (owner question):**
+  - **Paper 1** = analysis paper (C1 + H6 + H7 + H8). Viable for a MIDL short paper, a MICCAI 2027 workshop or ISBI 2027 if T-20, T-17 and A1 pass; the MICCAI main track only with clear H7b/c and H8 effects.
+  - **Paper 2, methods: possible but risky (~1 in 3).** The only open route is C3 as **MNAR-aware training**: learn the probability that a real fiber is labelled, given its appearance. No segmentation MNAR method was found.
+    - It needs a **controlled benchmark on TEM1** (delete fibers the way our protocol does, then score on the full labels), because our known-positive set is too small.
+    - Baselines: naive, hard ignore, LNQ, nnPU, pseudo-labels, random-ignore control.
+    - About 6–10 runs: this exceeds the remaining tranches unless B and C are redirected (budget decision needed).
+  - **Proposal only** (would get D-35, T-24, H9); the full text is in the owner's local plan, Phase 3b. Order: C3 pilot first, then grow it only on a pre-set win over the random-ignore control.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
