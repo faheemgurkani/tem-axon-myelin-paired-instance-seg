@@ -76,7 +76,7 @@ The submission format (zip with `method_description.pdf`, `code/{train.py, predi
 | Myelin thickness | 94 nm [62–144] |
 | g-ratio | **0.750** [0.651–0.841] |
 
-- g rises with axon size (r = 0.65; 0.64 for axons under 300 nm, 0.83 above 1 µm). This is the textbook pattern, so the labels are biologically plausible.
+- g rises with axon size (r = 0.65; 0.64 for axons under 300 nm, 0.83 above 1 µm). *Corrected 15 Nov (Phase 1):* this positive slope of g against **axon** diameter is mostly a measurement and sampling artefact (Fields & Dutta 2025; Gow 2025–26). Against **fiber** diameter, g is close to flat. So it is **not** evidence that the labels are biologically plausible, and all error analyses bin by fiber diameter (D-32).
 - **g sensitivity:** 1 px of axon-boundary shift moves g by ≈ 0.006 here, because fibers are large.
   - Only 2.4% of axons are under 300 nm, where it would be ≈ 0.015.
   - g-ratio differences between methods will therefore be small and need CIs.

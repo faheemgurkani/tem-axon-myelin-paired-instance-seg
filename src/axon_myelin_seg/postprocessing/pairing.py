@@ -60,3 +60,45 @@ def semantic_to_paired_instances(axon: np.ndarray, myelin: np.ndarray, min_axon_
     out[m > 0] = (2 * m[m > 0] + 1).astype(np.uint16)
     out[a > 0] = (2 * a[a > 0]).astype(np.uint16)
     return out
+
+
+def semantic_to_paired_instances_h5c(axon: np.ndarray, myelin: np.ndarray, min_axon_px: int = 50,
+                                     threshold: float = 0.5) -> np.ndarray:
+    """H5c post-processing, FROZEN 16 Nov 2026 (D-29; chosen on dev images only, `scripts/run/phase1_h5c_dev.py`).
+
+    Same seeds and mask as :func:`semantic_to_paired_instances`, but the landscape is the distance *from the axons*
+    (``EDT(¬axon)``) instead of ``−EDT(axon ∪ myelin)``: each myelin pixel joins the nearest axon, so a ring grows
+    outward from its own axon instead of splitting where touching sheaths are thinnest.
+    Dev result (in-sample, used for the choice): g-MAE 0.0160 → 0.0124, i.e. 54% of O-sep's gain; ΔF1 +0.0008,
+    Δrecall +0.0031. Confirmation is H5c on the 213 non-dev T-21 images. Do not edit after T-21 scoring starts.
+    """
+    if axon.dtype != bool:
+        axon = axon > threshold
+    if myelin.dtype != bool:
+        myelin = myelin > threshold
+    myelin = myelin & ~axon
+    seeds_mask = ndi.binary_fill_holes(axon)
+    seeds, n = ndi.label(seeds_mask, structure=B8)
+    if n == 0:
+        return np.zeros(axon.shape, np.uint16)
+    sizes = np.bincount(seeds.ravel())
+    small = sizes < min_axon_px
+    small[0] = False
+    seeds[small[seeds]] = 0
+    fg = seeds_mask | myelin
+    regions = watershed(ndi.distance_transform_edt(seeds == 0), markers=seeds, mask=fg)
+    ax_k = np.where(seeds > 0, seeds, 0)
+    my_k = np.where(myelin & (seeds == 0), regions, 0)
+    has_ring = np.bincount(my_k.ravel(), minlength=n + 1) > 0
+    has_axon = np.bincount(ax_k.ravel(), minlength=n + 1) > 0
+    keep = has_ring & has_axon
+    keep[0] = False
+    new = np.zeros(n + 1, np.int64)
+    new[keep] = np.arange(1, int(keep.sum()) + 1)
+    if keep.sum() > 32766:
+        raise ValueError("too many fibers for uint16 encoding")
+    out = np.zeros(axon.shape, np.uint16)
+    a, m = new[ax_k], new[my_k]
+    out[m > 0] = (2 * m[m > 0] + 1).astype(np.uint16)
+    out[a > 0] = (2 * a[a > 0]).astype(np.uint16)
+    return out

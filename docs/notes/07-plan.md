@@ -7,6 +7,24 @@
 - Time budget: 10 working days. Days 0–5 are done.
 - From 15 Nov, the order of work, the gates and the to-do list live in the owner's local `PLAN.md` (not committed). This file keeps the record: hypotheses, decisions, task definitions, risks and the log.
 
+<!-- toc -->
+**Contents**
+
+- [1. Question and contributions](#1-question-and-contributions)
+- [2. Hypotheses](#2-hypotheses)
+- [3. Decision register (compact)](#3-decision-register-compact)
+- [4. Tasks](#4-tasks)
+- [5. Risks and open questions](#5-risks-and-open-questions)
+- [6. Log (condensed; the full history is in git)](#6-log-condensed-the-full-history-is-in-git)
+- [7. Decision records (full rationale; Phase 0, 15 Nov 2026)](#7-decision-records-full-rationale-phase-0-15-nov-2026)
+  - [7.1 D-28: GPU budget, released in tranches](#71-d-28-gpu-budget-released-in-tranches)
+  - [7.2 D-29: H5 adopted and pre-registered](#72-d-29-h5-adopted-and-pre-registered)
+  - [7.3 C4: TEM2 label completeness, checked](#73-c4-tem2-label-completeness-checked)
+  - [7.4 Phase 0b decisions (15 Nov 2026)](#74-phase-0b-decisions-15-nov-2026)
+  - [7.5 D-34: H7 and H8 rules, and the design checks behind them (15 Nov 2026)](#75-d-34-h7-and-h8-rules-and-the-design-checks-behind-them-15-nov-2026)
+  - [7.6 D-35 and D-36: C3 methods route, H9 rule, budget and compute map (15 Nov 2026)](#76-d-35-and-d-36-c3-methods-route-h9-rule-budget-and-compute-map-15-nov-2026)
+<!-- /toc -->
+
 ## 1. Question and contributions
 
 **Question:** in paired axon–myelin instance segmentation of TEM, how much fiber-level error comes from each source, once annotation noise is accounted for?

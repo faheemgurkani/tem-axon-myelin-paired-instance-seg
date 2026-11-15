@@ -30,3 +30,21 @@ def test_ring_without_axon_and_speckle_are_dropped():
     axon[2:4, 2:4] = True                  # 4-px speckle, below min_axon_px
     out = semantic_to_paired_instances(axon, myelin)
     assert out.max() == 0
+
+
+def test_h5c_nearest_axon_splits_unequal_touching_rings():
+    """H5c (frozen): a thick ring touching a thin one; myelin goes to the nearest axon."""
+    import numpy as np
+
+    from axon_myelin_seg.postprocessing.pairing import semantic_to_paired_instances_h5c
+
+    yy, xx = np.mgrid[:80, :120]
+    d1 = np.hypot(yy - 40, xx - 35)
+    d2 = np.hypot(yy - 40, xx - 82)
+    axon = (d1 < 12) | (d2 < 8)
+    myelin = ((d1 < 24) | (d2 < 14)) & ~axon
+    out = semantic_to_paired_instances_h5c(axon, myelin)
+    fibers = set(np.unique(out[out >= 2] // 2).tolist())
+    assert len(fibers) == 2
+    for k in fibers:  # each fiber has its own axon and ring
+        assert (out == 2 * k).any() and (out == 2 * k + 1).any()
