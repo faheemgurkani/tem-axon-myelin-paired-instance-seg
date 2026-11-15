@@ -50,3 +50,40 @@ These are entries missing **by design** (assays never run). They are not entries
 - **Calibration:** use mirroring TTA plus temperature scaling on dev. Use a fold ensemble only on images no fold saw.
 - **The novelty-gate input:** compute the features the same way for labelled fibers and candidates, and tune its threshold on expert or overlap labels.
 - Don't adopt AG2's conditioning or distillation.
+
+## 6. Closer look at the three conditioning components (16 Nov, owner request)
+
+**Description check:**
+- **Learned dictionary of reference conditions:** correct ("selected from a learned dictionary of ontology-defined reference conditions").
+- **Adaptive normalization:** correct (scale and shift of intermediate features, ref. 26).
+- **Cell encoder, trainable adapter, mean of k cells, no retraining for a new dataset:** correct at inference. The adapter and head *are* trained once, in post-training, with the backbone frozen.
+
+**The C3 question each component would answer:** *does the chance that a real fiber is skipped depend on the image (its condition), and not only on the fiber?* If so, the selection model needs a condition term.
+
+### Test: per-image heterogeneity of the unlabelled-candidate rate (ours, 266 images, CPU)
+- **Inputs:** `results/phase0b/completeness_ours.csv` (candidates ≥ 300 nm, labelled fibers, background area) and the per-image median g from `fibers.csv`.
+- **Naive view (misleading):**
+  - the per-image share u = c/(c+n) is strongly over-dispersed (binomial χ²/df = 2.77, p ≈ 1e-45; median 3.6%, IQR 0–7.7%, 34% of images have none);
+  - u correlates with fiber density (ρ = −0.43) and with median g (ρ = +0.17).
+- **Controlled view (correct):** candidates arise in background, so model counts with a background-area offset (quasi-Poisson).
+  - **density:** rate ratio 0.88 per SD (CI 0.75–1.04);
+  - **median g:** 0.95 per SD (CI 0.81–1.11).
+  - Neither is significant. **The naive correlations were an area artefact.**
+- **But heterogeneity remains:** dispersion is **2.2×** Poisson after the covariates. Some images have far more unlabelled candidates than others, for reasons that neither density nor tissue g explains: annotator or session, image contrast, or detector behaviour. These can't be separated without the expert labels.
+
+### Verdict per component
+1. **Condition embedding (lookup per known condition) → useful, in a cheap form.**
+   - The selection model should carry a **per-image (or per-overlap-group) random effect** on the skip rate. The fitted dispersion justifies it.
+   - Implementation: a hierarchical logistic or beta-binomial term in the CPU selection model (step 3 of the C3 design). No network change.
+   - Caveat: part of the dispersion may come from the detector, not the annotators. Re-fit on expert-confirmed fibers after T-20.
+2. **Adaptive normalization inside the segmentation network → don't.**
+   - The selection model is deliberately separate from B1, so conditioning B1 would mix an architecture change into the C3 test.
+   - Conditioning on an image term of unknown cause risks letting the network learn "skip in this image", which is exactly the bias we want to avoid.
+   - No budget for it.
+3. **Encoder + averaged embeddings for unseen data → two uses, one fails.**
+   - **(a) Works as an analysis tool:** averaging fiber or patch features per image gives an *image fingerprint*. Clustering it is a proxy for the missing condition metadata (A2), the same idea as the TEM1 mouse proxy (note 07 §6). Useful for H7 and H8 stratification.
+   - **(b) Fails for zero-shot protocol transfer:** AG2 learned its condition space from thousands of fully measured conditions. We have 4 datasets and only 1 selective protocol, so there is no way to learn a "fingerprint → labelling protocol" map. The TEM1 benchmark must simulate the protocol explicitly.
+
+### Consequence for H7 (proxy only)
+- Under the area-controlled model, the candidate rate does **not** rise with image median g. So this proxy gives **no support** for "the skip rate grows with pathology", the differential-bias wording.
+- Keep H7's two-sided rule. The "masks disease" wording still needs A2.
