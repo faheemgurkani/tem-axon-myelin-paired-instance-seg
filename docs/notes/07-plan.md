@@ -219,6 +219,7 @@ And does a decoder that is nested by construction remove (b)?
     1. run our B1 on the near-complete outside sets and measure recall by fiber type, which also gives C3 a large known-positive test set;
     2. protocol bias on mean g and fiber counts as a named C1 result;
     3. abnormal fibers as an explicit third class (a C3 design option).
+  - **Overlooked-gaps validation** ([report](../reports/Overlooked%20gaps%20validation.md)): item 1 holds with a required reference arm (a complete-label model on the same images) and covers thin-myelin fibers only (cite hidden stratification, Oakden-Rayner 2020). Item 2 holds, but the skipped fibers are mixed (onion/thick and thin myelin) and no candidate has a measured g, so any rule must be two-sided; "masks a disease effect" needs per-image condition metadata (A2). Item 3 is partly pre-empted (Zepf ICLR 2023; Parikh et al. 2026, arXiv; MicroStructFormer's abnormality class), so it is a Gate 1 option only. The SIPAIM-winners C1 test is infeasible (no test GT promised; leakage through the dev fold). New: disagreement-based selection estimates are a lower bound once a model learns the labels (Parikh et al.). Still proposals; no IDs assigned.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
