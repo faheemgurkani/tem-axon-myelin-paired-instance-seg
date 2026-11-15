@@ -530,7 +530,7 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
     - g-quality: Cellpose+B1 0.785 > B1 0.766;
     - g error is flat across fiber diameter; oblique fibers are 1.7%.
   - **H5c developed on dev and frozen at 7c673ca:** nearest-axon watershed, 54% of O-sep's gain on dev (in-sample), guards pass.
-  - **T-21 launched (tranche A, ≈ $23, caps 6.8 GPU-h × 3)** on Modal: folds 1 and 3 training normally (~147 s/epoch); fold 2 is waiting for an L4 (no cost while queued).
+  - **T-21 launched (tranche A, ≈ $23, caps 6.8 GPU-h × 3)** on Modal: folds 1 and 3 training normally (~147 s/epoch); fold 2 is waiting for an L4 (no cost while queued). Its first app sat unscheduled for 30 min, so it was stopped (no compute used) and relaunched as `ap-5wXDJEkWXEnD1P0OSD4783`, which is still queued for L4 capacity per Modal. **Fallback if not scheduled within a few hours:** A10G via `TEM_MODAL_GPU=A10G`, after a 5-epoch timing run (≈ $0.4), because the GPU type changes.
   - **18-fiber addendum packet built** (exact reproduction).
   - **T-23 provisional:**
     - tracer **failed** its validation gate (bias −0.025 after one revision), so H7a/H7c need expert or hand tracing;
