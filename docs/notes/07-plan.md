@@ -30,7 +30,7 @@ And does a decoder that is nested by construction remove (b)?
 | H2 | C2 cuts (merge + split + gap FP) by ≥ 30% vs B1 and AxonPath, with Dice within B1's CI | Moot: B1 already has 2 such errors in 1,619 fibers |
 | **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) |
 | H4 | The method ranking is the same on ASTIH TEM1 | Open (T-17) |
-| **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Owner to decide** whether to pre-register it with a numeric rule *before* testing |
+| **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in the owner's `PLAN.md` §7.2 and the D-29 row below |
 
 ## 3. Decision register (compact)
 
@@ -63,6 +63,8 @@ And does a decoder that is nested by construction remove (b)?
 | D-25 | Overlap groups v2 (22 groups / 52 images); splits regenerated before training | Done. An overlap found later → report it, don't re-split |
 | D-26 | T-10 reduced to Cellpose-SAM zero-shot + B1 split ($10 budget) | Done |
 | **D-27** | **H1 = NO-GO → branch C1 + C3**; no C2 on the strength of H1 | 13 Nov. Revisit only if the owner pre-registers H5 |
+| **D-28** | GPU budget: $60 ceiling including the $8.16 spent, released in tranches. A ≈ $23 (cap $26) T-21; B ≈ $15.4 (cap $17) C3 pilot with 2 arms; C ≈ $15.4 (cap $17) C3 full; ~$12 reserve. Each tranche opens on a gate; C2 is outside it | 15 Nov. The earlier "pilot ≈ $8" costed one arm only. T-15′'s dev-only cheaper variant is ruled out: B1's dev model has seen the training images, so its probabilities there would bias the ignore masks |
+| **D-29** | H5 adopted and pre-registered. Metric: equivalent-circle g, matching IoU > 0.5, paired cluster bootstrap. H5a: O-sep Δg-MAE ≥ 25% relative, CI excludes 0. H5b: defective fibers ≤ 35% of fibers but ≥ 40% of \|g err\|, and ≥ 50% of O-sep's reduction. H5c: post-processing tuned on dev and frozen captures ≥ 50% of O-sep's gain, ΔF1@0.5 and Δrecall lower CI ≥ −0.005. Gate 3a: H5a fails → reject; H5a+H5c → measurement finding, no C2; H5a only → C2 candidate (new budget) | 15 Nov. Amendments only before any T-21 prediction exists, with a logged reason |
 
 ## 4. Tasks
 
@@ -97,6 +99,8 @@ And does a decoder that is nested by construction remove (b)?
   - per-fiber morphometry agreement (Bland–Altman of g, axon diameter, myelin thickness; errors by size bin);
   - rank stability under these switches.
 - **H5 first test** (only if the owner adopts H5; local, no GPU): close broken rings and regroup B1's pixels instance-first. Does simple post-processing capture most of O-sep's g gain? If yes, no new decoder is needed.
+
+- **T-21 cv3 out-of-fold B1** (GPU tranche A, D-28): train the B1 recipe on the 3 frozen cv3 folds; predict each held-out fold. Gives D-03's 3-fold C1 numbers, H5's unseen confirmation set, and C3's out-of-fold ignore masks. No oracle or H5 analysis on non-dev images until H5c's post-processing is frozen.
 
 **Both branches:**
 - **T-17 ASTIH TEM1 (day 9):**
@@ -168,3 +172,7 @@ And does a decoder that is nested by construction remove (b)?
   - **H1 = NO-GO (D-27).** H5 recorded.
   - Spend $8.16 of $10. Days 6–8 wait on the owner's budget decision.
 - **13 Nov:** notes consolidated from 19 files into 7 (this structure).
+- **15 Nov, Phase 0 (T-19 and the organiser questions deferred):**
+  - **D-28** budget in tranches (ceiling $60).
+  - **D-29** H5 pre-registered, with T-21 as its unseen confirmation set.
+  - **C4 checked:** TEM2's completeness is plausible but not established, with three confounds (phenotype, model-seeded GT, in-animal split; [report](../reports/TEM2%20label%20completeness%20check.md)). A completeness audit on TEM1/TEM2 now precedes H6.
