@@ -282,6 +282,12 @@ And does a decoder that is nested by construction remove (b)?
   - **Overlap tiles as capture–recapture** give a random-miss recall r ≈ 0.93 (independence unconfirmed).
   - **Budget:** a 4-run pilot gate + 3 runs, ≈ $33.
   - Not adopted; it feeds the proposed D-35/T-24/H9.
+- **16 Nov, AlphaGenome 2 check** ([note](../research_notes/AlphaGenome%202%20applicability/00_check.md)):
+  - AG2's conditioning and distillation don't address selective omission; AG2 masks unmeasured data, like an ignore label.
+  - A fold ensemble is neither free nor leakage-safe on training images.
+  - The normal-fiber distance gate is feasible as one input (24% of candidates inside the normal region).
+  - **New fact:** the per-image unlabelled-candidate rate is over-dispersed (2.2× Poisson) after controlling for background area, density and median g. So the C3 selection model needs a per-image random effect.
+  - The naive density and g correlations were an area artefact. No support for "skip rate rises with pathology" (relevant to H7's wording).
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
