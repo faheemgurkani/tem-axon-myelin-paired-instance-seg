@@ -29,3 +29,8 @@ Report: `docs/reports/Overlooked gaps validation.md`.
 - `data/processed/eda/unl_cands.csv`: the columns hold the inner diameter only (`d_nm`), with **no outer boundary, so no g**.
 - `docs/research_notes/Phase 0b evidence/06_g_effect_sizes_B5.md`: the 0.03 yardstick and the "biased low" hypothesis (one-sided, unsupported).
 - `docs/research_notes/Phase 0b evidence/10_expert_review_protocol.md`: category 2 = abnormal (thin, redundant/onion, degenerating, oblique). This is usable for the class option and for outline tracing.
+
+## Addendum sources (15 Nov)
+- Parikh et al. abstract page ([arXiv 2605.06891](https://arxiv.org/abs/2605.06891)): Comments "The Fortieth Annual Conference on Neural Information Processing Systems (NeurIPS) 2026"; no journal reference; v1 7 May, v2 26 Sep 2026. Full HTML v2 read verbatim (subagent, all chunks).
+- [OpenReview search](https://openreview.net/search?term=Towards%20Fairness%20under%20Label%20Bias%20in%20Image%20Segmentation), read in Chrome 15 Nov: entry "Published: 31 Dec 2026 … CoRR 2026"; no NeurIPS 2026 decision. The same search shows Zepf et al. as "ICLR 2023 poster" (confirms that venue).
+- [SortedAP, arXiv 2309.04887](https://arxiv.org/pdf/2309.04887); Metrics Reloaded / pitfalls ([Nat Methods 2024](https://www.nature.com/articles/s41592-023-02151-z.pdf)); ensemble nerve morphometry with KS tests ([Electronics 2022](https://mdpi.com/2079-9292/11/14/2277/htm)); [gACSON](https://arxiv.org/html/2112.06476v2); PQ: local `docs/references/papers/kirillov2019_panoptic_quality_1801.00868.pdf`.

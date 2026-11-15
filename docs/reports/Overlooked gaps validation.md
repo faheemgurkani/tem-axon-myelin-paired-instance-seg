@@ -109,3 +109,25 @@ The challenge site was read on 15 Nov; the subpages return 404.
 3. **Keep the abnormal-fiber class as a Gate 1 option only**, citing Zepf 2023, Parikh 2026 and MicroStructFormer.
 4. **Drop the SIPAIM-winners test.** Keep the novelty recheck after 20 Nov.
 5. **Reword** the overlap ceiling as repeat-annotation agreement, and add the lower-bound note (§5.1) to C1.
+
+## Addendum (15 Nov): the two items left open are now closed
+
+### A. Parikh et al.: venue and full results
+- **Venue:** the arXiv "Comments" field says "NeurIPS 2026" without "accepted" or a track. OpenReview (checked in Chrome) lists the paper only as **"CoRR 2026"**, with no NeurIPS 2026 decision record. The NeurIPS virtual site's paper list did not load. **Cite it as an arXiv preprint (2026) that names NeurIPS 2026**, until an acceptance record appears.
+- **Full text now read verbatim**, including §5–6 and appendices G.2–G.5:
+  - **The audit underestimates bias once the model learns it.** The directional rate weakens from −6.1% at 50% corruption to −2.9% at 100%. The authors: "These disagreements underestimate severe bias when models learn the corrupted annotations." This confirms §5.1 (our selection share is a lower bound).
+  - **"Observed-label illusion" (G.2):** "successful correction can appear unsuccessful when evaluated against the same biased annotations used for training." At 50% erosion, the true gap falls from 5.5 to 0.5 pp, while the gap measured on the biased labels *rises* from 11.5 to 12.0 pp. **This is direct prior support for C3's design:** recovered fibers will look like false positives on the official labels, so C3 must be judged on known-positive fibers (overlap disagreements, and thin fibers on the outside sets), never on official precision alone.
+  - **Mitigation:** the conditioned decoder cuts the IoU gap from 21.0 to 8.9 at 100% bias, but needs a hand-picked clean reference group. The automatic choice is weaker (16.1 pp), and it helps nothing when the bias is not group-linked.
+  - **Their stated limitations:** disagreement can be model error or difficulty, it needs an identifiable subgroup, it covers boundary errors only, and one seed per cell.
+
+### B. Prior work on a g-ratio metric that also counts missed fibers
+**Searches:** detection-aware morphometry metrics; distribution comparison of g with missed axons; Metrics Reloaded biomarker quantification.
+
+**Found:**
+- **Panoptic quality** (Kirillov et al. 2019, local PDF) is the template: detection F1 × segmentation quality of matched objects. **SortedAP** (2023) argues that a metric must count FN, FP and segmentation error together.
+- **Metrics Reloaded** and its pitfalls paper (*Nat Methods* 2024) warn that pixel metrics hide missed objects and that boundary choices bias biomarkers. They define no morphometric metric.
+- **Axon morphometry papers** compare *distributions* of g between automatic and manual results with KS tests (e.g. *Electronics* 2022) or report summary statistics (gACSON). None penalises missed fibers in the g error.
+
+**Verdict:** **no prior g metric accounts for missed fibers.**
+- A PQ-style "g-quality" (F1 × (1 − scaled g error)), or g-MAE plotted against recall, is a small, defensible addition to C1.
+- It is an *adaptation of PQ* and must be cited as such. Not a headline.
