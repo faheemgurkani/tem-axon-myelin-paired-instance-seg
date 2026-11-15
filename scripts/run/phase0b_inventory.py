@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from skimage.segmentation import find_boundaries
 
-from axon_myelin_seg.data.external import astih_to_pairs
+from axon_myelin_seg.data.external import astih_to_pairs, split_axonmyelin
 
 REPO = Path(__file__).resolve().parents[2]
 EXT = REPO / "data/external"
@@ -79,11 +79,15 @@ def main() -> None:
         rows = []
         for j, p in enumerate(imgs):
             m = masks_for(root, p)
-            if "axon" not in m or "myelin" not in m:
+            if "axon" in m and "myelin" in m:
+                ax_m, my_m = iio.imread(m["axon"]), iio.imread(m["myelin"])
+            elif "axonmyelin" in m:
+                ax_m, my_m = split_axonmyelin(iio.imread(m["axonmyelin"]))
+            else:
                 continue
             img = iio.imread(p)
             img = img if img.ndim == 2 else img[..., 0]
-            pairs, rep = astih_to_pairs(iio.imread(m["axon"]), iio.imread(m["myelin"]))
+            pairs, rep = astih_to_pairs(ax_m, my_m)
             px = pixel_size_um(p)
             d_med, g_med = morph(pairs, px)
             area_um2 = img.shape[0] * img.shape[1] * px * px

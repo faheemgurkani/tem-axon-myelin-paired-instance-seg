@@ -8,11 +8,11 @@
   "image_sizes": [
    "2286x3762"
   ],
-  "fibers": 7841,
+  "fibers": 7853,
   "border_fibers": 2592,
   "no_axon": 891,
   "no_myelin": 0,
-  "multi_axon": 24,
+  "multi_axon": 13,
   "fibers_per_um2_median": 1.043880971619256,
   "fiber_d_nm_median_of_images": 733.4259947439211,
   "g_median_of_images": 0.7764085807129247,
@@ -21,6 +21,34 @@
    "test": 8
   },
   "extra_classes": []
+ },
+ "TEM2_dandi": {
+  "images": 10,
+  "subjects": 5,
+  "px_um": [
+   0.00493
+  ],
+  "image_sizes": [
+   "4675x4675",
+   "500x500",
+   "600x600"
+  ],
+  "fibers": 4234,
+  "border_fibers": 360,
+  "no_axon": 223,
+  "no_myelin": 5,
+  "multi_axon": 39,
+  "fibers_per_um2_median": 1.041041547450344,
+  "fiber_d_nm_median_of_images": 665.4472892151085,
+  "g_median_of_images": 0.7149564542216948,
+  "split_counts": {
+   "train": 10
+  },
+  "extra_classes": [
+   "nuclei",
+   "process",
+   "uaxon"
+  ]
  },
  "TEM2_test": {
   "images": 21,

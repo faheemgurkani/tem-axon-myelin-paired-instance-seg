@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy import ndimage as ndi
+from skimage.segmentation import watershed
 
 EIGHT = np.ones((3, 3), dtype=bool)
 
@@ -24,6 +25,15 @@ class ConversionReport:
     n_no_myelin: int  # axon-only components -> set to ignore
     n_multi_axon: int  # fibers whose axon part has > 1 connected component (kept; flagged)
     n_border: int  # fibers touching the image border
+    n_split: int = 0  # merged components split into separate fibers by their myelin holes
+
+
+def split_axonmyelin(am: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """ASTIH combined mask -> (axon, myelin). Axon = 255, myelin = 127/128 (TEM2 also has a few 126s); checked on
+    TEM1, where the combined mask agrees exactly with the separate axon/myelin masks."""
+    if am.ndim == 3:  # one TEM2 mask is stored as grey + alpha
+        am = am[..., 0]
+    return am >= 192, (am >= 64) & (am < 192)
 
 
 def astih_to_pairs(axon: np.ndarray, myelin: np.ndarray, border_to_ignore: bool = False) -> tuple[np.ndarray, ConversionReport]:
@@ -60,12 +70,35 @@ def astih_to_pairs(axon: np.ndarray, myelin: np.ndarray, border_to_ignore: bool 
             if border_to_ignore:
                 out[sl][comp] = 1
                 continue
+        parts = [(a, m)]
         if ndi.label(a, structure=EIGHT)[1] > 1:
-            rep.n_multi_axon += 1
-        k += 1
-        if 2 * k + 1 > np.iinfo(np.uint16).max:
-            raise OverflowError("too many fibers for uint16 encoding")
-        out[sl][a] = 2 * k
-        out[sl][m] = 2 * k + 1
+            parts = _split_by_holes(comp, a, m)
+            if len(parts) > 1:
+                rep.n_split += 1
+            else:
+                rep.n_multi_axon += 1  # one ring, fragmented axon: kept as one fiber
+        for pa, pm in parts:
+            k += 1
+            if 2 * k + 1 > np.iinfo(np.uint16).max:
+                raise OverflowError("too many fibers for uint16 encoding")
+            out[sl][pa] = 2 * k
+            out[sl][pm] = 2 * k + 1
     rep.n_fibers = k
     return out, rep
+
+
+def _split_by_holes(comp: np.ndarray, a: np.ndarray, m: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
+    """A component with several axon pieces is several fibers only if its myelin encloses several axon-containing
+    holes (touching rings drawn without the 2-px gap, seen in TEM2). Each such hole seeds one fiber; the rest of the
+    component goes to the nearest hole (watershed on the distance to the holes)."""
+    holes = ndi.binary_fill_holes(m) & ~m
+    hl, nh = ndi.label(holes, structure=EIGHT)
+    with_axon = [j for j in range(1, nh + 1) if (a & (hl == j)).any()]
+    if len(with_axon) < 2:
+        return [(a, m)]
+    markers = np.zeros(comp.shape, np.int32)
+    for r, j in enumerate(with_axon, start=1):
+        markers[hl == j] = r
+    region = watershed(ndi.distance_transform_edt(markers == 0), markers, mask=comp)
+    return [(a & (region == r), m & (region == r)) for r in range(1, len(with_axon) + 1)
+            if (a & (region == r)).any() and (m & (region == r)).any()]

@@ -31,7 +31,7 @@ And does a decoder that is nested by construction remove (b)?
 | **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) |
 | H4 | The method ranking is the same on ASTIH TEM1 | Open (T-17) |
 | **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in §7.2 |
-| **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) | Open. Full rule in §7.4. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise |
+| **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. **H6c (TEM2, added 15 Nov after its audit, before any TEM2 score):** the same two thresholds on TEM2's external test set. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) on each dataset | Open. Full rule in §7.4. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise |
 
 ## 3. Decision register (compact)
 
@@ -294,7 +294,12 @@ The premise is reversed. Nothing had been scored on TEM1, so rewriting is legiti
 - **Outcomes:**
   - H6a holds → C1's mechanism replicates: selection errors scale with how incomplete the labels are, and TEM1's low precision has another cause, named by H6b's class table.
   - H6a fails → errors on unlabelled structures arise even with near-complete labels. Part of what we call "selection" on our data may then be model over-prediction. Revisit C1's wording, and weight T-20 (by-eye audit) as decisive.
-- **TEM2.** Deferred. The 600×600 test ROIs are too small for the detector. The TEM2 rule is written after auditing the full DANDI images, before any TEM2 score.
+- **H6c (TEM2), added the same day after the full-image audit, before any TEM2 score.**
+  - The audit: u 1.4%; by eye ~19% of candidates are real, mostly small thin-myelin fibers, so ≈ 0.3% real unlabelled per labelled fiber. TEM2 is near-complete, like TEM1.
+  - Rule: on TEM2's external test set (21 ROIs, 10 mice, 292 fibers), with the released `model_seg_unmyelinated_tem` r20240708-stanford (**never** v3.0.0) and ADS post-processing, **strict share ≤ 5% and broad share ≤ 39%**.
+  - Prerequisite: reproduce ASTIH's TEM2 numbers (Dice 0.971 / 0.929, F1@0.5 0.949, same tolerances).
+  - Caveats, reported with the result: the test is **in-animal**, and **64% of the ROI fibers touch the frame**. Report it also with border fibers ignored (`border_to_ignore=True`).
+- **Conversion detail found in the audit:** TEM2's touching rings sometimes lack the 2-px gap. The converter splits them by their myelin holes (`07_external_datasets.md` §2), checked by eye.
 - **Amendments** only before the first TEM1 prediction exists, with a logged reason.
 
 **D-32, primary g (B4) and yardstick (B5).** See the register row and `02_gow_g_ratio.md` / `06_g_effect_sizes_B5.md`.

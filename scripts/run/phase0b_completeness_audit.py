@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 from scipy import ndimage as ndi
 
-from axon_myelin_seg.data.external import astih_to_pairs
+from axon_myelin_seg.data.external import astih_to_pairs, split_axonmyelin
 from axon_myelin_seg.data.io import list_samples, load_sample
 from axon_myelin_seg.evaluation.taxonomy import ring_candidates
 
@@ -38,11 +38,16 @@ def astih_iter(root: Path):
         d = root / "derivatives/labels" / subj / "micr"
         stem = p.name[:-4]
         a, m = d / f"{stem}_seg-axon-manual.png", d / f"{stem}_seg-myelin-manual.png"
-        if not (a.exists() and m.exists()):
+        am = d / f"{stem}_seg-axonmyelin-manual.png"
+        if a.exists() and m.exists():
+            ax_m, my_m = iio.imread(a), iio.imread(m)
+        elif am.exists():
+            ax_m, my_m = split_axonmyelin(iio.imread(am))
+        else:
             continue
         img = iio.imread(p)
         img = img if img.ndim == 2 else img[..., 0]
-        pairs, _ = astih_to_pairs(iio.imread(a), iio.imread(m))
+        pairs, _ = astih_to_pairs(ax_m, my_m)
         yield p.name, subj, img, pairs
 
 

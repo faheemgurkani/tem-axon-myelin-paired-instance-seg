@@ -4,10 +4,10 @@
   "px_nm": 2.36,
   "ds": 4,
   "candidates": 49,
-  "fibers": 7841,
-  "candidates_per_100um2_bg": 1.2822036491023652,
-  "fibers_per_100um2_img": 103.60848985400747,
-  "unlabelled_share_u": 0.006210392902408111,
+  "fibers": 7853,
+  "candidates_per_100um2_bg": 1.282203643496235,
+  "fibers_per_100um2_img": 103.76705405222812,
+  "unlabelled_share_u": 0.0062009617818273854,
   "u_per_image_median": 0.0
  },
  "TEM2_test": {
@@ -31,5 +31,16 @@
   "fibers_per_100um2_img": 52.80798254377455,
   "unlabelled_share_u": 0.05125473484848485,
   "u_per_image_median": 0.03571428571428571
+ },
+ "TEM2_dandi": {
+  "images": 10,
+  "px_nm": 4.93,
+  "ds": 2,
+  "candidates": 60,
+  "fibers": 4234,
+  "candidates_per_100um2_bg": 2.7712474218682903,
+  "fibers_per_100um2_img": 99.28674341661144,
+  "unlabelled_share_u": 0.013972985561248253,
+  "u_per_image_median": 0.010291716315812702
  }
 }
