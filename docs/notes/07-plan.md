@@ -95,6 +95,7 @@ And does a decoder that is nested by construction remove (b)?
 | **D-34** | Integrate the validated gap findings into the plan (owner instruction 15 Nov). **Adopted:** H7 (protocol bias on g and counts, two-sided, T-23), H8 (hidden stratification on outside data with a complete-label reference arm, T-22; also C3's outside test), C3 evaluation on known positives only. **C1 add-ons:** PQ-style g-quality metric (cite PQ), "repeat-annotation agreement" wording for the overlap ceiling, and the lower-bound note on the selection share. **Gate 1 option only:** an abnormal-fiber class (prior art Zepf 2023, Parikh 2026, MicroStructFormer). **Dropped:** the SIPAIM-winners test. Corrections: TEM1 is near-complete, not selective; Parikh is an arXiv preprint (NeurIPS unconfirmed); Chuter is a journal paper | 15 Nov. `docs/reports/Overlooked gaps validation.md` + §7.5 |
 | **D-35** | **C3 methods route adopted** (owner, 15 Nov): fiber-level SAR selection-gated soft ignore in the B1 recipe; TEM1 controlled benchmark T-24; H9 pre-registered; t_k from B1 zero-shot (leak-free); T-20 as the anchor of a(x); r swept 0.88–0.96 | 15 Nov. §7.6 |
 | **D-36** | **Budget ceiling raised to $75** (owner, 15 Nov), enforced as the Modal workspace usage limit ($75, set 15 Nov). Tranches re-planned to fit, caps included; **compute map: every non-GPU step runs locally on the M4, Modal only for GPU training and inference** | 15 Nov. §7.6 |
+| **D-37** | **AlphaGenome 2 check: two ideas adopted, the rest rejected** (owner agreed, 16 Nov). **(1) A per-image "condition" term in C3's CPU selection model:** a per-image (or per-overlap-group) random effect on the skip rate, implemented as a hierarchical logistic or beta-binomial term. Justified by the unlabelled-candidate rate being 2.2× over-dispersed after controlling for background area, density and median g. Re-fit on expert-confirmed fibers after T-20, because part of the dispersion may be detector behaviour. **(2) An image "fingerprint" for analysis only (T-25):** averaged per-image features, clustered as a proxy for the missing condition metadata (A2), to stratify H7, H8 and H6 interpretation. **Calibration rule for t_k:** mirroring TTA plus temperature scaling fitted on dev; a fold ensemble only on images no fold saw (TEM1, challenge test), never on our training images (leakage). **Novelty gate a(x):** the features must come from the same pipeline for labelled fibers and candidates; the threshold is tuned on T-20 or the 18-fiber addendum. **Rejected:** FiLM or adaptive-norm conditioning of the network, distillation, zero-shot protocol transfer. Not claimable as novelty | 16 Nov. [note](../research_notes/AlphaGenome%202%20applicability/00_check.md) §3, §6 |
 
 ## 4. Tasks
 
@@ -144,6 +145,12 @@ And does a decoder that is nested by construction remove (b)?
   4. per-cluster on TEM1 as context.
 
 - **T-24 TEM1 controlled two-part omission benchmark (C3, H9; D-35):** see §7.6 for the steps and the compute map.
+  - D-37 additions: the selection model carries a per-image random effect; t_k follows the D-37 calibration rule; a(x) uses same-pipeline features with a threshold from T-20.
+- **T-25 Image fingerprint (analysis only; D-37; Phase 1–2, CPU):**
+  1. One vector per image: the same-pipeline features of all labelled fibers and candidates, averaged (diameter, g, myelin fraction, density, contrast). Optionally add pooled frozen-encoder features (B1 encoder or μSAM), mean-pooled, with no training.
+  2. Cluster on our 266 images and on TEM1's 20 mice. Check against TEM1's 3-cluster condition proxy (Phase 0b note 07 §6) as a sanity test.
+  3. Use the clusters to stratify H7 (does the skip rate or Δg differ by cluster?), H8 (recall gap by cluster) and the H6 limitations.
+  4. **Never** use it as a training input or a network condition. Describe it as a proxy, not as condition truth, until A2 is answered.
 
 **Both branches:**
 - **T-17 ASTIH TEM1 (day 9):**
@@ -288,6 +295,7 @@ And does a decoder that is nested by construction remove (b)?
   - The normal-fiber distance gate is feasible as one input (24% of candidates inside the normal region).
   - **New fact:** the per-image unlabelled-candidate rate is over-dispersed (2.2× Poisson) after controlling for background area, density and median g. So the C3 selection model needs a per-image random effect.
   - The naive density and g correlations were an area artefact. No support for "skip rate rises with pathology" (relevant to H7's wording).
+  - **Adopted as D-37** (owner, 16 Nov): the per-image random effect in the selection model, plus the image fingerprint as an analysis proxy (new task T-25). Calibration and novelty-gate rules recorded in D-37. FiLM, distillation and zero-shot protocol transfer rejected.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
@@ -456,7 +464,7 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **D-35:** C3 methods route adopted; H9 pre-registered (§7.6).
   - **D-36:** ceiling $75. Modal usage limit set to $75 in the dashboard ($8.07 used). Tranches re-planned to fit with caps.
   - **Compute rule restated:** CPU locally, Modal for GPU only.
-  - Next IDs: D-37, T-25, H10.
+  - Next IDs: D-38, T-26, H10 *(D-37 and T-25 were used on 16 Nov for the AlphaGenome 2 decision)*.
 
 ### 7.6 D-35 and D-36: C3 methods route, H9 rule, budget and compute map (15 Nov 2026)
 

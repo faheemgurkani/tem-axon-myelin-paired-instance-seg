@@ -164,6 +164,14 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - H7: the automatic ring tracer failed its own accuracy check, so only the count bias (H7b) has a provisional value: **≈ 6.5% of myelinated fibers uncounted**.
 - **Gate 1 waits only on the expert ratings.**
 
+**AlphaGenome 2 check (16 Nov, D-37; [note](../research_notes/AlphaGenome%202%20applicability/00_check.md)):**
+- AG2's conditioning and distillation don't solve selective omission. For missing data it does what an ignore label does.
+- **Two ideas kept:**
+  1. C3's selection model gets a **per-image random effect**: the unlabelled-candidate rate varies 2.2× more than chance between images, even after area, density and g are controlled.
+  2. An **image fingerprint** (averaged per-image features, T-25) serves as an *analysis* proxy for the missing condition metadata, to stratify H7, H8 and H6.
+- **Calibration rule:** mirroring TTA plus temperature scaling; a fold ensemble only on images no fold saw.
+- **Side result:** once area is controlled, the skip rate does not rise with image median g.
+
 **Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).
 2. **H5.** "Grouping and ring topology drive g-ratio error". It is post hoc, so it needs a pre-written rule before it can justify reviving C2 as a *morphometry* method.
