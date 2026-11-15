@@ -1,5 +1,12 @@
 # Where C1, C3 and H5 stand after Phase 0 and Phase 0b: research engineer's assessment (15 Nov 2026)
 
+> **Corrections, 15 Nov (after `docs/reports/Overlooked gaps validation.md`; D-34). Read these first; the text below is kept as written.**
+> 1. **C3 is not limited to our data.** The outside sets label thin-myelin fibers our protocol skips, so H8 gives C3 an outside known-positive test (thin fibers only).
+> 2. **C3 evaluation:** judge it only on known-positive fibers ("observed-label illusion", Parikh 2026).
+> 3. **Parikh et al.** is an **arXiv preprint** (2605.06891). It names NeurIPS 2026, but OpenReview has no acceptance record.
+> 4. **New C1 readouts:** H7 (protocol bias on g and counts, two-sided) and H8 (hidden stratification: B1 vs a complete-label reference). Add-ons: PQ-style g-quality, repeat-annotation agreement, lower-bound note.
+> 5. The "biased low" g premise is withdrawn (two-sided now). The abnormal-fiber class is a Gate 1 option only. The SIPAIM-winners test is dropped.
+
 Scope: everything known after Phase 0 (decisions D-28, D-29, C4) and Phase 0b (notes 01–08 and 10 here, decisions D-30…D-33).
 - No new model has been trained or scored since day 5. The *evidence about* the claims changed; the claims' own numbers did not.
 - Day 1–5 numbers are in [05](../../notes/05-results.md).

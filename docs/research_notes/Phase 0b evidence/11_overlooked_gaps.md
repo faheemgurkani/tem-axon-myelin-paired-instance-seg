@@ -1,5 +1,9 @@
 # Overlooked contribution gaps: research engineer's honest assessment (15 Nov 2026)
 
+> **Superseded, 15 Nov.** These proposals were validated in `docs/reports/Overlooked gaps validation.md` and integrated as **D-34** (H7, H8, C1 add-ons, Gate 1 option) in `07-plan.md` §7.5.
+> - Corrections: item 1 needs a reference arm and covers thin-myelin fibers only; item 2 is two-sided; item 3 is partly pre-empted (Zepf 2023, Parikh 2026, MicroStructFormer).
+> - "Inter-rater" for the overlap ceiling → "repeat-annotation agreement".
+
 **Question (owner):** after all the reading, datasets and runs, is there a contribution-specific gap we missed?
 
 **Basis:** everything in `docs/` (reports, research notes, references), `external/` and `data/`. A grep of the plan confirms none of items 1–3 is an existing task (H4 is only a ranking claim).

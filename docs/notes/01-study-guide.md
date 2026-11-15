@@ -140,7 +140,15 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
   - In TEM1, TEM2 and AxonPath almost all candidates are gaps between rings.
 - So the old idea that TEM1 was the "selective" set was wrong. H6 was rewritten **before any external score**: on near-complete TEM1 and TEM2, selection should be a small share of errors.
 - **Primary g stays equivalent-circle** (Gow 2026 criticises population g fits, not per-fiber D_A/D_F). The smallest meaningful group shift is ≈ 0.03.
-- **Gate 0 passed.** Next is Phase 1 (T-20 audit, T-16′ analyses, H5c development, then T-21).
+- **Gate 0 passed.**
+- **Gap validation integrated (D-34):**
+  - **H8:** a model trained on our selective labels may miss thin-myelin fibers on outside data. Tested against a reference model trained on complete labels; this is also C3's outside test (so C3 is *not* limited to our data).
+  - **H7:** the protocol may bias the endpoint (g, counts). Two-sided; the mean-g version is arithmetically weak at a ~5% skip rate.
+  - **C3** is judged only on fibers known to be real ("observed-label illusion").
+  - **C1 add-ons:** a PQ-style g-quality metric; "repeat-annotation agreement" wording; the selection share is a lower bound.
+  - The abnormal-fiber class is only a Gate 1 option (prior art exists). The SIPAIM-winners test was dropped.
+- **Standings:** C1 is stronger and remains the paper; C3 is viable with a modest gain; H5 is untested.
+- **Next:** Phase 1 (expert review T-20 + T-23/H7, T-16′, H5c, then T-21).
 
 **Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).

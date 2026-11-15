@@ -77,3 +77,9 @@ See [05](05-results.md) for the numbers.
    - By the same detector, TEM1 is the *most* complete set (≈ 0.05% real unlabelled per labelled fiber), yet it has the lowest published F1. Its low precision must therefore come from something other than selection; H6b tests what.
    - Selective omission is specific to **our** dataset (≈ 4.2%). AxonPath excludes only degenerating figures.
    - Evidence: `docs/research_notes/Phase 0b evidence/07_external_datasets.md` §4.
+5. **Gap validation, 15 Nov** (`docs/reports/Overlooked gaps validation.md`, D-34): prior art to cite for the new readouts.
+   - **Hidden stratification** (Oakden-Rayner 2020; Bissoto, MICCAI 2025) for H8.
+   - **Stereology and nerve-morphometry inclusion bias**, Fields & Dutta 2025, for H7: the principle is old; our measurement for DL protocols is new.
+   - **Label-style / protocol conditioning:** Zepf et al., ICLR 2023; Parikh et al. 2026 (**arXiv preprint**, NeurIPS listed but unconfirmed on OpenReview). Also MicroStructFormer (bioRxiv 2026), which has an EM "abnormality" class. So an abnormal-fiber class is not new as a mechanism.
+   - **PQ** (Kirillov 2019) is the template for our g-quality metric; no prior g metric penalises missed fibers.
+   - Parikh's **"observed-label illusion"**: a correction looks like failure when scored on the biased labels. This is why C3 is judged on known positives only.

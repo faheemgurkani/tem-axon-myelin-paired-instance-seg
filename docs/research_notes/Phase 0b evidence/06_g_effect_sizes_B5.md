@@ -1,5 +1,10 @@
 # How big a g-ratio change matters biologically (B5), 15 Nov 2026
 
+> **Correction, 15 Nov (gap validation, D-34).**
+> - The "biased low" premise below is **one-sided and unsupported**. The skipped fibers are mixed: thick or onion myelin (low g) and thin myelin (high g). No candidate has a measured g yet.
+> - The test is now **H7, two-sided** (`07-plan.md` §7.5).
+> - **Arithmetic:** Δ mean g ≈ p·Δg. At a ~5% skip rate, 0.03 needs Δg ≈ 0.6, so the better-powered readouts are the count bias (H7b) and the high-g tail share (H7c).
+
 **Goal:** a yardstick to judge whether a g error or a g-MAE difference between methods is biologically meaningful.
 
 ## Reported effects in mouse white matter (EM)

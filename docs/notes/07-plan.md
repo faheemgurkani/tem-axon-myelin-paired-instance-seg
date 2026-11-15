@@ -18,9 +18,9 @@ And does a decoder that is nested by construction remove (b)?
 
 | ID | Contribution | Status |
 |---|---|---|
-| **C1** | Error-decomposition evaluation: pairing-correctness metric, FP/FN taxonomy, oracles, human ceilings from overlapping tiles, recall-vs-g-MAE gaming curve, g-definition sensitivity | Core built and run (days 2–5). Remaining analyses: T-16′ |
+| **C1** | Error-decomposition evaluation: pairing-correctness metric, FP/FN taxonomy, oracles, repeat-annotation agreement from overlapping tiles, recall-vs-g-MAE gaming curve and a PQ-style g-quality metric, g-definition sensitivity; plus the protocol's effect on the endpoint (H7) and on models (H8) | Core built and run (days 2–5). Remaining: T-16′, T-20, T-23 (H7), T-22 (H8), H6. Status 15 Nov: stronger; selection is protocol-specific (ours ≈ 4.2% skipped vs ≤ 0.3% elsewhere) |
 | C2 | Nested-by-construction decoder (instance-first, part-second) | **Not built:** H1 = NO-GO. Could return via H5 |
-| **C3** | Learning with incomplete fiber annotation (ignore confident unlabelled rings in training) | **Next main method** (NO-GO branch); blocked on budget |
+| **C3** | Learning with incomplete fiber annotation (ignore confident unlabelled rings in training) | Viable, modest expected gain (LNQ +2–3). Budget in tranches (D-28). Judged only on known positives: H3 set + thin fibers outside (H8). Gate 1 option: an abnormal-fiber class |
 
 ## 2. Hypotheses
 
@@ -28,10 +28,12 @@ And does a decoder that is nested by construction remove (b)?
 |---|---|---|
 | **H1** | On B1, the separation oracle gains ≥ 0.03 F1@0.5, **and** ≥ the selection-oracle gain, **and** separation is ≥ 30% of errors → GO (build C2) | **NO-GO** (13 Nov): −0.001 / +0.016 / 0.6% |
 | H2 | C2 cuts (merge + split + gap FP) by ≥ 30% vs B1 and AxonPath, with Dice within B1's CI | Moot: B1 already has 2 such errors in 1,619 fibers |
-| **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) |
+| **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) Evaluation rule added 15 Nov (D-34): judge C3 only on fibers known to be real (overlap disagreements; thin fibers on outside sets, H8), never on official precision alone ("observed-label illusion", Parikh 2026) |
 | H4 | The method ranking is the same on ASTIH TEM1 | Open (T-17) |
 | **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in §7.2 |
-| **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. **H6c (TEM2, added 15 Nov after its audit, before any TEM2 score):** the same two thresholds on TEM2's external test set. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) on each dataset | Open. Full rule in §7.4. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise |
+| **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. **H6c (TEM2, added 15 Nov after its audit, before any TEM2 score):** the same two thresholds on TEM2's external test set. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) on each dataset | Open. Full rule in §7.4. **Limitation (15 Nov):** the leakage-free TEM1 test mouse looks control-like (proxy), so a TEM1 pass speaks mainly for healthy tissue. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise |
+| **H7** *(added 15 Nov, D-34; C1)* | The labelling protocol biases the morphometric endpoint. **Two-sided.** H7a: including the expert-confirmed skipped fibers shifts mean per-fiber g by \|Δ\| ≥ 0.03. H7b: the protocol under-counts myelinated fibers by ≥ 5%. H7c: it changes the share of fibers with g > 0.85 by ≥ 2 points (absolute) | Planned (T-23). **Feasibility caveat written before any data:** Δ mean g ≈ p·(g_skipped − g_labelled); at p ≈ 5% H7a needs a g difference ≈ 0.6 and will almost surely fail. It is kept to report honestly; H7b/H7c are the better-powered readouts. "Masks disease" needs per-image condition (A2). Full rule §7.5 |
+| **H8** *(added 15 Nov, D-34; C1, + C3 outside test)* | Training on selective labels creates a hidden stratification. On near-complete outside data, B1's recall gap (thin-myelin minus normal fibers) is worse than a reference model trained on complete labels. Holds if (gap_B1 − gap_ref) ≤ −0.10 with a mouse-bootstrap CI below 0 | Planned (T-22). Tests **thin-myelin** fibers only (outside sets also exclude degenerating rings). The reference must be leakage-free and see thin fibers, so it needs a TEM1 fold holding out the remyelinating-like mice (≈ $8, reserve). Full rule §7.5 |
 
 ## 3. Decision register (compact)
 
@@ -70,6 +72,7 @@ And does a decoder that is nested by construction remove (b)?
 | **D-31** | H6 rewritten from the completeness audit (TEM1 near-complete, ours selective) and pre-registered as H6a/H6b. TEM2 rule deferred until full-image TEM2 is audited | 15 Nov. Premise reversal logged in §6 and §7.4 |
 | **D-32** | B4: primary per-fiber g = equivalent-circle D_A/D_F (challenge = ADS default). Also report D_A and D_F errors; population summaries use the g' cline (D_A-on-D_F slope with intercept), never mean g or a regression of g on diameter (Gow 2026); bin by fiber diameter; with/without oblique fibers. Yardstick (B5): smallest meaningful group shift ≈ 0.03, disease 0.05–0.10 | 15 Nov. Evidence: `docs/research_notes/Phase 0b evidence/02_gow_g_ratio.md`, `06_g_effect_sizes_B5.md` |
 | **D-33** | Blind expert review: T-20 (61 `unlabelled_real` + 40 `other_bg`) and the completeness-audit candidates (159), 260 items in one shuffled packet. Pass rules fixed before rating: T-20 ≥ 70% real (expert); κ ≥ 0.6 between expert and owner; ours ≥ 70% real; each external ≤ 25% real (else that dataset's H6 run waits for a re-check) | 15 Nov. Protocol: `docs/research_notes/Phase 0b evidence/10_expert_review_protocol.md` |
+| **D-34** | Integrate the validated gap findings into the plan (owner instruction 15 Nov). **Adopted:** H7 (protocol bias on g and counts, two-sided, T-23), H8 (hidden stratification on outside data with a complete-label reference arm, T-22; also C3's outside test), C3 evaluation on known positives only. **C1 add-ons:** PQ-style g-quality metric (cite PQ), "repeat-annotation agreement" wording for the overlap ceiling, and the lower-bound note on the selection share. **Gate 1 option only:** an abnormal-fiber class (prior art Zepf 2023, Parikh 2026, MicroStructFormer). **Dropped:** the SIPAIM-winners test. Corrections: TEM1 is near-complete, not selective; Parikh is an arXiv preprint (NeurIPS unconfirmed); Chuter is a journal paper | 15 Nov. `docs/reports/Overlooked gaps validation.md` + §7.5 |
 
 ## 4. Tasks
 
@@ -107,6 +110,17 @@ And does a decoder that is nested by construction remove (b)?
 
 - **T-21 cv3 out-of-fold B1** (GPU tranche A, D-28): train the B1 recipe on the 3 frozen cv3 folds; predict each held-out fold. Gives D-03's 3-fold C1 numbers, H5's unseen confirmation set, and C3's out-of-fold ignore masks. No oracle or H5 analysis on non-dev images until H5c's post-processing is frozen.
 
+- **T-22 Hidden stratification on outside data (H8; Phase 2; adopted 15 Nov, D-34):**
+  1. B1 inference on TEM1 (all 20 mice; rescale 2.36 → 2.152 nm/px), TEM2 (DANDI + test ROIs) and AxonPath CC TEM, with our D-11 pairing.
+  2. **Reference arm:** nnU-Net on TEM1 with one fold holding out the remyelinating-like mice (cluster 2 of the condition proxy, plus 2 control-like mice). B1 recipe, ≈ $8 from the D-28 reserve; cost stated before launch.
+  3. Recall by GT fiber type (thin g > 0.85 against normal; also by fiber diameter), mouse bootstrap.
+  4. Later, C3 against B1 on the same images (C3's outside test).
+- **T-23 Protocol bias on the endpoint (H7; Phase 1, CPU):**
+  1. outer-ring outlines for the expert-confirmed skipped fibers: semi-automatic dark-band growth from the candidate hole, with the expert checking a subset;
+  2. correct the skip rate for detector recall (thin rings missed);
+  3. compute Δ mean g, Δ count, Δ share g > 0.85, two-sided, bootstrap over overlap groups;
+  4. per-cluster on TEM1 as context.
+
 **Both branches:**
 - **T-17 ASTIH TEM1 (day 9):**
   1. Download DANDI 001436 (`ASTIH/scripts/get_data.py --make-splits`; test subject `sub-nyuMouse26`).
@@ -129,6 +143,9 @@ And does a decoder that is nested by construction remove (b)?
 | Single lab, no animal IDs | Image-level claims only; external validation on TEM1 |
 | g-MAE rewards dropping hard fibers | Always report recall; the gaming curve (T-16′) |
 | Budget | Raise the cap or use cheaper T-15′ variants |
+| Selection share is a **lower bound**: a model trained on biased labels partly learns the bias (Parikh 2026) | State it with C1; T-20 expert audit and H8 give independent estimates |
+| C3 looks worse on official labels even when it works ("observed-label illusion") | Judge C3 only on known-positive fibers (H3 set, H8 thin fibers) |
+| H8's reference arm needs thin fibers it never saw | TEM1 fold holding out the remyelinating-like mice (T-22) |
 
 **Questions for the organisers** (gabriel.jimenez@icm-institute.org; not yet sent; in the owner's TODO):
 - Can we publish on the data, and under what licence?
@@ -189,7 +206,7 @@ And does a decoder that is nested by construction remove (b)?
   - **Read in full:** Gow 2026 (B4 → D-32), Chuter 2026 (now published in *Bioengineering*, not a bioRxiv preprint; corrects the 13 Nov note), Bukas 2026 (boundary-style batch effects; hard ignore is safer than pseudo-labels for C3), BMVC 2021 (an oracle ignore helps a lot, pseudo-labels help more), Vădineanu 2024 (random omission only).
   - **Read in part:** ReCo-I2P (abstract and reviews; size-based simulated omission).
   - **Bi-Polar Mask** is still paywalled; no institutional access in the browser.
-  - **2026 sweep:** the MICCAI open-access index lists only 313 papers; no hit there. New must-cite: Parikh et al., NeurIPS 2026 (Confident-Learning audit of label bias in segmentation).
+  - **2026 sweep:** the MICCAI open-access index lists only 313 papers; no hit there. New must-cite: Parikh et al. 2026 (arXiv 2605.06891; names NeurIPS 2026, acceptance unconfirmed on OpenReview), a Confident-Learning audit of label bias in segmentation.
   - **AxonDeepSeg** reviewed (D2): centroid pairing, g = ADS default.
   - **Released models:** TEM1 model is leakage-free on `sub-nyuMouse26`; TEM2 is in-animal; AxonPath is tile-level (D-30).
   - **Data:** TEM1 complete (158 images, 7,841 fibers); TEM2 test ROIs (21); TEM2 DANDI and AxonPath still downloading.
@@ -202,7 +219,7 @@ And does a decoder that is nested by construction remove (b)?
   - **AxonPath CC TEM** downloaded (MD5 matches Zenodo), converted from GeoJSON and checked by eye. Its 8 AimSeg images are identified by name. Audit: u 0.7%, and the only real unlabelled fibers are 2 degenerating figures (protocol exclusions); no normal-looking misses.
   - **Real unlabelled per labelled fiber:** ours ≈ 4.2% ≫ TEM2 ≈ 0.3% > AxonPath ≈ 0.1% > TEM1 ≈ 0.05%.
   - **Gate 0: PASSED** (engineer, delegated):
-    1. No paper does C1's error decomposition or C3's selective-omission framing. The sweep covered the MICCAI 2026 OA subset; Parikh et al. (NeurIPS 2026) is must-cite.
+    1. No paper does C1's error decomposition or C3's selective-omission framing. The sweep covered the MICCAI 2026 OA subset; Parikh et al. (arXiv 2026) is must-cite.
     2. External data and models are usable, with the leakage limits in note 05.
     3. H6 is written (H6a, H6b, H6c).
   - **Carried forward, not blocking:**
@@ -220,6 +237,12 @@ And does a decoder that is nested by construction remove (b)?
     2. protocol bias on mean g and fiber counts as a named C1 result;
     3. abnormal fibers as an explicit third class (a C3 design option).
   - **Overlooked-gaps validation** ([report](../reports/Overlooked%20gaps%20validation.md)): item 1 holds with a required reference arm (a complete-label model on the same images) and covers thin-myelin fibers only (cite hidden stratification, Oakden-Rayner 2020). Item 2 holds, but the skipped fibers are mixed (onion/thick and thin myelin) and no candidate has a measured g, so any rule must be two-sided; "masks a disease effect" needs per-image condition metadata (A2). Item 3 is partly pre-empted (Zepf ICLR 2023; Parikh et al. 2026, arXiv; MicroStructFormer's abnormality class), so it is a Gate 1 option only. The SIPAIM-winners C1 test is infeasible (no test GT promised; leakage through the dev fold). New: disagreement-based selection estimates are a lower bound once a model learns the labels (Parikh et al.). Still proposals; no IDs assigned.
+- **15 Nov, D-34: validated gap findings integrated into the plan** (owner instruction to reflect them in current and future phases):
+  - **Adopted:** H7 (T-23), H8 (T-22), the C3 known-positive evaluation rule, and the C1 add-ons. Abnormal-fiber class = Gate 1 option. SIPAIM-winners test dropped.
+  - **Two design problems found while writing the rules** (§7.5):
+    - H7a is arithmetically bounded (Δ mean g ≈ p·Δg; at p ≈ 5% it would need Δg ≈ 0.6), so H7b/H7c were added as the powered readouts;
+    - H8's leakage-free reference (ASTIH TEM1 model, test mouse 26) holds only ~14 thin-myelin fibers, so the reference arm needs a TEM1 fold that holds out the remyelinating-like mice (≈ $8 from the reserve).
+  - **Corrections propagated across the docs:** TEM1 near-complete (not selective); C3 *does* have an outside test (thin fibers, H8); Parikh = arXiv preprint; Chuter = journal; the protocol-bias premise is two-sided; the overlap ceiling = repeat-annotation agreement.
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
@@ -235,7 +258,7 @@ These are the complete records behind D-28, D-29 and the C4 check, so the reason
 | A | **T-21** cv3 out-of-fold B1: 3 folds × ~6.3 L4-h | ≈ $23 | $26 | Gate 0 passed and the H5c post-processing frozen (no oracle use of non-dev images before that) |
 | B | C3 pilot: hard ignore + random-ignore control, 2 × B1 recipe | ≈ $15.4 | $17 | Gate 1 passed, the power check shows H3 is testable, and the D-18 detector's recall is checked |
 | C | C3 full: soft down-weighting + PU loss | ≈ $15.4 | $17 | Pilot: hard ignore beats the control on overlap-disagreement recall (paired CI > 0) |
-| Reserve | Timing runs, preemption reruns, external inference if the M4 is too slow | — | ≈ $12 | Case by case, logged |
+| Reserve | Timing runs, preemption reruns, external inference if the M4 is too slow | — | ≈ $12 | Case by case, logged. **Earmarked 15 Nov (D-34):** ≈ $8 for T-22's TEM1 reference fold |
 
 **Why this shape:**
 - **Tranche A comes first because it pays three times.** D-03 promised 3-fold final numbers for C1, and so far we only have dev. H5 needs images nobody has looked at. C3's ignore masks need out-of-fold probabilities: B1's dev model has seen the 213 training images, so its probabilities there would mark almost no unlabelled fiber as confident, and the masks would be biased. So the "cheaper variant" in §4 T-15′ (dev-fold B1 only) is **ruled out** for C3.
@@ -328,3 +351,38 @@ The premise is reversed. Nothing had been scored on TEM1, so rewriting is legiti
 **D-32, primary g (B4) and yardstick (B5).** See the register row and `02_gow_g_ratio.md` / `06_g_effect_sizes_B5.md`.
 - Gow's critique targets population-level g estimation, not per-fiber D_A/D_F. So the challenge's equivalent-circle g stays primary, and the g' cline is used for group summaries.
 - Group bias matters for biology. B1's bias (−0.0002) is far below the ~0.03 smallest meaningful shift, so H5's relevance must be argued per fiber (share of fibers with |g error| > 0.03).
+
+### 7.5 D-34: H7 and H8 rules, and the design checks behind them (15 Nov 2026)
+
+Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Overlooked gaps validation.md`. Both rules are written **before** any of their data is measured.
+
+**H7: protocol bias on the morphometric endpoint (C1; T-23; CPU).**
+- *Arithmetic check, done first.* If a share p of real fibers is skipped and their mean g differs from the labelled fibers' by Δg, including them moves the dataset mean by p/(1+p)·Δg.
+  - With p ≈ 4–5% (our audit's lower bound), reaching 0.03 needs Δg ≈ 0.6–0.75, outside the range of g.
+  - With p ≈ 25–33% (the EDA's estimate of ring-like structures left as background, which includes rings the detector misses), Δg ≈ 0.12 suffices.
+  - So the mean-g readout is weak unless the true skip rate is high. It is kept for honesty and joined by two better-powered readouts.
+- **H7a:** |Δ mean g| ≥ 0.03, two-sided; 95% bootstrap CI over overlap groups excludes 0.
+- **H7b:** the protocol under-counts myelinated fibers by ≥ 5% (detector-recall-corrected skip rate; CI lower bound ≥ 5%).
+- **H7c:** the share of fibers with g > 0.85 changes by ≥ 2 percentage points, two-sided.
+- **Inputs:** expert-confirmed skipped fibers (D-33 categories 1–2) with traced outer rings; a detector-recall correction from a hand-traced subset.
+- **Wording:** "the protocol shifts g / counts by X". "Masks a disease effect" only with per-image condition metadata (A2).
+- **Prior art to cite:** stereology and nerve-morphometry inclusion bias, Fields & Dutta 2025. What we claim is the *measurement* for DL annotation protocols, not the principle.
+
+**H8: hidden stratification induced by the protocol (C1; T-22; plus C3's outside test).**
+- **Claim:** B1, trained on selective labels, misses thin-myelin fibers on near-complete outside data more than a model trained on complete labels does.
+- **Rule:** with gap = recall(thin, GT g > 0.85) − recall(normal), H8 holds if gap_B1 − gap_ref ≤ −0.10 and the mouse-bootstrap 95% CI is below 0. Two-sided reporting.
+- **Reference arm, design check:** ASTIH's TEM1 model is leakage-free only on `sub-nyuMouse26`, which is control-like with **~14 thin fibers** (of 324). The thin fibers are in the remyelinating-like mice (cluster 2: 261 of 1,349), which that model trained on.
+  - **So the reference is our own nnU-Net on TEM1, with a fold holding out cluster-2 mice plus 2 control-like mice.** ≈ $8, B1 recipe, from the D-28 reserve; cost stated before launch.
+  - B1 is scored on the same held-out mice.
+- **Scope:** thin-myelin fibers only. TEM1 ("full rings") and AxonPath (AimSeg protocol) also exclude degenerating or broken rings.
+- **Cite:** hidden stratification (Oakden-Rayner 2020; Bissoto, MICCAI 2025).
+- **C3 outside test:** the same readout for C3 against B1, paired on the same images. It counts as "recovers thin fibers / does no harm", not recovery of deliberate exclusions.
+
+**Other D-34 items:**
+- **C3 evaluation rule:** judge C3 on known-positive fibers only (Parikh 2026 "observed-label illusion": correction looks like failure on the biased labels).
+- **C1 add-ons:**
+  - g-quality = F1 × (1 − scaled g error), an adaptation of PQ (Kirillov 2019); no prior missed-fiber-aware g metric was found;
+  - "repeat-annotation agreement" instead of "human ceiling / inter-rater" until the organisers confirm two annotators;
+  - the selection share is a lower bound.
+- **Gate 1 option:** an abnormal-fiber output class (cite Zepf ICLR 2023, Parikh 2026, MicroStructFormer 2026).
+- **Dropped:** scoring SIPAIM winners (no test GT; leakage through the dev fold). Kept: the novelty recheck after 18–20 Nov.

@@ -45,3 +45,9 @@ Our unlabelled fibers are of **two kinds** ([02](../../notes/02-challenge-and-da
 2. **Deliberate exclusions** of abnormal fibers (~25% of ring-like structures). Under the challenge protocol these are *negatives*.
 
 Ignoring or pseudo-labelling both kinds alike would teach the model to predict abnormal fibers, which **lowers official precision**. H3's test set (overlap-disagreement fibers: labelled in one tile, background in the other) contains only kind 1 by construction, because if the fiber was labelled in the other tile, it is protocol-eligible. So H3 measures recovery of random misses. **The pilot must also report false positives on protocol-excluded fibers:** the abnormal ring-like structures left as background (0), split into the taxonomy's `unlabelled_real` and `other_bg` classes. Interior label-1 fibers are ignored by the metrics, so they can't show this. That tells us whether the method unlearns the protocol. Proposed as an amendment to T-15′: an added secondary readout, without changing H3.
+
+## Update, 15 Nov (D-34)
+- **C3 also has an outside test:** on TEM1, TEM2 and AxonPath, thin-myelin fibers are labelled, so C3 vs B1 recall on them is a known-positive readout (H8, `07-plan.md` §7.5). It covers thin myelin only; the outside sets also exclude degenerating fibers.
+- **Evaluation rule:** Parikh et al. 2026 (arXiv) show an "observed-label illusion": a correction looks like failure on the same biased labels. C3 is therefore judged on known positives, and official precision is reported separately.
+- **Pseudo-label arm:** optional, with Bukas-style harmonisation. Hard ignore stays primary.
+

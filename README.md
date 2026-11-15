@@ -56,7 +56,11 @@ Results on 53 held-out dev images (1,619 fibers), with 95% cluster-bootstrap CIs
 - H5 pre-registered, to be confirmed on unseen out-of-fold images (D-29).
 - TEM2's label completeness found unproven (C4).
 
-Next: reading and external-data checks (TEM1, TEM2, AxonPath CC TEM), then more C1 analyses, H5 and C3. See [`docs/notes/07-plan.md`](docs/notes/07-plan.md) §7.
+**Update, 15 Nov (Phase 0b):**
+- Three outside datasets were audited. Ours is the selectively labelled one (≈ 4% of real fibers skipped, against ≤ 0.3% elsewhere).
+- H6 was rewritten before any external score.
+- New pre-registered readouts: H7 (protocol bias on g and counts) and H8 (does training on selective labels make a model miss thin-myelin fibers?).
+- Next: blind expert review, the remaining C1 analyses, then external tests. See [`docs/notes/07-plan.md`](docs/notes/07-plan.md) §7.4–7.5.
 
 All results: [`docs/notes/05-results.md`](docs/notes/05-results.md).
 

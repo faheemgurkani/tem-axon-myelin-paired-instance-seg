@@ -117,7 +117,7 @@ The submission format (zip with `method_description.pdf`, `code/{train.py, predi
   - Day 2 fixed an EDA registration bug and found 8 more pairs ([05](05-results.md) §2).
 - The search only covered 710 candidate pairs from an ORB feature scan, so unknown overlaps may remain.
 - The 134 test tiles very likely overlap training tiles. **Do not exploit this.**
-- Overlaps were annotated twice, which gives the **human-vs-human ceiling** ([05](05-results.md) §2).
+- Overlaps were annotated twice, which gives the **human-vs-human ceiling** ([05](05-results.md) §2). *Wording (15 Nov, D-34): we don't know whether the two tiles had different annotators (ICM.Quant and PUCP both annotated), so in papers call it **repeat-annotation agreement** until the organisers confirm.*
 
 ## 5. External datasets (for later validation, not used yet)
 

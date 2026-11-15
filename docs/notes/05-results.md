@@ -40,7 +40,7 @@ Files: `results/day1/` (`images.csv`, `cleaning_summary.json`).
 - It scored all 710 candidate pairs, not just real overlaps, giving spurious alignments.
 - It ignored only A's label 1. A fiber cut by B's border then counted as a human "miss".
 
-**Human-vs-human ceiling** (28 pairs at NCC ≥ 0.8; pixel metrics from the 17 pairs with ≥ 3 fibers). Files: `results/day2/ceilings_pooled.json`, `ceilings_pairs.csv`.
+**Human-vs-human ceiling** *(to be called "repeat-annotation agreement" in papers until two annotators are confirmed, D-34)* (28 pairs at NCC ≥ 0.8; pixel metrics from the 17 pairs with ≥ 3 fibers). Files: `results/day2/ceilings_pooled.json`, `ceilings_pairs.csv`.
 
 | Metric | Ceiling |
 |---|---|
