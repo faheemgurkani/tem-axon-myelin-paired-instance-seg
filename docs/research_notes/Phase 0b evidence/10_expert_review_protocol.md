@@ -52,3 +52,8 @@ These thresholds were written on 15 Nov, before any expert rating exists. Change
 
 ## Scoring (to do when ratings arrive)
 Join `fiber_review_*.csv` to `key.csv` by item, then compute the table above with 95% bootstrap CIs over items. Record the numbers in `docs/notes/05-results.md` and the outcomes in the `07-plan.md` log.
+
+## Proposed addendum (15 Nov, C3-design audit; not built yet)
+- A small second packet of the **18 overlap-disagreement fibers** (labelled in one tile, background in the other), rated with the same categories.
+- **Purpose:** split C3's random-miss estimate (r ≈ 0.93 from 18/136 discordance) into true random misses (normal fibers) and inconsistent protocol judgements (abnormal fibers).
+- Same rater rules. No pass threshold: it is descriptive.

@@ -5,6 +5,7 @@
 > 2. **C3 evaluation:** judge it only on known-positive fibers ("observed-label illusion", Parikh 2026).
 > 3. **Parikh et al.** is an **arXiv preprint** (2605.06891). It names NeurIPS 2026, but OpenReview has no acceptance record.
 > 4. **New C1 readouts:** H7 (protocol bias on g and counts, two-sided) and H8 (hidden stratification: B1 vs a complete-label reference). Add-ons: PQ-style g-quality, repeat-annotation agreement, lower-bound note.
+> 6. **C3, later on 15 Nov:** `docs/reports/C3 methodology design.md` shows a genuine methods opening: a fiber-level SAR selection model, tested on a TEM1 controlled benchmark. C3 can be a methods paper (≈ 1 in 3), not only a modest add-on. Audit issues are in the `07-plan.md` log.
 > 5. The "biased low" g premise is withdrawn (two-sided now). The abnormal-fiber class is a Gate 1 option only. The SIPAIM-winners test is dropped.
 
 Scope: everything known after Phase 0 (decisions D-28, D-29, C4) and Phase 0b (notes 01–08 and 10 here, decisions D-30…D-33).

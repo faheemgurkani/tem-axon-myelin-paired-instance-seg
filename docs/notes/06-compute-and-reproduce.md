@@ -92,7 +92,7 @@ The old copy in `~/Local Projects/` is left for the owner to delete.
 | **Total compute, Nov 2026 (`modal billing summary`)** | **$8.16**, covered by credit |
 | Volume storage | $0, within the free allowance (metered $6.81) |
 
-**$1.84 was left under the days 0–5 cap.** On 15 Nov **D-28** retired that cap and set a **$60 ceiling including spend**, released in tranches. A: T-21 ≈ $23, cap $26. B: C3 pilot ≈ $15.4, cap $17. C: C3 full ≈ $15.4, cap $17. Reserve ≈ $12. Each tranche opens on a gate ([07](07-plan.md) §7.1). **Enforced since 15 Nov:** the Modal workspace usage limit is set to $60 (Settings → Usage & billing → Usage limit; Modal's default was $105). The card "spend limit" is unset; with $71.93 of credit left, the $60 usage limit stops runs before any card charge.
+**$1.84 was left under the days 0–5 cap.** On 15 Nov **D-28** retired that cap and set a **$60 ceiling including spend**, released in tranches. A: T-21 ≈ $23, cap $26. B: C3 pilot ≈ $15.4, cap $17. C: C3 full ≈ $15.4, cap $17. Reserve ≈ $12. Each tranche opens on a gate ([07](07-plan.md) §7.1). **Correction, 15 Nov:** D-28's tranches already summed to ≈ $62 with the spend, and the proposed C3 route brings the full plan to ≈ $72. The $60 Modal usage limit would stop runs mid-way, so **raise it before any run that would cross it** if the owner raises the ceiling (pending; `07-plan.md` §7.1 correction). **Enforced since 15 Nov:** the Modal workspace usage limit is set to $60 (Settings → Usage & billing → Usage limit; Modal's default was $105). The card "spend limit" is unset; with $71.93 of credit left, the $60 usage limit stops runs before any card charge.
 
 Check spend with `modal billing summary` / `modal billing report --for "this month"`.
 

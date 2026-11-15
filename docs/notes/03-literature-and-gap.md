@@ -83,3 +83,12 @@ See [05](05-results.md) for the numbers.
    - **Label-style / protocol conditioning:** Zepf et al., ICLR 2023; Parikh et al. 2026 (**arXiv preprint**, NeurIPS listed but unconfirmed on OpenReview). Also MicroStructFormer (bioRxiv 2026), which has an EM "abnormality" class. So an abnormal-fiber class is not new as a mechanism.
    - **PQ** (Kirillov 2019) is the template for our g-quality metric; no prior g metric penalises missed fibers.
    - Parikh's **"observed-label illusion"**: a correction looks like failure when scored on the biased labels. This is why C3 is judged on known positives only.
+6. **C3 methods landscape (15 Nov, `docs/reports/C3 methodology design.md`):**
+   - No surveyed method conditions on *why* objects are unlabelled. Every alternative assumes random or size-based omission, or uses uncorrected exclusion:
+     - in EM: SPOCO, WDA-Net, SomaNet, LSD masking;
+     - in detection: SAMPD, DPOD, Co-Student, PECL;
+     - in cells: Sketchpose, ImPartial, Zhao PU;
+     - in lesions: LNQ, ReCo-I2P, FedIA, TIA;
+     - the optic-nerve TEM paper simply leaves the excluded profiles out.
+   - Formal family: **SAR propensity-weighted PU** (Bekker & Davis 2018; Coudray et al., JMLR 2023). Class-level MNAR-SSL (CADR) is the wrong family. Pixel confusion-matrix annotator models degenerate here (Zhang 2020).
+   - What C3 can claim is an *application* plus a benchmark (see the report §5). The loss and the three-way gate (SAMPD) are prior art.

@@ -148,6 +148,11 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
   - **C1 add-ons:** a PQ-style g-quality metric; "repeat-annotation agreement" wording; the selection share is a lower bound.
   - The abnormal-fiber class is only a Gate 1 option (prior art exists). The SIPAIM-winners test was dropped.
 - **Standings:** C1 is stronger and remains the paper; C3 is viable with a modest gain; H5 is untested.
+- **C3 methods opening (15 Nov, `docs/reports/C3 methodology design.md`):**
+  - No method in EM or elsewhere models *why* objects are unlabelled.
+  - Proposed C3: a fiber-level selection model (missed normal / excluded by protocol / not a fiber) that softens the loss on likely-missed fibers, inside the unchanged B1 recipe. Its family is SAR propensity-weighted PU, not "MNAR".
+  - Primary test: a TEM1 controlled benchmark.
+  - Not yet adopted. Audit issues: t_k must come from B1 zero-shot (leakage); the budget (≈ $72) exceeds the $60 ceiling; T-20 is the anchor; r ≈ 0.93 is an upper bound.
 - **Next:** Phase 1 (expert review T-20 + T-23/H7, T-16′, H5c, then T-21).
 
 **Superseded open questions (13 Nov), kept for the story:**
