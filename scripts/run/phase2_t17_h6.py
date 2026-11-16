@@ -2,7 +2,7 @@
 
 Inference: the released nnU-Net v2 model via `nnUNetPredictor` (tile step 0.5, mirroring on, fold "all",
 checkpoint_final; the ASTIH-era ADS pipeline), on the M4 (MPS). Small: TEM1 8 images 2286×3762, TEM2 21 ROIs 600×600.
-Predictions are cached in data/predictions/astih_<set>/ (git-ignored). Label values: myelin 1, axon 2.
+Predictions are cached in data/predictions/astih_<set>/ (git-ignored). Label values per model (SETS).
 
 Step 1, reproduction (ASTIH's evaluate_models.py, re-implemented without ADS/MONAI/stardist):
 - Dice per image per class on the binary masks, averaged over images;
@@ -42,9 +42,12 @@ REPO = Path(__file__).resolve().parents[2]
 MODELS = REPO / "data/external/models"
 OUT = REPO / "results/phase2"
 SETS = {
-    "TEM1": {"model": "model_seg_mouse_axon-myelin_tem_light", "px_nm": 2.36, "ds": 4,
+    "TEM1": {"model": "model_seg_mouse_axon-myelin_tem_light", "px_nm": 2.36, "ds": 4, "folds": ("all",),
+             "ckpt": "checkpoint_final.pth", "axon": 2, "myelin": 1,
              "published": {"dice_axon": 0.974, "dice_myelin": 0.924, "f1": 0.791}},
-    "TEM2": {"model": "model_seg_unmyelinated_stanford_tem_best", "px_nm": 4.93, "ds": 2,
+    # 5-fold ensemble, checkpoint_best (ADS picks best when present); labels uaxon 1, myelin 2, axon 3, nuclei 4, process 5
+    "TEM2": {"model": "model_seg_unmyelinated_stanford_tem_best", "px_nm": 4.93, "ds": 2, "folds": (0, 1, 2, 3, 4),
+             "ckpt": "checkpoint_best.pth", "axon": 3, "myelin": 2,
              "published": {"dice_axon": 0.971, "dice_myelin": 0.929, "f1": 0.949}},
 }
 
@@ -85,8 +88,8 @@ def predict(name: str, items: list[dict]) -> Path:
     from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
     dev = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     pr = nnUNetPredictor(tile_step_size=0.5, use_mirroring=True, device=dev, verbose=False, allow_tqdm=False)
-    pr.initialize_from_trained_model_folder(str(MODELS / SETS[name]["model"]), use_folds=("all",),
-                                            checkpoint_name="checkpoint_final.pth")
+    pr.initialize_from_trained_model_folder(str(MODELS / SETS[name]["model"]), use_folds=SETS[name]["folds"],
+                                            checkpoint_name=SETS[name]["ckpt"])
     for it in todo:
         img = gray(it["image"]).astype(np.float32)[None, None]
         seg = pr.predict_single_npy_array(img, {"spacing": [999.0, 1.0, 1.0]})
@@ -163,7 +166,7 @@ def main() -> None:
     rep, h6 = [], []
     for it in items:
         sem = iio.imread(pdir / it["image"].name)
-        p_ax, p_my = sem == 2, sem == 1
+        p_ax, p_my = sem == cfg["axon"], sem == cfg["myelin"]
         g_ax, g_my = gt_masks(a.set, it)
         rep.append({"image": it["image"].name, "dice_axon": dice(p_ax, g_ax), "dice_myelin": dice(p_my, g_my),
                     **det_stats(ads_watershed(g_ax, g_my), ads_watershed(p_ax, p_my)),

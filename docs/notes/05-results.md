@@ -338,4 +338,5 @@ Script `scripts/run/phase2_t17_h6.py`; numbers `results/phase2/`. TEM1 test mous
 - **H6a holds at the pre-registered setting (fragile):** strict selection share 0 of 21 errors, broad 7 of 21 = 33%. At the ds 3 sensitivity, strict = 9.5%, which fails.
 - **H6b holds:** the top FP class is split_piece (11 of 19), mostly speck debris.
 - Compared with our data (B1: 331 errors, broad 78.9%), the TEM1 model makes very few errors on near-complete labels, and almost none of them are selection.
+- **TEM2 (21 ROIs, 10 mice, 292 fibers; released 5-fold model):** Dice 0.9717 / 0.9294 (published 0.971 / 0.929); F1 as-run 0.947 (published 0.949), point seeds 0.960, our paired evaluator 0.976. **H6c holds:** strict 0/14, broad 1/14 = 7% (border fibers scored), stable across detector settings; border-ignored 0/3 and 1/3.
 

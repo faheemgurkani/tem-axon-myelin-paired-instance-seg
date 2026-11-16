@@ -11,6 +11,7 @@
 
 
 
+
 <!-- toc -->
 **Contents**
 
@@ -595,4 +596,13 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **Blocked on the owner:**
     - TEM2's model is not yet downloaded (≈ 250 MB from GitHub; download needs approval).
     - Tranche B0 (B1 zero-shot inference ≈ $1, timing run ≈ $0.4, TEM1 reference ≈ $7.7) has "Gate 1 passed" as its opening condition, which hasn't happened yet.
+- **16 Nov, T-17 and H6c on TEM2** (owner approved the TEM2 model download, 1.73 GB, 5-fold ensemble, checkpoint_best, labels myelin 2 / axon 3; 21 test ROIs on the M4, 3 min):
+  - **Gate passed:** Dice 0.9717 / 0.9294 (published 0.971 / 0.929). F1 0.947 by ASTIH's as-run path (published 0.949) and 0.960 with point seeds, both within ±0.03.
+    - D-38's explanation now reproduces the published F1 on both sets to ≤ 0.002. The row-seed artefact costs little on 600² ROIs (−0.013) and a lot on TEM1's 2286×3762 frames (−0.113).
+  - **H6c holds:** F1@0.5 0.976 (287 TP, 9 FP, 5 FN). Strict selection share 0/14 = **0%**, broad 1/14 = **7%**, identical at ds 1, 2 and 3.
+    - With border fibers ignored: 3 errors, 0% / 33%.
+    - 86% of errors touch the ROI frame; the top FP class is low_iou (5 of 9).
+  - **Combined reading (TEM1 + TEM2):** on both near-complete outside sets the released models make 14–21 errors per test set, and almost none are selection (0–2). On ours, B1 makes 331 errors on dev, 79% broad selection.
+    - C1's mechanism replicates: selection errors scale with label incompleteness.
+    - Caveat for the paper: the error counts are small, and the models are in-domain (trained on the same lab's data). B1 zero-shot on the same sets (H8, running) is the cross-domain check.
 
