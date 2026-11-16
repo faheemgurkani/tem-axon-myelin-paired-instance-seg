@@ -552,4 +552,19 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - The out-of-fold semantic PNGs (89 + 89 + 88 = 266, every image predicted by the fold that didn't train on it) were downloaded file by file to `data/predictions/b1_cv3_sem/` (git-ignored). The npz probabilities stay on the Volume for C3's t_k.
   - The 53 dev images are in the validation folds too (14 / 18 / 21). They stay development-only; H5 confirmation uses the other 213.
   - Next: Phase 3a (score H5a/b/c on the 213 with the frozen H5c rule, 7c673ca) and the 3-fold C1 numbers. CPU, local.
+- **16 Nov, T-21 epoch audit (was 150 epochs worth it?)** (`scripts/run/t21_epoch_audit.py`; logs in `results/phase1/t21_logs/`, per-epoch table `results/phase1/t21_epochs.csv`):
+
+  | Fold | EMA pseudo Dice at ep 60 / 80 / 100 / 116 / last | Best EMA (epoch) | First epoch within 0.005 / 0.002 of best | Stop |
+  |---|---|---|---|---|
+  | 1 | 0.860 / 0.867 / 0.867 / 0.869 / 0.872 | 0.872 (119; nnU-Net's > 0.001 rule: 0.871 at 89) | 78 / 89 | early stop, 119 |
+  | 2 | 0.846 / 0.855 / 0.858 / 0.871 / 0.875 | 0.875 (149) | 116 / 147 | ran all 150 |
+  | 3 | 0.849 / 0.856 / 0.853 / 0.860 / 0.860 | 0.862 (91) | 81 / 83 | early stop, 116 |
+
+  - **No overfitting in any fold.** Validation loss never turned upwards; over the last 30 epochs it was still falling slightly (slope −0.0005 to −0.0011 per epoch) while train loss fell faster, so the train–val gap widened without validation getting worse.
+  - **Folds 1 and 3 plateaued at about 80–90 epochs.** The extra ~30 epochs each were early-stopping patience, costing about 1.2 GPU-h ≈ $1.5 per fold.
+  - **Fold 2 needed the full 150.** It gained +0.017 EMA after epoch 100, mostly in the final low-learning-rate phase (epochs 100–150), and was still improving at the end.
+  - **Caveat 1: the learning rate is tied to the 150-epoch schedule (poly decay).** "Epoch 85 was enough" in a 150-epoch run doesn't mean an 85-epoch run would match. A shorter run anneals sooner, and fold 2's late gain came from the annealing. Only a shorter-schedule run would show the true optimum; we don't need that run.
+  - **Caveat 2: pseudo Dice is nnU-Net's patch-sampled proxy, not our endpoint** (F1@0.5, g-MAE). Only the best and final checkpoints exist, so per-epoch endpoint scores can't be computed.
+  - **Verdict:** 150 epochs was right for T-21. B1 used the same recipe, so comparing with B1 requires it (D-03, H5). Early stopping already saved about 64 epochs (≈ $3) on folds 1 and 3. A blanket 100-epoch cap would have saved about $4 but cut fold 2 short (≈ −0.017 EMA).
+  - **Bearing on C3 (D-35, 80 epochs per arm): no change.** All C3 arms share the same schedule, so the comparison is fair even below the plateau. At epoch 80 of a 150-epoch schedule the EMA was 0.005–0.02 below its best, so 80-epoch arms will sit slightly below B1's absolute level. Report the arms against each other, not against B1's absolute numbers.
 
