@@ -12,6 +12,7 @@
 
 
 
+
 <!-- toc -->
 **Contents**
 
@@ -605,4 +606,23 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **Combined reading (TEM1 + TEM2):** on both near-complete outside sets the released models make 14–21 errors per test set, and almost none are selection (0–2). On ours, B1 makes 331 errors on dev, 79% broad selection.
     - C1's mechanism replicates: selection errors scale with label incompleteness.
     - Caveat for the paper: the error counts are small, and the models are in-domain (trained on the same lab's data). B1 zero-shot on the same sets (H8, running) is the cross-domain check.
+- **16 Nov, tranche B0 opened by the owner before Gate 1** (asked in chat: "Open B0 now"; reason: nothing in B0 depends on the expert ratings, and the TEM1 run is shared with T-24).
+  - **B1 zero-shot inference** on TEM1 (158), TEM2 full images (10), TEM2 test (21) and AxonPath (20). Inputs were rescaled to 2.152 nm/px locally (`phase2_t22_prep_inputs.py`). Modal L4, fold-0 B1, checkpoint_final; TEM1 probabilities kept on the Volume for t_k.
+    - The TEM1 app was cut off at 146/158 when the local client lost its connection. The 12 missing cases were re-run alone, with no duplicate work.
+  - **D-39 (research engineer):** the TEM1 reference uses B1's recipe at a **fixed 150 epochs without early stopping** (`nnUNetTrainer_150epochs_ckpt10`).
+    - Its nnU-Net validation fold is the 8 held-out test mice, so early stopping (or `--val_best`) would choose on the test set. The fixed schedule chooses nothing on them.
+    - Cost ≈ 6.1 L4-h ≈ $7.4.
+    - Same images as B1 (2.152 nm grid); B1's plans moved to dataset 502; 94 training images (12 mice) / 64 held-out (8 mice).
+  - **B1 zero-shot scores (`scripts/run/phase2_t22_h8.py`, D-11 pairing, our evaluator):**
+
+    | Set | Fibers | F1@0.5 | Errors | Strict / broad selection share | Recall thin (g > 0.85) / normal | Gap |
+    |---|---|---|---|---|---|---|
+    | TEM1 (all 20 mice) | 7,853 | 0.930 | 1,060 | 0.1% / 3.6% | 0.728 / 0.914 | −0.186 |
+    | TEM1, 8 held-out mice | 3,029 | | | | 0.751 / 0.947 | **−0.196 [−0.274, −0.155]** |
+    | TEM2 full images | 4,234 | 0.931 | 568 | 1.9% / 10.7% | 0.657 / 0.911 (35 thin) | −0.254 |
+    | TEM2 test ROIs | 292 | 0.946 | 31 | 0% / 9.7% | 1.0 / 0.936 (9 thin) | +0.064 |
+    | AxonPath CC | 2,009 | 0.947 | 207 | 0.5% / 3.4% | 0.781 / 0.958 (503 thin) | −0.177 |
+
+  - **C1, strongest single result so far:** the *same* model (B1) has 79% broad selection on our dev images but **3–11% on all four near-complete outside sets**. Model, recipe and post-processing are held fixed and only the labels change, so selection errors follow the labels.
+  - **H8 is not decided yet.** B1 misses thin fibers more often (gap −0.18 to −0.25 on the three large sets). Whether that comes from selective training labels or from thin fibers simply being harder needs the complete-label reference on the same held-out mice (`--compare`).
 

@@ -101,6 +101,17 @@ class nnUNetTrainer_150epochs_ckpt10_es(nnUNetTrainer_250epochs_ckpt10_es):
         self.num_epochs = 150
 
 
+class nnUNetTrainer_150epochs_ckpt10(nnUNetTrainer_250epochs_ckpt10):
+    """B1's recipe at a FIXED 150 epochs, no early stopping (D-39, 16 Nov). For the TEM1 reference (T-22/T-24):
+    its nnU-Net validation fold is the held-out test mice, so early stopping would pick the stop epoch on the test
+    set. A fixed schedule makes no decision on them; predictions use checkpoint_final."""
+
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 device: torch.device = torch.device('cuda')):  # noqa: B008 (nnU-Net's signature)
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 150
+
+
 class nnUNetTrainer_5epochs_ckpt1(nnUNetTrainer):
     """Timing run: 5 epochs, checkpoint every epoch. Used to measure seconds per epoch (D-10)."""
 

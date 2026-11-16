@@ -1,0 +1,72 @@
+{
+ "model": "b1",
+ "n_images": 209,
+ "missing_predictions": 0,
+ "axonpath": {
+  "images": 20,
+  "fibers": 2009,
+  "recall_all": 0.913887506222001,
+  "f1": 0.9466357308584686,
+  "strict_selection_share": 0.004830917874396135,
+  "broad_selection_share": 0.033816425120772944,
+  "errors": 207,
+  "n_thin": 503,
+  "n_normal": 1506,
+  "recall_thin": 0.7813121272365805,
+  "recall_normal": 0.9581673306772909,
+  "gap": -0.17685520344071037
+ },
+ "tem1": {
+  "images": 158,
+  "fibers": 7853,
+  "recall_all": 0.8951992868967273,
+  "f1": 0.9298941798941799,
+  "strict_selection_share": 0.0009433962264150943,
+  "broad_selection_share": 0.035849056603773584,
+  "errors": 1060,
+  "n_thin": 809,
+  "n_normal": 7044,
+  "recall_thin": 0.7280593325092707,
+  "recall_normal": 0.9143952299829642,
+  "gap": -0.1863358974736935,
+  "held_out_mice": {
+   "n_thin": 454,
+   "n_normal": 2575,
+   "recall_thin": 0.751101321585903,
+   "recall_normal": 0.9471844660194175,
+   "gap": -0.1960831444335145,
+   "gap_ci95": [
+    -0.27358576112224936,
+    -0.15485316911733904
+   ]
+  }
+ },
+ "tem2_dandi": {
+  "images": 10,
+  "fibers": 4234,
+  "recall_all": 0.9090694378837978,
+  "f1": 0.9312847810307283,
+  "strict_selection_share": 0.01936619718309859,
+  "broad_selection_share": 0.1073943661971831,
+  "errors": 568,
+  "n_thin": 35,
+  "n_normal": 4199,
+  "recall_thin": 0.6571428571428571,
+  "recall_normal": 0.9111693260300071,
+  "gap": -0.25402646888714997
+ },
+ "tem2_test": {
+  "images": 21,
+  "fibers": 292,
+  "recall_all": 0.9383561643835616,
+  "f1": 0.9464594127806563,
+  "strict_selection_share": 0.0,
+  "broad_selection_share": 0.0967741935483871,
+  "errors": 31,
+  "n_thin": 9,
+  "n_normal": 283,
+  "recall_thin": 1.0,
+  "recall_normal": 0.9363957597173145,
+  "gap": 0.06360424028268552
+ }
+}

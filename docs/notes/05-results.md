@@ -339,4 +339,8 @@ Script `scripts/run/phase2_t17_h6.py`; numbers `results/phase2/`. TEM1 test mous
 - **H6b holds:** the top FP class is split_piece (11 of 19), mostly speck debris.
 - Compared with our data (B1: 331 errors, broad 78.9%), the TEM1 model makes very few errors on near-complete labels, and almost none of them are selection.
 - **TEM2 (21 ROIs, 10 mice, 292 fibers; released 5-fold model):** Dice 0.9717 / 0.9294 (published 0.971 / 0.929); F1 as-run 0.947 (published 0.949), point seeds 0.960, our paired evaluator 0.976. **H6c holds:** strict 0/14, broad 1/14 = 7% (border fibers scored), stable across detector settings; border-ignored 0/3 and 1/3.
+- **B1 zero-shot on the outside sets** (T-22; 2.152 nm rescaled; D-11 pairing): F1 0.930 (TEM1), 0.931 (TEM2 full), 0.946 (TEM2 test), 0.947 (AxonPath).
+  - **Broad selection share 3.6% / 10.7% / 9.7% / 3.4%, against 78.9% on our dev images:** same model, different labels.
+  - Thin-fiber (g > 0.85) recall gap: −0.186 (TEM1), −0.254 (TEM2 full, 35 thin), +0.064 (TEM2 test, 9 thin), −0.177 (AxonPath).
+  - On the 8 held-out TEM1 mice: −0.196 [−0.274, −0.155]. H8 waits for the reference model.
 
