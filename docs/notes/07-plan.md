@@ -10,6 +10,7 @@
 
 
 
+
 <!-- toc -->
 **Contents**
 
@@ -98,6 +99,7 @@ And does a decoder that is nested by construction remove (b)?
 | **D-35** | **C3 methods route adopted** (owner, 15 Nov): fiber-level SAR selection-gated soft ignore in the B1 recipe; TEM1 controlled benchmark T-24; H9 pre-registered; t_k from B1 zero-shot (leak-free); T-20 as the anchor of a(x); r swept 0.88–0.96 | 15 Nov. §7.6 |
 | **D-36** | **Budget ceiling raised to $75** (owner, 15 Nov), enforced as the Modal workspace usage limit ($75, set 15 Nov). Tranches re-planned to fit, caps included; **compute map: every non-GPU step runs locally on the M4, Modal only for GPU training and inference** | 15 Nov. §7.6 |
 | **D-37** | **AlphaGenome 2 check: two ideas adopted, the rest rejected** (owner agreed, 16 Nov). **(1) A per-image "condition" term in C3's CPU selection model:** a per-image (or per-overlap-group) random effect on the skip rate, implemented as a hierarchical logistic or beta-binomial term. Justified by the unlabelled-candidate rate being 2.2× over-dispersed after controlling for background area, density and median g. Re-fit on expert-confirmed fibers after T-20, because part of the dispersion may be detector behaviour. **(2) An image "fingerprint" for analysis only (T-25):** averaged per-image features, clustered as a proxy for the missing condition metadata (A2), to stratify H7, H8 and H6 interpretation. **Calibration rule for t_k:** mirroring TTA plus temperature scaling fitted on dev; a fold ensemble only on images no fold saw (TEM1, challenge test), never on our training images (leakage). **Novelty gate a(x):** the features must come from the same pipeline for labelled fibers and candidates; the threshold is tuned on T-20 or the 18-fiber addendum. **Rejected:** FiLM or adaptive-norm conditioning of the network, distillation, zero-shot protocol transfer. Not claimable as novelty | 16 Nov. [note](../research_notes/AlphaGenome%202%20applicability/00_check.md) §3, §6 |
+| **D-38** | **T-17 gate (TEM1) judged passed through ASTIH's own code path** (research engineer, 16 Nov). Dice reproduces exactly (0.9744 / 0.9243 vs 0.974 / 0.924). F1 0.791 reproduces only when ASTIH's `evaluate_models.py` is run as written: masks read as `cv2.imread(...)[None]` are (1, H, W), so `get_watershed_segmentation` writes each centroid seed over a whole image row. Run that way, our code gives F1 0.792 / precision 0.748 (published 0.791 / 0.747); with point seeds it gives 0.905. The D-31 gate (±0.03 F1) is therefore met by the as-run path, and the evaluator is validated. **Consequences:** (1) ASTIH's published TEM1 instance numbers are understated by an evaluation artefact, not model error; also 91 of 615 predicted instances are axon-only specks (median 1 px) counted as FPs there. (2) H6 is run with the correct point-seed watershed, its rules unchanged. (3) Don't cite 0.791 as TEM1 difficulty. (4) Telling the ASTIH authors is the owner's call (outward action). TEM2's gate is checked the same way when its model is downloaded | 16 Nov. `scripts/run/phase2_t17_h6.py`, `results/phase2/t17_h6_TEM1.json` |
 
 ## 4. Tasks
 
@@ -466,7 +468,7 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **D-35:** C3 methods route adopted; H9 pre-registered (§7.6).
   - **D-36:** ceiling $75. Modal usage limit set to $75 in the dashboard ($8.07 used). Tranches re-planned to fit with caps.
   - **Compute rule restated:** CPU locally, Modal for GPU only.
-  - Next IDs: D-38, T-26, H10 *(D-37 and T-25 were used on 16 Nov for the AlphaGenome 2 decision)*.
+  - Next IDs: D-39, T-26, H10 *(D-37 and T-25 were used on 16 Nov for the AlphaGenome 2 decision; D-38 for the T-17 gate)*.
 
 ### 7.6 D-35 and D-36: C3 methods route, H9 rule, budget and compute map (15 Nov 2026)
 
@@ -577,4 +579,20 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
     - Consequence: H7b is reported per cluster as well as pooled (D-37 already requires that). No rule changes.
   - Cluster labels are saved for H8 and the H6 limitations in Phase 2.
   - **Phase 1 status:** every task we can do ourselves is done. T-20 (expert ratings) and the confirmatory H7 (T-23, needs those ratings plus expert-traced rings for H7a/H7c) wait on the expert, so Gate 1 waits only on the expert.
+- **16 Nov, Phase 2 started (owner: "on towards phase 2"; Gate 1 still waits on the expert, and Phase 2's outside-data work doesn't depend on it).**
+  - **T-17 on TEM1** (`scripts/run/phase2_t17_h6.py`; ASTIH's released model via `nnUNetPredictor` on the M4/MPS, 8 images, 6 min, no Modal cost):
+    - Dice **reproduces exactly**: 0.9744 / 0.9243 (published 0.974 / 0.924).
+    - F1 does **not** reproduce with a correct watershed (0.905 vs 0.791). Cause found: ASTIH's evaluation script feeds (1, H, W) arrays to ADS's watershed, which turns each seed into a full image row. Replicating that gives **0.792 / P 0.748** (published 0.791 / 0.747). So the evaluator is validated, and the gate is judged passed (**D-38**).
+    - A further 91 of 615 ASTIH-scheme predicted instances are axon-only specks (median 1 px) that a paired-fiber evaluator doesn't count.
+  - **H6a/H6b on TEM1** (our evaluator, GT `astih_to_pairs` with border fibers scored, ring candidates ds 4, px 2.36 nm):
+    - F1@0.5 **0.979** (501 TP, 19 FP, 2 FN; 21 errors in all).
+    - **H6a holds at the pre-registered setting:** strict selection share 0/21 = **0%** (≤ 5%), broad (0 + 7)/21 = **33%** (≤ 39%; image-bootstrap CI 12–56%).
+    - **Fragile:** at the ds 3 sensitivity 2 FPs become unlabelled_real, so strict = 9.5% and H6a fails there. With only 21 errors, any reading is weak.
+    - **H6b holds:** the top FP class is split_piece (11 of 19), not unlabelled_real. Nine of those are 1–93-px axon specks seeded by the centroid watershed (post-processing debris); 2 are real splits. The other 7 FPs are other_bg objects of real size (to check by eye). 33% of errors touch the image border.
+    - **Reading:** on near-complete labels a good model makes almost no selection errors. Its few errors are post-processing debris and a handful of unlabelled objects. This fits C1's mechanism, with the fragility stated. TEM1's "low precision" was an evaluation artefact (D-38), not a phenomenon to explain.
+    - **Not pre-registered:** the planned TEM1 separation-share expectation was not written before this run. That item is closed as missed; the 11 split pieces are reported descriptively.
+  - **Power check for H8:** thin fibers (GT g > 0.85) in proxy cluster 2 = **261** across 6 mice (24–65 each); cluster 0 = 141; cluster 1 = 92. A held-out fold of the 6 cluster-2 mice plus 2 control-like mice (proposed: 26, ASTIH's test mouse, and 27) has ≈ 290 thin fibers, enough for the ±0.10 recall-gap rule.
+  - **Blocked on the owner:**
+    - TEM2's model is not yet downloaded (≈ 250 MB from GitHub; download needs approval).
+    - Tranche B0 (B1 zero-shot inference ≈ $1, timing run ≈ $0.4, TEM1 reference ≈ $7.7) has "Gate 1 passed" as its opening condition, which hasn't happened yet.
 

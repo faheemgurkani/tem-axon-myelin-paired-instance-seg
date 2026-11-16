@@ -323,3 +323,19 @@ Script `scripts/run/phase1_t25_fingerprint.py`; outputs `results/phase1/t25_*`.
   - Pooled 6.5% hides this: H7b would pass in B and fail in A (CI lower bound 3.0% < 5%).
   - **Wording:** still not "the protocol masks disease". Cluster B is a proxy, partly acquisition, and the real share is a single non-expert rating. Confirmatory after D-33, stratified by these clusters (D-37).
 
+## 9. Phase 2 (16 Nov): evaluator validation on TEM1 (T-17) and H6
+Script `scripts/run/phase2_t17_h6.py`; numbers `results/phase2/`. TEM1 test mouse `sub-nyuMouse26` (8 images, 503 fibers), ASTIH's released TEM1 model.
+
+| | Dice axon | Dice myelin | F1@0.5 | Precision | Recall |
+|---|---|---|---|---|---|
+| ASTIH published | 0.974 | 0.924 | 0.791 | 0.747 | — |
+| Ours, ASTIH scheme as their script runs (row seeds) | 0.9744 | 0.9243 | **0.792** | **0.748** | 0.851 |
+| Ours, ASTIH scheme with point seeds | 0.9744 | 0.9243 | 0.905 | 0.844 | 0.996 |
+| Ours, paired-fiber evaluator (challenge convention) | | | **0.979** | 0.963 | 0.996 |
+
+- **The evaluator is validated (D-38).** The published F1 is reproduced to 0.001, but only through a seed-placement artefact in ASTIH's evaluation script: (1, H, W) masks make each centroid seed a whole image row.
+- The remaining gap to 0.979 is mostly 1-px axon specks, which ASTIH counts as instances and a paired-fiber evaluator doesn't.
+- **H6a holds at the pre-registered setting (fragile):** strict selection share 0 of 21 errors, broad 7 of 21 = 33%. At the ds 3 sensitivity, strict = 9.5%, which fails.
+- **H6b holds:** the top FP class is split_piece (11 of 19), mostly speck debris.
+- Compared with our data (B1: 331 errors, broad 78.9%), the TEM1 model makes very few errors on near-complete labels, and almost none of them are selection.
+
