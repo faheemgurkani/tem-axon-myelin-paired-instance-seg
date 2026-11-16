@@ -8,6 +8,7 @@
 - From 15 Nov, the order of work, the gates and the to-do list live in the owner's local `PLAN.md` (not committed). This file keeps the record: hypotheses, decisions, task definitions, risks and the log.
 
 
+
 <!-- toc -->
 **Contents**
 
@@ -131,7 +132,7 @@ And does a decoder that is nested by construction remove (b)?
   - rank stability under these switches.
 - **H5 first test** (only if the owner adopts H5; local, no GPU): close broken rings and regroup B1's pixels instance-first. Does simple post-processing capture most of O-sep's g gain? If yes, no new decoder is needed.
 
-- **T-21 cv3 out-of-fold B1** (GPU tranche A, D-28): train the B1 recipe on the 3 frozen cv3 folds; predict each held-out fold. Gives D-03's 3-fold C1 numbers, H5's unseen confirmation set, and C3's out-of-fold ignore masks. No oracle or H5 analysis on non-dev images until H5c's post-processing is frozen.
+- **T-21 cv3 out-of-fold B1** *(DONE 16 Nov; see §6)* (GPU tranche A, D-28): train the B1 recipe on the 3 frozen cv3 folds; predict each held-out fold. Gives D-03's 3-fold C1 numbers, H5's unseen confirmation set, and C3's out-of-fold ignore masks. No oracle or H5 analysis on non-dev images until H5c's post-processing is frozen.
 
 - **T-22 Hidden stratification on outside data (H8; Phase 2; adopted 15 Nov, D-34):**
   1. B1 inference on TEM1 (all 20 mice; rescale 2.36 → 2.152 nm/px), TEM2 (DANDI + test ROIs) and AxonPath CC TEM, with our D-11 pairing.
@@ -538,3 +539,17 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
     - **H7b provisional 6.5% [5.5, 7.5]** (passes the rule if the expert confirms the real share);
     - `ring_candidates` gained `skip_labelled_filter` (default unchanged; tests pass).
   - **Gate 1: NOT passed yet.** It waits on the D-33 expert ratings (T-20 ≥ 70% real, κ ≥ 0.6); everything else in Phase 1 is done or running.
+- **16 Nov, T-21 finished (tranche A):**
+  - All three cv3 folds completed on Modal L4 (one attempt each, no pre-emption, no cap hit):
+
+    | nnU-Net fold | Stop | Best EMA Dice | Mean validation Dice | Wall time |
+    |---|---|---|---|---|
+    | 1 | early stop, epoch 119 | 0.871 (ep 89) | 0.851 | 5.18 h |
+    | 2 | full 150 epochs | — | 0.859 | 6.41 h |
+    | 3 | early stop, epoch 116 | 0.861 (ep 86) | 0.847 | 5.02 h |
+
+  - About 146.5 s per epoch on every fold. Total 16.6 L4-hours. **Actual cost $20.16** (`modal billing report`, 15–16 Nov: fold 1 $6.33, fold 2 $7.79, fold 3 $6.09, about $1.21 per hour). That is under tranche A's $23 estimate and $25 cap. **Spend to date: $28.32 of the $75 ceiling.**
+  - The out-of-fold semantic PNGs (89 + 89 + 88 = 266, every image predicted by the fold that didn't train on it) were downloaded file by file to `data/predictions/b1_cv3_sem/` (git-ignored). The npz probabilities stay on the Volume for C3's t_k.
+  - The 53 dev images are in the validation folds too (14 / 18 / 21). They stay development-only; H5 confirmation uses the other 213.
+  - Next: Phase 3a (score H5a/b/c on the 213 with the frozen H5c rule, 7c673ca) and the 3-fold C1 numbers. CPU, local.
+
