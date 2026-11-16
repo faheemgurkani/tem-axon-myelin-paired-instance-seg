@@ -9,6 +9,7 @@
 
 
 
+
 <!-- toc -->
 **Contents**
 
@@ -147,7 +148,7 @@ And does a decoder that is nested by construction remove (b)?
 
 - **T-24 TEM1 controlled two-part omission benchmark (C3, H9; D-35):** see §7.6 for the steps and the compute map.
   - D-37 additions: the selection model carries a per-image random effect; t_k follows the D-37 calibration rule; a(x) uses same-pipeline features with a threshold from T-20.
-- **T-25 Image fingerprint (analysis only; D-37; Phase 1–2, CPU):**
+- **T-25 Image fingerprint (analysis only; D-37; Phase 1–2, CPU)** *(Phase 1 part DONE 16 Nov, `05-results` §8.1; H8/H6 stratification in Phase 2)*:
   1. One vector per image: the same-pipeline features of all labelled fibers and candidates, averaged (diameter, g, myelin fraction, density, contrast). Optionally add pooled frozen-encoder features (B1 encoder or μSAM), mean-pooled, with no training.
   2. Cluster on our 266 images and on TEM1's 20 mice. Check against TEM1's 3-cluster condition proxy (Phase 0b note 07 §6) as a sanity test.
   3. Use the clusters to stratify H7 (does the skip rate or Δg differ by cluster?), H8 (recall gap by cluster) and the H6 limitations.
@@ -567,4 +568,13 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **Caveat 2: pseudo Dice is nnU-Net's patch-sampled proxy, not our endpoint** (F1@0.5, g-MAE). Only the best and final checkpoints exist, so per-epoch endpoint scores can't be computed.
   - **Verdict:** 150 epochs was right for T-21. B1 used the same recipe, so comparing with B1 requires it (D-03, H5). Early stopping already saved about 64 epochs (≈ $3) on folds 1 and 3. A blanket 100-epoch cap would have saved about $4 but cut fold 2 short (≈ −0.017 EMA).
   - **Bearing on C3 (D-35, 80 epochs per arm): no change.** All C3 arms share the same schedule, so the comparison is fair even below the plateau. At epoch 80 of a 150-epoch schedule the EMA was 0.005–0.02 below its best, so 80-epoch arms will sit slightly below B1's absolute level. Report the arms against each other, not against B1's absolute numbers.
+- **16 Nov, T-25 image fingerprint done (Phase 1 part)** (`05-results` §8.1):
+  - **Choice made (research engineer):** the candidate rate is left out of the fingerprint, because it is H7's outcome and clustering on it would be circular.
+  - Our 266 images form 2 weak clusters (silhouette 0.31; bootstrap ARI median 0.96, 5th percentile 0.62): dense with low g vs sparse with high g, partly acquisition.
+  - TEM1 reproduces the Phase 0b proxy (ARI 1.0, a consistency check only).
+  - **New result vs expectation:** per background area the skip rate is similar across clusters (rate ratio 0.78 [0.58, 1.03]), but the provisional H7b count bias is **4.0% [3.0, 5.0] vs 9.2% [7.7, 10.9]**. The pooled 6.5% hides a two-fold difference.
+    - Expected: no structure, since the AG2 check found no density effect per area.
+    - Consequence: H7b is reported per cluster as well as pooled (D-37 already requires that). No rule changes.
+  - Cluster labels are saved for H8 and the H6 limitations in Phase 2.
+  - **Phase 1 status:** every task we can do ourselves is done. T-20 (expert ratings) and the confirmatory H7 (T-23, needs those ratings plus expert-traced rings for H7a/H7c) wait on the expert, so Gate 1 waits only on the expert.
 

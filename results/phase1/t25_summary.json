@@ -1,0 +1,119 @@
+{
+ "note": "T-25 fingerprint: analysis-only proxy (D-37); not condition truth until A2",
+ "ours": {
+  "n_images": 266,
+  "silhouette": {
+   "2": 0.30809376780856945,
+   "3": 0.2688995429555168,
+   "4": 0.2587721327512498,
+   "5": 0.25228643227174097
+  },
+  "k": 2,
+  "stability_ari_median": 0.9552169913709188,
+  "stability_ari_p05": 0.6206512578006,
+  "cluster_sizes": {
+   "0": 116,
+   "1": 150
+  },
+  "cluster_means": {
+   "0": {
+    "density_100um2": 80.6026,
+    "mvf": 0.1424,
+    "g_median": 0.7302,
+    "g_p90": 0.7864,
+    "share_g_085": 0.0083,
+    "dfiber_median_nm": 724.4691,
+    "contrast": 1.0548,
+    "noise_sigma": 14.9352,
+    "lap_var": 4915.1356
+   },
+   "1": {
+    "density_100um2": 48.7112,
+    "mvf": 0.0997,
+    "g_median": 0.7758,
+    "g_p90": 0.8298,
+    "share_g_085": 0.0619,
+    "dfiber_median_nm": 819.2526,
+    "contrast": 1.264,
+    "noise_sigma": 16.271,
+    "lap_var": 5611.4154
+   }
+  }
+ },
+ "h7_by_cluster": {
+  "0": {
+   "cand_per_100um2_bg": 4.322858871749056,
+   "cand_per_labelled": 0.032914285714285715,
+   "h7b_count_bias": 0.04033382040786024,
+   "cand_per_100um2_bg_ci95": [
+    3.284608909620571,
+    5.353888542523141
+   ],
+   "cand_per_labelled_ci95": [
+    0.024509775586535193,
+    0.04114114102923377
+   ],
+   "h7b_count_bias_ci95": [
+    0.03034731515833798,
+    0.04991199198379628
+   ],
+   "n_images": 116,
+   "rate_ratio_vs_ref": 0.78104794028267,
+   "rate_ratio_ci95": [
+    0.5777599113693682,
+    1.025973495876327
+   ]
+  },
+  "1": {
+   "cand_per_100um2_bg": 5.534690828561132,
+   "cand_per_labelled": 0.07939560439560439,
+   "h7b_count_bias": 0.09204987201970934,
+   "cand_per_100um2_bg_ci95": [
+    4.587451292196046,
+    6.635480759296015
+   ],
+   "cand_per_labelled_ci95": [
+    0.06544877723346966,
+    0.09536608485808
+   ],
+   "h7b_count_bias_ci95": [
+    0.07712729059489758,
+    0.10855576004884723
+   ],
+   "n_images": 150,
+   "reference": true
+  }
+ },
+ "tem1": {
+  "n_mice": 20,
+  "ari_vs_phase0b_proxy": 1.0,
+  "crosstab_t25_vs_proxy": {
+   "0": {
+    "0": 6,
+    "1": 0,
+    "2": 0
+   },
+   "1": {
+    "0": 0,
+    "1": 8,
+    "2": 0
+   },
+   "2": {
+    "0": 0,
+    "1": 0,
+    "2": 6
+   }
+  },
+  "nearest_ours_counts": {
+   "0": 13,
+   "1": 7
+  },
+  "test_mouse26": [
+   {
+    "cluster_t25": 0,
+    "cluster_proxy": 0,
+    "nearest_ours": 0
+   }
+  ]
+ }
+}

@@ -301,3 +301,25 @@ All on the 53 dev-val images unless stated; CPU on the M4. Scripts: `scripts/run
   - the 65% recall measured on normal fibers.
   - **Confirmatory only with the D-33 expert ratings.**
 - Mean-g shift with the (biased) traced g: about −0.005, tiny, as the arithmetic caveat predicted.
+
+### 8.1 T-25 image fingerprint (16 Nov; analysis-only proxy, D-37)
+Script `scripts/run/phase1_t25_fingerprint.py`; outputs `results/phase1/t25_*`.
+- **Features** (labelled fibers, physical units, same pipeline on both datasets): fiber density, myelin volume fraction, median and p90 g, share with g > 0.85, median fiber diameter. **The unlabelled-candidate rate is deliberately left out:** it is H7's outcome, so clustering on it would make the H7 stratification circular.
+- **Ours: two weak clusters, not distinct conditions.**
+  - Silhouette 0.31 at k = 2, falling for k = 3–5. Overlap-group bootstrap ARI: median 0.96, 5th percentile 0.62.
+  - Cluster A (116 images): dense, thin g (density 81 /100 µm², median g 0.730, 0.8% with g > 0.85, fibers 724 nm).
+  - Cluster B (150 images): sparse, higher g, larger fibers (49 /100 µm², 0.776, 6.2%, 819 nm).
+  - B also has higher contrast and noise, so the split is partly acquisition, not only tissue. Two overlap groups straddle the clusters.
+- **TEM1 sanity check:** the same features per mouse with k = 3 reproduce the Phase 0b proxy exactly (ARI 1.0). This only shows the pipeline is consistent, because the features overlap. The test mouse 26 stays in the dense, control-like cluster.
+- **H7 by cluster (provisional, same assumptions as §8 H7b):**
+
+  | Cluster | Candidates per 100 µm² background | Candidates per labelled fiber | H7b count bias |
+  |---|---|---|---|
+  | A, dense | 4.3 [3.3, 5.4] | 0.033 | **4.0% [3.0, 5.0]** |
+  | B, sparse / high g | 5.5 [4.6, 6.6] | 0.079 | **9.2% [7.7, 10.9]** |
+
+  - Per background area the skip rate is similar (A/B rate ratio 0.78 [0.58, 1.03]), matching the area-controlled result in the AG2 check (§6 of that note).
+  - **But the count bias is more than twice as large in the sparse, high-g images**, because a similar number of skipped fibers is set against fewer labelled ones. That is the stratum where a fiber count matters most for disease.
+  - Pooled 6.5% hides this: H7b would pass in B and fail in A (CI lower bound 3.0% < 5%).
+  - **Wording:** still not "the protocol masks disease". Cluster B is a proxy, partly acquisition, and the real share is a single non-expert rating. Confirmatory after D-33, stratified by these clusters (D-37).
+
