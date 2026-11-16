@@ -504,7 +504,7 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
 | Tranche | Runs (all GPU, Modal) | Est. | Cap | Opens when |
 |---|---|---|---|---|
 | A | T-21 cv3 out-of-fold B1 (3 folds, 150 ep) + fold predictions | ≈ $23 | $25 | H5c frozen |
-| B0 | B1 zero-shot inference on TEM1/TEM2/AxonPath (T-22) ≈ $1 · TEM1 5-epoch timing run ≈ $0.4 · shared complete-label TEM1 reference (H8 + T-24, 150 ep) ≈ $7.7 | ≈ $9.1 | $9.5 | Gate 1 passed; T-17 reproduced |
+| B0 | B1 zero-shot inference on TEM1/TEM2/AxonPath (T-22) ≈ $1 · TEM1 5-epoch timing run ≈ $0.4 · shared complete-label TEM1 reference (H8 + T-24, 150 ep) ≈ $7.7 | ≈ $9.1 (actual ≈ $12, see §6 16 Nov) | ~~$9.5~~ **$12** (raised by owner 16 Nov) | Gate 1 passed; T-17 reproduced |
 | B | C3 pilot R1–R4 (TEM1, 80 ep) + test predictions | ≈ $16.4 | $17 | B0 done; H9 fixed (done) |
 | C | R5 SCAR ablation, R6 oracle ignore (80 ep), R7 selection-gated on our dev fold (150 ep) | ≈ $15.9 | $15.3 → **R6 is cut first** if C would exceed its cap | H9 holds |
 
@@ -625,4 +625,12 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
 
   - **C1, strongest single result so far:** the *same* model (B1) has 79% broad selection on our dev images but **3–11% on all four near-complete outside sets**. Model, recipe and post-processing are held fixed and only the labels change, so selection errors follow the labels.
   - **H8 is not decided yet.** B1 misses thin fibers more often (gap −0.18 to −0.25 on the three large sets). Whether that comes from selective training labels or from thin fibers simply being harder needs the complete-label reference on the same held-out mice (`--compare`).
+
+- **16 Nov, B0 overrun and cap raised to $12 (owner decision, asked in chat).**
+  - Modal billing for 16 Nov showed **$4.02** already spent in B0 (TEM1/TEM2 ASTIH inference, B1 inference on the four outside sets, the timing run), against ≈ $1.4 estimated. The gap: CPU + memory add ≈ $0.41/h on top of the L4's $0.80/h (≈ $1.21/h all-in), and the TEM1 predict app was run twice (the 12-case rerun).
+  - Dataset502 upload: the first `upload_dir.py` run hung at 400/474 for ~6 h (0 CPU progress); restarted, finished 76 remaining files in minutes. All 474 + plans + splits verified on the Volume.
+  - **Timing run** (D502, 2d_bigpatch, fold 0, 5 epochs): epoch 0 377 s (warm-up), epochs 1–4 **143.5 s**; GPU mean util 73%; EMA pseudo-Dice 0.774 at epoch 4. 150 epochs ≈ 6.1 h + final validation ≈ 6.3 GPU-h ≈ **$7.6**, which would overrun the $9.5 cap by ≈ $2.2.
+  - Options put to the owner: raise cap to $12 / cut to a fixed 100 epochs / hold. **Owner chose: raise B0 to $12.** D-39 (fixed 150 epochs, no early stopping) is unchanged.
+  - **Reference run launched** (`nnUNetTrainer_150epochs_ckpt10`, `--max-gpu-hours 6.6`, app `ap-CcHTABHVeSvb40kioFGOgh`); worst case B0 total ≈ $4.02 + 6.6 × 1.21 ≈ $12.0. Project total after it ≈ $40 of $75.
+  - **Lesson for later tranches:** estimate at $1.21/h all-in for L4 jobs, not the GPU rate alone. Tranche B's $16.4 estimate must be redone at this rate before it opens.
 
