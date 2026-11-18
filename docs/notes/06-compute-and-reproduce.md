@@ -41,7 +41,8 @@ The old copy in `~/Local Projects/` is left for the owner to delete.
 
 **Account and profile:**
 - Workspace and CLI profile `muhammadfaheem-mansha`; $80 of credit.
-- **Always prefix commands with `MODAL_PROFILE=muhammadfaheem-mansha`.** Other profiles on this machine (faheemgurkani, i220485, seecs) must not be billed.
+- **Always prefix commands with `MODAL_PROFILE=muhammadfaheem-mansha`.** Other profiles on this machine (faheemgurkani, i220485, seecs) must not be billed. The machine's **default** profile is `i220485` (checked 18 Nov), so an unpinned `modal` command bills the wrong account. Check with `MODAL_PROFILE=muhammadfaheem-mansha modal profile current`.
+- **Real cost of an L4 job ≈ $1.21/h all-in** (GPU $0.80 + CPU ≈ $0.28 + memory ≈ $0.13; Modal billing, 16 Nov). Estimate tranches at this rate.
 
 **App:** `infra/modal/tem_modal.py`, with actions `check` (GPU smoke test), `train`, `predict` and `gpu`.
 - **Image:** Debian slim, Python 3.12, pinned to the local versions. The trainers file is copied into nnU-Net's package. Code is mounted at `/root/repo` (data, `.venv`, `external`, `docs` excluded).
