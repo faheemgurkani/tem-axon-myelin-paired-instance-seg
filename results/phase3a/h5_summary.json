@@ -1,0 +1,68 @@
+{
+ "n_images": 213,
+ "n_groups": 189,
+ "g_mae": {
+  "base": 0.016082046417348624,
+  "h5c": 0.013738248027003947,
+  "o_sep": 0.007605656078897754
+ },
+ "f1@0.5": {
+  "base": 0.892862334641663,
+  "h5c": 0.8935336381450033,
+  "o_sep": 0.8958122011302709
+ },
+ "recall": {
+  "base": 0.9673964403843125,
+  "h5c": 0.9696015120491416,
+  "o_sep": 0.9736966451409671
+ },
+ "H5a": {
+  "rel_reduction": 0.527071624995865,
+  "delta_gmae_osep_minus_base": {
+   "diff": -0.008476390338450868,
+   "lo": -0.00960928644372455,
+   "hi": -0.007324907486311244
+  },
+  "holds": true
+ },
+ "H5b": {
+  "defective_share_of_matched": 0.2544773689352003,
+  "defective_share_of_abs_g_error": 0.4904620240592864,
+  "o_sep_reduction_share_from_defective": 0.6152467869549256,
+  "n_fibers_both": 6142,
+  "only_base_matched": {
+   "n": 0,
+   "abs_err_sum": 0.0
+  },
+  "only_osep_matched": {
+   "n": 40,
+   "abs_err_sum": 1.8396061687765093
+  },
+  "holds": true
+ },
+ "H5c": {
+  "capture_of_osep_gain": 0.2765090205570954,
+  "delta_gmae_h5c_minus_base": {
+   "diff": -0.002343798390344676,
+   "lo": -0.002988390679464837,
+   "hi": -0.001678941976836981
+  },
+  "delta_f1": {
+   "diff": 0.0006713035033403258,
+   "lo": -0.0006844053222576667,
+   "hi": 0.0023663842196239944
+  },
+  "delta_recall": {
+   "diff": 0.0022050716648290836,
+   "lo": 0.0008255780008946057,
+   "hi": 0.003916473673381762
+  },
+  "holds": false
+ },
+ "per_fiber_relevance_share_abs_err_gt_0.03": {
+  "base": 0.13253012048192772,
+  "h5c": 0.09584145549057829,
+  "o_sep": 0.02863151083791653
+ },
+ "gate_3a": "C2 for morphometry becomes a candidate (new budget decision)"
+}

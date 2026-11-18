@@ -360,3 +360,38 @@ Script `scripts/run/phase2_t17_h6.py`; numbers `results/phase2/`. TEM1 test mous
 - Reference taxonomy on the held-out mice: F1 0.971, 180 errors, strict 0.6%, broad 38% (small error count; most are other_bg).
 - Files: `results/phase2/h8_ref.json`, `h8_compare.json`, `h8_images_ref.csv`, `tem1ref_logs/`.
 
+## 10. Phase 3a (19 Nov): H5 confirmation and D-03 3-fold C1 numbers
+
+Script `scripts/run/phase3a_h5.py`; outputs `results/phase3a/` (`h5_summary.json`, `c1_cv3_summary.json`, per-image and per-fiber CSVs). Input: T-21 out-of-fold B1 semantics (each image predicted by the cv3 fold model that did not train on it). Base = D-11 pairing; H5c = frozen rule (7c673ca). CIs: paired cluster bootstrap over overlap groups, 1,000 resamples.
+
+### 10.1 H5 on the 213 non-dev images (189 overlap groups; 6,142 fibers matched in base)
+
+| | Base | H5c (frozen) | O-sep |
+|---|---|---|---|
+| g-MAE (fiber-weighted) | 0.0161 | 0.0137 | 0.0076 |
+| F1@0.5 | 0.8929 | 0.8935 | 0.8958 |
+| Recall | 0.9674 | 0.9696 | 0.9737 |
+| Fibers with \|g error\| > 0.03 | 13.3% | 9.6% | 2.9% |
+
+| Hypothesis | Rule | Result | Verdict |
+|---|---|---|---|
+| **H5a** | O-sep cuts g-MAE ≥ 25% relative, CI excludes 0 | **−52.7%**; Δ −0.0085 [−0.0096, −0.0073] (dev was −42%) | **Holds** |
+| **H5b** | Defective ≤ 35% of fibers, ≥ 40% of \|g error\|, ≥ 50% of O-sep's reduction | 25.4% of fibers · 49.0% of error · 61.5% of reduction | **Holds** |
+| **H5c** | Captures ≥ 50% of O-sep's gain, Δg-MAE CI excludes 0, ΔF1 and Δrecall lower CI ≥ −0.005 | **27.7%** captured; Δg-MAE −0.0023 [−0.0030, −0.0017]; ΔF1 +0.0007 [−0.0007, +0.0024]; Δrecall +0.0022 [+0.0008, +0.0039] | **Fails** (capture only; all guards pass) |
+
+- **Gate 3a outcome (§7.2 table): H5a holds, H5c fails → "C2 for morphometry becomes a candidate (new budget decision)."** This is the owner's call (budget, D-36).
+- **Grouping matters more for g than for detection:** separation is 3.5% of detection errors (C1 below) but grouping explains 53% of g-ratio error. The paper may say **"ring topology"** (H5b holds), not only "grouping".
+- **H5c's dev estimate shrank as expected:** 54% in-sample → 28% out of sample. The frozen rule still gives a real, free improvement (g-MAE −15%, fibers with \|g err\| > 0.03 from 13.3% to 9.6%) with no detection cost, but it does not reach the pre-registered bar.
+- H5b sensitivity: every base-matched fiber is also matched under O-sep; 40 fibers are matched only under O-sep (\|g error\| sum 1.84), outside the rule.
+- Dev images (53) were not used for H5.
+
+### 10.2 D-03 3-fold C1 numbers (all 266 out-of-fold images)
+
+| Scope | F1@0.5 | Errors | Strict selection | Broad selection | Separation | O-sel broad ΔF1 | O-sep ΔF1 |
+|---|---|---|---|---|---|---|---|
+| All 266 | 0.892 | 1,866 | 16.0% | **79.5%** | 3.8% | +0.084 [0.074, 0.094] | +0.003 [0.002, 0.005] |
+| Non-dev 213 | 0.893 | 1,474 | 15.5% | 80.3% | 3.5% | +0.084 [0.073, 0.095] | +0.003 [0.001, 0.005] |
+| Dev 53 (cv3 model) | 0.888 | 392 | 17.6% | 76.8% | 4.8% | +0.083 [0.060, 0.106] | +0.005 [0.001, 0.009] |
+
+- **C1's dev headline replicates on 3-fold:** broad selection 79.5% (dev, B1: 78.9%); separation stays small (3.8% vs dev's 0.6% on B1, a little higher with the cv3 models); O-sel broad gains +0.084 F1 against +0.003 for O-sep.
+
