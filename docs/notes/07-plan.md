@@ -670,3 +670,10 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - Base = D-11 `semantic_to_paired_instances` on the T-21 out-of-fold semantics; H5c = frozen `semantic_to_paired_instances_h5c` (7c673ca, unchanged since).
   - Same run gives D-03's 3-fold C1 numbers on all 266 out-of-fold images (taxonomy shares, O-sel strict/broad, O-sep gains); the 53 dev images are included there because C1 is not an H5 claim.
 
+- **19 Nov, tranche B re-costed; correction to the 16/18 Nov entries.**
+  - The 16 and 18 Nov entries said tranche B's ≈ $16.4 "was costed at the GPU rate alone" and must be redone. **That was wrong.** D-36's per-run figure (≈ $4.1 per 80-epoch arm) already used T-21's billed all-in rate (≈ $1.21/h): 80 × ≈ 145 s ≈ 3.2 h + final validation ≈ 3.4 h × $1.21 ≈ $4.1. The Dataset502 timing run (143.5 s/epoch, 18 Nov) confirms the per-epoch time for TEM1.
+  - **Where B0's overrun really came from:** the inference items (ASTIH TEM1/TEM2 prediction, B1 on four outside sets; estimated "≈ $1" with no timing basis) cost ≈ $3.6, including one rerun of the TEM1 predict job. Training estimates were accurate (reference: ≈ 6.3 h, ≈ $7.6 est. vs ≈ $7.9 actual).
+  - **Tranche B now:** R1–R4 at 80 epochs ≈ 4 × $4.1 ≈ $16.4; the held-out-mouse predictions come from each arm's final validation (no separate job). Cap $17 leaves ≈ $0.6 of margin, so **any extra inference (e.g. TTA or a fold ensemble for t_k) must be timed and costed before it runs**, and each arm is launched with `--max-gpu-hours 3.5`.
+  - Budget left: $75 − $40.23 = $34.77 against caps B $17 + C $15.3 = $32.3.
+  - The 18 Nov status snapshot and the self-study Q&A carry the same wrong sentence; they are corrected by this entry (status snapshot) and an added Q&A note.
+
