@@ -344,3 +344,19 @@ Script `scripts/run/phase2_t17_h6.py`; numbers `results/phase2/`. TEM1 test mous
   - Thin-fiber (g > 0.85) recall gap: −0.186 (TEM1), −0.254 (TEM2 full, 35 thin), +0.064 (TEM2 test, 9 thin), −0.177 (AxonPath).
   - On the 8 held-out TEM1 mice: −0.196 [−0.274, −0.155]. H8 waits for the reference model.
 
+### 9.x H8 decided: the thin-fiber gap is a label effect, not an intrinsic difficulty (18 Nov)
+
+- **Reference model:** Dataset502 (TEM1, near-complete labels, 12 training mice), fold 0 = the 8 held-out mice (64 images), `nnUNetTrainer_150epochs_ckpt10` (fixed 150 epochs, D-39), same ResEnc-M 2d_bigpatch recipe as B1. Validation Dice: axon 0.962, myelin 0.892.
+- **Same 3,029 GT fibers (454 thin, g > 0.85), same D-11 pairing, same evaluator:**
+
+| Model | Recall thin | Recall normal | Gap |
+|---|---|---|---|
+| B1 (trained on our selective labels, zero-shot) | 0.751 | 0.947 | −0.196 |
+| TEM1 reference (complete labels) | 0.969 | 0.987 | −0.018 [−0.029, −0.006] |
+
+- **gap_B1 − gap_ref = −0.178, mouse-bootstrap 95% CI [−0.258, −0.138] (8 mice). H8 holds** (rule: ≤ −0.10 and CI upper < 0).
+- The reference still misses thin fibers slightly more (−0.018), so thin fibers are a little harder, but about 90% of B1's gap is not explained by difficulty.
+- **Confound to state in the paper:** B1 is out of domain on TEM1 (different lab and scanner); the reference is in domain. Domain shift could hurt thin fibers more than normal ones. The gap-of-gaps controls for overall accuracy (B1 normal recall 0.947 is still high), not for an interaction of shift with thinness. T-24 (C3) is the cleaner test: same data, labels made selective vs complete.
+- Reference taxonomy on the held-out mice: F1 0.971, 180 errors, strict 0.6%, broad 38% (small error count; most are other_bg).
+- Files: `results/phase2/h8_ref.json`, `h8_compare.json`, `h8_images_ref.csv`, `tem1ref_logs/`.
+

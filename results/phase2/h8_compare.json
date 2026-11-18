@@ -1,0 +1,24 @@
+{
+ "b1": {
+  "n_thin": 454,
+  "n_normal": 2575,
+  "recall_thin": 0.751101321585903,
+  "recall_normal": 0.9471844660194175,
+  "gap": -0.1960831444335145
+ },
+ "ref": {
+  "n_thin": 454,
+  "n_normal": 2575,
+  "recall_thin": 0.9691629955947136,
+  "recall_normal": 0.9867961165048543,
+  "gap": -0.017633120910140687
+ },
+ "gap_b1_minus_gap_ref": -0.1784500235233738,
+ "ci95_mouse_bootstrap": [
+  -0.25849295425474644,
+  -0.13755773042044034
+ ],
+ "n_mice": 8,
+ "H8_holds": true,
+ "rule": "gap_b1 - gap_ref <= -0.10 and CI upper < 0"
+}

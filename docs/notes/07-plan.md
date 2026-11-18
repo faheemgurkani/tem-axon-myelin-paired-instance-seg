@@ -634,3 +634,10 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **Reference run launched** (`nnUNetTrainer_150epochs_ckpt10`, `--max-gpu-hours 6.6`, app `ap-CcHTABHVeSvb40kioFGOgh`); worst case B0 total ≈ $4.02 + 6.6 × 1.21 ≈ $12.0. Project total after it ≈ $40 of $75.
   - **Lesson for later tranches:** estimate at $1.21/h all-in for L4 jobs, not the GPU rate alone. Tranche B's $16.4 estimate must be redone at this rate before it opens.
 
+- **18 Nov, TEM1 reference finished and H8 decided (T-22 done).**
+  - Run `ap-CcHTABHVeSvb40kioFGOgh` completed all 150 epochs (16 Nov 17:57 → 17 Nov 00:11, ≈ 145 s/epoch). Validation Dice axon 0.962 / myelin 0.892 on the 8 held-out mice.
+  - **H8 holds:** gap_B1 − gap_ref = **−0.178 [−0.258, −0.138]** (B1 gap −0.196; reference gap −0.018). Details and the domain-shift confound in `05-results.md` §9.
+  - **B0 actual cost $11.91** (16 Nov $11.52 + 17 Nov $0.38), inside the raised $12 cap. Project total **$40.23 of $75**. B0 closed.
+  - The reference checkpoint stays on the Volume; it is the shared complete-label arm for T-24 (C3).
+  - Next: Phase 3a (H5a/b/c on the 213 non-dev images with frozen H5c). Tranche B must be re-costed at $1.21/h before it opens.
+

@@ -1,0 +1,30 @@
+{
+ "model": "ref",
+ "n_images": 64,
+ "missing_predictions": 0,
+ "tem1": {
+  "images": 64,
+  "fibers": 3029,
+  "recall_all": 0.9841531858699241,
+  "f1": 0.9706935851514165,
+  "strict_selection_share": 0.005555555555555556,
+  "broad_selection_share": 0.38333333333333336,
+  "errors": 180,
+  "n_thin": 454,
+  "n_normal": 2575,
+  "recall_thin": 0.9691629955947136,
+  "recall_normal": 0.9867961165048543,
+  "gap": -0.017633120910140687,
+  "held_out_mice": {
+   "n_thin": 454,
+   "n_normal": 2575,
+   "recall_thin": 0.9691629955947136,
+   "recall_normal": 0.9867961165048543,
+   "gap": -0.017633120910140687,
+   "gap_ci95": [
+    -0.028901406078719737,
+    -0.006031112201219253
+   ]
+  }
+ }
+}
