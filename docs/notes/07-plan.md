@@ -683,4 +683,5 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **3-fold C1 numbers (D-03):** all 266: F1 0.892, broad selection 79.5%, strict 16.0%, separation 3.8%; O-sel broad +0.084 F1 [0.074, 0.094] vs O-sep +0.003. Dev headline (78.9%) replicates.
   - Expectation vs result: H5c expected to shrink (stated 16 Nov); it shrank below the bar. Expectation is not rewritten.
   - Remaining Phase 3a item: exploratory AxonPath repeat (our models only).
+  - **Exploratory AxonPath repeat done** (`05-results` §10.3): O-sep −24.6% [21.1, 28.9], H5c captures 13% [−4, 29], defects carry 39% of g error. Grouping still matters out of domain but less; context only. **Phase 3a complete except the Gate 3a budget decision.**
 

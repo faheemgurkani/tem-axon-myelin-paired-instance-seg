@@ -1,0 +1,23 @@
+{
+ "n_images": 20,
+ "n_fibers_base": 1836,
+ "g_mae": {
+  "base": 0.029260237101398787,
+  "h5c": 0.02829570720601685,
+  "o_sep": 0.022053689810293108
+ },
+ "osep_rel_reduction": 0.246291486502041,
+ "h5c_capture": 0.13384077789545076,
+ "defective_share_of_matched": 0.35566448801742917,
+ "defective_share_of_abs_g_error": 0.39306248431012164,
+ "o_sep_reduction_share_from_defective": 0.40117785294058167,
+ "osep_rel_reduction_ci95": [
+  0.21119450260184816,
+  0.28850239685664864
+ ],
+ "h5c_capture_ci95": [
+  -0.03740717633442575,
+  0.29110868211985036
+ ],
+ "note": "Exploratory; fiber-weighted over matched fibers; image bootstrap. Not part of the H5 rule."
+}

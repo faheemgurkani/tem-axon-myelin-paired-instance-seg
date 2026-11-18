@@ -395,3 +395,15 @@ Script `scripts/run/phase3a_h5.py`; outputs `results/phase3a/` (`h5_summary.json
 
 - **C1's dev headline replicates on 3-fold:** broad selection 79.5% (dev, B1: 78.9%); separation stays small (3.8% vs dev's 0.6% on B1, a little higher with the cv3 models); O-sel broad gains +0.084 F1 against +0.003 for O-sep.
 
+### 10.3 Exploratory: H5 measures on AxonPath CC TEM (context only, not part of the rule)
+
+B1 zero-shot (out of domain), 20 images, 1,836 matched fibers, hand-drawn pairs, image bootstrap (`phase3a_h5_axonpath.py`, `h5_axonpath_summary.json`).
+
+| | Base | H5c | O-sep |
+|---|---|---|---|
+| g-MAE | 0.0293 | 0.0283 | 0.0221 |
+
+- O-sep cuts g-MAE by **24.6% [21.1, 28.9]**: grouping still matters out of domain, but about half as much as on our data (52.7%), right at the 25% bar.
+- H5c captures **13% [−4, 29]** of that gain: the frozen rule barely helps out of domain.
+- Defects are less concentrated: defective fibers are 35.6% of matched fibers and carry 39.3% of \|g error\| and 40.1% of O-sep's reduction (all below the H5b bars). Out of domain, g error is spread across boundary placement as well as topology, which fits B1's higher base g-MAE there (0.029 vs 0.016).
+
