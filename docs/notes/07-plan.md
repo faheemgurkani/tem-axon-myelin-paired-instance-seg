@@ -663,3 +663,10 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **Owner actions outstanding:** find the expert (T-20 + addendum); organiser permission email (T-19); decide whether to tell the ASTIH authors about the seed bug.
   - **Next:** Phase 3a, run locally at no GPU cost.
 
+- **19 Nov, Phase 3a started; H5b's reduction share defined before scoring (no T-21 non-dev result has been looked at for H5).**
+  - §7.2 gives H5b's second part ("≥ 50% of O-sep's total |g error| reduction comes from fibers defective in the base prediction") but its dev value was "never computed", so the operational definition was never written. Fixed now, before any non-dev H5 number exists:
+    - Unit: GT fibers matched (IoU > 0.5) in **both** base and O-sep. Reduction per fiber = |g_err_base| − |g_err_O-sep|. Share = sum over fibers whose *base* predicted fiber is defective (ring Euler ≠ 0, axon touches background, or axon > 1 component; `day5_analysis.py` flags) ÷ sum over all such fibers. Fibers matched in only one condition are reported separately (count and their |g error| sum) as a sensitivity, not part of the rule.
+  - H5a/H5c computed as §7.2: fiber-weighted g-MAE with equivalent-circle g at IoU > 0.5; 1,000-resample paired cluster bootstrap over overlap groups (D-22); H5c guards on the lower CI bounds of ΔF1@0.5 and Δrecall (micro).
+  - Base = D-11 `semantic_to_paired_instances` on the T-21 out-of-fold semantics; H5c = frozen `semantic_to_paired_instances_h5c` (7c673ca, unchanged since).
+  - Same run gives D-03's 3-fold C1 numbers on all 266 out-of-fold images (taxonomy shares, O-sel strict/broad, O-sep gains); the 53 dev images are included there because C1 is not an H5 claim.
+
