@@ -7,9 +7,9 @@ import pytest
 import torch
 
 pytest.importorskip("nnunetv2")
-from nnunetv2.training.loss.compound_losses import DC_and_CE_loss  # noqa: E402
-from nnunetv2.training.loss.dice import MemoryEfficientSoftDiceLoss  # noqa: E402
-from nnunetv2.utilities.helpers import softmax_helper_dim1  # noqa: E402
+from nnunetv2.training.loss.compound_losses import DC_and_CE_loss
+from nnunetv2.training.loss.dice import MemoryEfficientSoftDiceLoss
+from nnunetv2.utilities.helpers import softmax_helper_dim1
 
 spec = importlib.util.spec_from_file_location(
     "tem_trainers", Path(__file__).resolve().parents[1] / "baselines/nnunet/trainers.py")
