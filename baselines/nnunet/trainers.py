@@ -124,3 +124,76 @@ class nnUNetTrainer_5epochs_ckpt1(nnUNetTrainer):
     def perform_actual_validation(self, save_probabilities: bool = False):
         # A 5-epoch model's full-image validation is meaningless and costs ~10–20 GPU-minutes; skip it.
         self.print_to_log_file("Timing run: final validation skipped.")
+
+
+class nnUNetTrainer_80epochs_ckpt10(nnUNetTrainer_250epochs_ckpt10):
+    """T-24 arms R1–R3 (C3 pilot, D-35): B1's recipe at a fixed 80 epochs, no early stopping (the validation
+    fold is the held-out test mice, as for the reference, D-39). Predictions use checkpoint_final."""
+
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 device: torch.device = torch.device('cuda')):  # noqa: B008 (nnU-Net's signature)
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 80
+
+
+WEIGHT_LEVELS = 20  # weight channel stores d in 0..20; pixel weight = 1 - d / 20 (padding -1 -> 0 -> weight 1)
+
+
+class SoftWeightDCCE(torch.nn.Module):
+    """Dice + CE with a per-pixel weight from a second target channel (T-24 R4, D-35/D-42).
+
+    ``target``: (b, 1, ...) labels, or (b, 2, ...) labels + down-weight level d (0..WEIGHT_LEVELS). The weight
+    1 − d/WEIGHT_LEVELS multiplies the Dice ``loss_mask`` and the per-pixel CE; ignore-label pixels get weight 0.
+    With d ≡ 0 this equals nnU-Net's ``DC_and_CE_loss`` (CE is a weighted mean over the same pixels).
+    d is stored as a *down-weight* so that the spatial transform's −1 padding (set to 0 by RemoveLabelTansform)
+    means full weight, exactly as padding is treated in the other arms.
+    """
+
+    def __init__(self, dc: torch.nn.Module, ignore_label: int | None):
+        super().__init__()
+        self.dc, self.ignore_label = dc, ignore_label
+
+    def forward(self, net_output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        seg = target[:, :1]
+        if target.shape[1] > 1:
+            w = 1.0 - target[:, 1:2].float().clamp(0, WEIGHT_LEVELS) / WEIGHT_LEVELS
+        else:
+            w = torch.ones_like(seg, dtype=torch.float32)
+        if self.ignore_label is not None:
+            valid = seg != self.ignore_label
+            w = w * valid
+            seg = torch.where(valid, seg, torch.zeros_like(seg))
+        dc = self.dc(net_output, seg, loss_mask=w)
+        ce_pix = torch.nn.functional.cross_entropy(net_output, seg[:, 0].long(), reduction="none")
+        den = w.sum()
+        ce = (ce_pix * w[:, 0]).sum() / den if den > 0 else ce_pix.sum() * 0
+        return ce + dc
+
+
+class nnUNetTrainer_80epochs_ckpt10_softw(nnUNetTrainer_80epochs_ckpt10):
+    """T-24 arm R4: selection-gated soft ignore. The preprocessed seg carries a 2nd channel (down-weight level,
+    see ``SoftWeightDCCE``), built by ``scripts/run/t24_build_arms.py``. Validation strips it (unweighted loss and
+    pseudo-Dice, like the other arms)."""
+
+    def _build_loss(self):
+        from nnunetv2.training.loss.deep_supervision import DeepSupervisionWrapper
+        from nnunetv2.training.loss.dice import MemoryEfficientSoftDiceLoss
+        from nnunetv2.utilities.helpers import softmax_helper_dim1
+
+        assert not self.label_manager.has_regions
+        dc = MemoryEfficientSoftDiceLoss(apply_nonlin=softmax_helper_dim1,
+                                         batch_dice=self.configuration_manager.batch_dice,
+                                         do_bg=False, smooth=1e-5, ddp=self.is_ddp)
+        loss = SoftWeightDCCE(dc, self.label_manager.ignore_label)
+        if self.enable_deep_supervision:
+            scales = self._get_deep_supervision_scales()
+            weights = [1 / (2 ** i) for i in range(len(scales))]
+            weights[-1] = 0
+            s = sum(weights)
+            loss = DeepSupervisionWrapper(loss, [x / s for x in weights])
+        return loss
+
+    def validation_step(self, batch: dict) -> dict:
+        t = batch["target"]
+        batch["target"] = [x[:, :1] for x in t] if isinstance(t, list) else t[:, :1]
+        return super().validation_step(batch)

@@ -1,0 +1,35 @@
+{
+ "seed": 0,
+ "p_stratum": 0.9,
+ "p_random": 0.07,
+ "train": {
+  "images": 94,
+  "mice": 12,
+  "fibers": 4824,
+  "stratum": 1214,
+  "thin": 355,
+  "thick": 578,
+  "oblique": 532,
+  "deleted_stratum": 1081,
+  "deleted_random": 230,
+  "deleted_total": 1311,
+  "share_labels_removed": 0.27176616915422885
+ },
+ "test": {
+  "images": 64,
+  "mice": 8,
+  "fibers": 3029,
+  "known_positives_normal": 2179,
+  "stratum": 850,
+  "thin": 454,
+  "thick": 247,
+  "oblique": 329
+ },
+ "second_draw": {
+  "n": 136,
+  "r_true": 0.93,
+  "labelled_at_least_once": 135,
+  "discordant": 12,
+  "r_hat": 0.9534883720930232
+ }
+}
