@@ -5,10 +5,12 @@
 3. a(x): L2 logistic regression, stratum vs normal, on the subset's real fibers; features from B1 semantics inside
    each footprint (same pipeline for every candidate): g_eq, d_out_nm, myelin_nm, ecc, solidity, contrast.
 4. r̂ from the simulated second draw (results/phase3b/t24_sim_summary.json).
-5. q_k = t(1−a)(1−r̂) / (1 − t(1−a)r̂); R4 down-weight level d = round(20 q_k) on the painted footprint.
+5. q_k = t_k · (1 − a_k) (D-43): both are fitted on unlabelled candidates, so they are already conditioned on
+   "unlabelled"; D-35's population formula t(1−a)(1−r)/(1−t(1−a)r) would condition twice (kept as q_d35 for the
+   record). R4 down-weight level d = round(20 q_k) on the painted footprint.
 Arms (training cases; test cases keep full labels and d = 0):
-  R1 simulated labels · R2 R1 + painted footprints -> ignore (3) · R3 R2's footprints moved to random positions
-  wholly on R1 background (same pixel budget, seed 0) · R4 R1 labels + d map.
+  R1 simulated labels · R2 R1 + painted footprints -> ignore (3) · R3 footprint-shaped ignore regions at random
+  positions on R1 background outside the candidates, matching R2's pixel count per image (seed 0) · R4 R1 + d map.
 
 Outputs: data/processed/t24/arms/R{1..4}/<case>.png, data/processed/t24/arms/R4_d/<case>.png,
 data/processed/t24/candidates_scored.csv; committed: results/phase3b/t24_selection_summary.json.
@@ -39,27 +41,36 @@ def logit(p):
     return np.log(p / (1 - p))
 
 
-def q_of(t, a, r):
+def q_d35(t, a, r):
+    """D-35 formula; correct only for population-level t and a (not used for the weights, D-43)."""
     return t * (1 - a) * (1 - r) / (1 - t * (1 - a) * r)
 
 
 def relocate(painted: np.ndarray, free: np.ndarray, rng) -> np.ndarray:
-    """Move each painted footprint to a random position lying wholly on ``free`` pixels, without overlaps."""
-    out = np.zeros_like(painted)
-    occupied = ~free.copy()
+    """Random-ignore control (R3): footprint-shaped ignore regions at random positions on ``free`` (R1 background)
+    pixels until the image's ignored-pixel count matches R2's. Footprints are taken in random order (cycling if
+    needed); a shape is painted only where it lands on still-free pixels, so placement never touches labels."""
+    target = int((painted > 0).sum())
+    out = np.zeros(painted.shape, bool)
+    avail = free.copy()
+    shapes = [painted[sl] == k for k, sl in enumerate(ndi.find_objects(painted), start=1) if sl is not None]
+    if not shapes or target == 0:
+        return out
     H, W = painted.shape
-    for p_id, sl in enumerate(ndi.find_objects(painted), start=1):
-        if sl is None:
-            continue
-        shape = painted[sl] == p_id
-        h, w = shape.shape
-        for _ in range(200):
-            y, x = int(rng.integers(0, H - h + 1)), int(rng.integers(0, W - w + 1))
-            win = occupied[y:y + h, x:x + w]
-            if not (win & shape).any():
-                out[y:y + h, x:x + w][shape] = p_id
-                win |= shape
-                break
+    done, guard = 0, 0
+    while done < target and guard < 50 * len(shapes) + 1000:
+        guard += 1
+        sh = shapes[int(rng.integers(len(shapes)))]
+        h, w = sh.shape
+        y, x = int(rng.integers(0, H - h + 1)), int(rng.integers(0, W - w + 1))
+        put = sh & avail[y:y + h, x:x + w]
+        need = target - done
+        if put.sum() > need:  # trim the last region to hit the budget exactly
+            idx = np.flatnonzero(put)
+            put.flat[idx[need:]] = False
+        out[y:y + h, x:x + w] |= put
+        avail[y:y + h, x:x + w] &= ~put
+        done += int(put.sum())
     return out
 
 
@@ -86,7 +97,8 @@ def main() -> None:
     Er = C.expert & C.real
     amodel = LogisticRegression(C=1.0).fit(Z[Er], C.stratum_true[Er])
     C["a"] = amodel.predict_proba(Z)[:, 1]
-    C["q"] = q_of(C.t, C.a, r_hat)
+    C["q"] = C.t * (1 - C.a)
+    C["q_d35"] = q_d35(C.t, C.a, r_hat)
     C["d"] = np.rint(LEVELS * C.q).astype(int)
     C.to_csv(T24 / "candidates_scored.csv", index=False)
 
@@ -101,8 +113,10 @@ def main() -> None:
          "a_model": {"feats": FEATS, "median": med.to_dict(), "mean": mu.to_dict(), "sd": sd.to_dict(),
                      "coef": amodel.coef_[0].tolist(), "intercept": float(amodel.intercept_[0])},
          "mean_q_by_truth": C.groupby("truth").q.mean().to_dict(),
-         "r_sweep_mean_q_by_truth": {f"{r:.2f}": C.assign(q=q_of(C.t, C.a, r)).groupby("truth").q.mean().to_dict()
-                                     for r in (0.88, 0.90, 0.92, 0.94, 0.96)}}
+         "mean_q_d35_by_truth": C.groupby("truth").q_d35.mean().to_dict(),
+         "auc_q_missed_normal_vs_rest": float(roc_auc_score(C.truth == "deleted_random", C.q)),
+         "mean_a_by_truth": C.groupby("truth").a.mean().to_dict(),
+         "mean_t_by_truth": C.groupby("truth").t.mean().to_dict()}
 
     fib = pd.read_csv(T24 / "fibers.csv")
     deleted = fib[fib.deleted & ~fib.test]
@@ -126,14 +140,14 @@ def main() -> None:
             painted = iio.imread(T24 / "cands" / f"{r.case}.png").astype(np.int32)
             on = (painted > 0) & (lab == 0)
             r2[on] = 3
-            moved = relocate(np.where(on, painted, 0), lab == 0, rng)
-            r3[moved > 0] = 3
+            moved = relocate(np.where(on, painted, 0), (lab == 0) & ~on, rng)
+            r3[moved] = 3
             lut = np.zeros(painted.max() + 1, np.uint8)
             for k in range(1, lut.size):
                 lut[k] = dmap.get((r.case, k), 0)
             d[on] = lut[painted[on]]
             budget["R2"] += int(on.sum())
-            budget["R3"] += int((moved > 0).sum())
+            budget["R3"] += int(moved.sum())
         iio.imwrite(T24 / "arms/R1" / f"{r.case}.png", lab)
         iio.imwrite(T24 / "arms/R2" / f"{r.case}.png", r2)
         iio.imwrite(T24 / "arms/R3" / f"{r.case}.png", r3)
