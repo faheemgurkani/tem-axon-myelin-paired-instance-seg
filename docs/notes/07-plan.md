@@ -715,3 +715,5 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
   - **Expectation, stated now:** the q separation is modest (AUC 0.76), so any R4 advantage over R2 will be small; the design report's theory (gains only on ambiguous fibers) predicts the same. H9 is not changed.
   - **Scoring script** `t24_score.py` written before any arm is trained.
 
+
+- **19 Nov, paused by the owner.** All local processing, downloads and GPU work paused; nothing running locally or on Modal. Two decisions deferred to a later discussion: (1) local preprocessing of the four T-24 arm datasets (`t24_nnunet_datasets.py`, ≈ 30–45 min CPU, ≈ 15 GB); (2) opening tranche B (R4 first with a live timing check, then R1–R3, each capped at 3.5 GPU-h; expected $16.40, worst case $16.94 vs cap $17; project would reach ≈ $57 of $75). Spend unchanged at $40.23.
