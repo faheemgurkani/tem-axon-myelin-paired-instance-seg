@@ -46,4 +46,4 @@ docs/self_study_notes/
 # owner's forward plan and to-do (never commit)
 PLAN.md
 
-downloads/
+downloads/logs/   # local client/preprocessing logs (Modal training logs live on the Volume)
