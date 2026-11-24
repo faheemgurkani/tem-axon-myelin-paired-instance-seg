@@ -1,4 +1,4 @@
-# 01 — Study guide: the whole project, start to now (state on 15 Nov 2026)
+# 01 — Study guide: the whole project, start to now (state on 24 Nov 2026)
 
 Read this file first. It tells the story once and gives only the headline numbers. Each section points to the file holding the details.
 
@@ -172,16 +172,40 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - **Calibration rule:** mirroring TTA plus temperature scaling; a fold ensemble only on images no fold saw.
 - **Side result:** once area is controlled, the skip rate does not rise with image median g.
 
+**Phase 2 (16–18 Nov; [05](05-results.md) §9):**
+- ASTIH TEM1 and TEM2 reproduced with our evaluator (T-17). ASTIH's published TEM1 F1 0.791 is an artefact of their evaluation script's seed placement (D-38); with point seeds it is 0.905, with our paired evaluator 0.979.
+- **H8 holds:** B1 (trained on our selective labels) misses thin-myelin fibers on TEM1 far more than a model trained on complete TEM1 labels: gap difference −0.178 [−0.258, −0.138]. Caveat: B1 is out of domain on TEM1; T-24 removes that confound by design.
+
+**Phase 3a (19 Nov; [05](05-results.md) §10):**
+- **H5a holds:** grouping errors cause 52.7% of the g-ratio error on 213 unseen images. **H5b holds:** broken-ring fibers (25% of fibers) carry 49% of the error. **H5c fails:** the frozen cheap regrouping captures 27.7% (bar 50%). C2 (a nested decoder for morphometry) is a candidate but deferred (D-40).
+- 3-fold C1 numbers on all 266 images: 79.5% of errors are selection (broad).
+
+**Phase 3b, C3 pilot (19–24 Nov; [05](05-results.md) §11; [07](07-plan.md) §7.6–7.7):**
+- TEM1 benchmark (T-24): labels deleted on purpose on 12 training mice (protocol stratum g > 0.85 / g < 0.65 / ecc > 0.9 at p = 0.9, plus 7% random), 8 test mice with full labels. Arms: R1 naive, R2 ignore all candidates, R3 random ignore, R4 selection-gated soft weights.
+- **H9 fails.** Ignoring all candidates (R2) gives the most normal-fiber recall but also re-learns the protocol-excluded fibers; R4 sat on the line between R1 and R2.
+- **Why (audit, 24 Nov):** no code bug. The selection model gave missed normals and excluded fibers almost the same weight (0.73 vs 0.76) because (1) it learned "normal" from 17 expert examples while 3,278 labelled fibers were available — the PU idea the design named but round 1 did not implement (D-44), (2) its linear form could not express a two-sided g band (D-45), (3) H9 compared recall alone against hard ignore, which is the recall ceiling over the same candidates, and (4) one run per arm.
+- **Round 2 (H10, pre-registered 24 Nov):** corrected selection model (PU + boosted trees with band terms + expert-only calibration, D-44–D-46), judged by frontier excess (recall above the R1–R2 line at equal violation), with an oracle arm (R6), a hard-gated arm (R4h) and a replicate of R1 for noise (R1b).
+
 **Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).
 2. **H5.** "Grouping and ring topology drive g-ratio error". It is post hoc, so it needs a pre-written rule before it can justify reviving C2 as a *morphometry* method.
    - The cheapest first test uses no GPU: close broken rings and regroup B1's pixels instance-first.
 
 **Not yet done:**
-- Reproducing ASTIH TEM1 with our evaluator (T-17). This is the external check that our evaluator matches a published number.
-- The write-up.
+- ~~Reproducing ASTIH TEM1 with our evaluator (T-17).~~ Done 16 Nov (D-38).
+- The expert ratings (T-20, Gate 1) and the organiser email (T-19): owner actions.
+- T-24 round 2 scoring (H10), then the write-up (Phase 4).
 
 ## 8. Easy to miss (the traps, collected once)
+
+**C3 traps (24 Nov):**
+- In PU settings the *labelled* objects are the main source of information about what a positive looks like; a selection model fitted only on a small expert subset wastes it.
+- A protocol stratum defined by "too high or too low" needs a non-monotone model (band terms or trees).
+- AUC does not set the weights; calibration does. A posterior weight calibrated on a handful of positives is shrunk towards the prior, so soft weights stay weak; a ranking-based gate (R4h) does not depend on calibration.
+- Never test a selective method against "ignore everything" on recall alone: that arm is the recall ceiling over the same candidates. Compare at equal protocol cost (frontier excess).
+- One training run per arm gives no noise estimate; bootstrap over mice does not capture it.
+- Killing a local `modal run --detach` client can stop a running call; launch long jobs with deploy + spawn.
+
 
 **Data and labels:**
 - Masks are **uint16**. Saving a prediction as uint8 silently wraps IDs above 255 and breaks the X/X+1 pairing.

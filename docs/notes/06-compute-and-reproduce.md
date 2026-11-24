@@ -82,6 +82,11 @@ The old copy in `~/Local Projects/` is left for the owner to delete.
   - **Never trust a piped exit code**: use `set -o pipefail` and count files at the destination.
 - **A path bug.** `parents[2]` failed inside the container. Fix: `REPO = parents[2] if modal.is_local() else /root/repo`.
 - **Downloading a directory** with `modal volume get` would also pull the 6.8 GB of npz. Fetch files individually, in parallel, and count them; 2 of 53 needed a retry.
+- **Killing a `modal run --detach` client can stop a call that is already running** (23 Nov: R1/R2 of T-24 died after 1–2 epochs when the four local clients were killed; R3/R4, still queued, survived). **Launch long jobs with `modal deploy infra/modal/tem_modal.py` + `modal.Function.from_name("tem-axon-myelin", "train_nnunet").spawn(...)`**: no local process holds the run, so closing the IDE is safe. Check progress with `FunctionCall.from_id(id).get(timeout=0)` and the run's `training_log` on the Volume.
+- **GPU fallback:** `Function.with_options(gpu=...)` takes one GPU type (a list raises `InvalidError`). When L4s are queued, cancel the queued call and respawn with `with_options(gpu="A10G")`.
+- **A10G is ≈ 1.45× faster than L4 for 2d_bigpatch ResEnc-M** (≈ 98 vs ≈ 145 s/epoch) at ≈ $1.47/h all-in (24 Nov), so ≈ $3.5 vs ≈ $4.2 per 80-epoch run. A10Gs were preempted twice in one run; resume from `checkpoint_latest` (≤ 10 epochs lost) worked.
+- **The Volume is V1:** `modal volume cp -r` is unsupported; copy file by file (`Volume.copy_files`, ≤ 2 threads: 8 threads hit "too many layers in volume. Please wait and retry").
+- **`upload_dir.py` can hang silently** (seen 16 and 23 Nov, no progress, no CPU): run it under a watchdog (`perl -e 'alarm 480; exec @ARGV' …` in a retry loop; it resumes by skipping same-size files). For a folder seeded by a server-side copy of another dataset, use `--no-skip` (a seg file can match by size).
 
 ## 4. Budget (days 0–5 cap: $10)
 
@@ -96,6 +101,8 @@ The old copy in `~/Local Projects/` is left for the owner to delete.
 **$1.84 was left under the days 0–5 cap.** On 15 Nov **D-28** retired that cap and set a **$60 ceiling including spend**, released in tranches. A: T-21 ≈ $23, cap $26. B: C3 pilot ≈ $15.4, cap $17. C: C3 full ≈ $15.4, cap $17. Reserve ≈ $12. Each tranche opens on a gate ([07](07-plan.md) §7.1). **Update, 15 Nov (D-36):** the ceiling is now **$75**, and the Modal workspace usage limit was set to **$75** the same day ($8.07 used). Tranches A ≈ $23 / B0 ≈ $9.1 / B ≈ $16.4 / C ≈ $15.9 (caps sum to $75; no reserve; overruns cut R6 → R5 → R7). **Compute map:** everything non-GPU runs on the M4; Modal only for GPU training and inference (`07-plan.md` §7.6). **Earlier correction, 15 Nov:** D-28's tranches already summed to ≈ $62 with the spend, and the proposed C3 route brings the full plan to ≈ $72. The $60 Modal usage limit would stop runs mid-way, so **raise it before any run that would cross it** if the owner raises the ceiling (pending; `07-plan.md` §7.1 correction). **Enforced since 15 Nov:** the Modal workspace usage limit is set to $60 (Settings → Usage & billing → Usage limit; Modal's default was $105). The card "spend limit" is unset; with $71.93 of credit left, the $60 usage limit stops runs before any card charge.
 
 Check spend with `modal billing summary` / `modal billing report --for "this month"`.
+
+**Spend history (Modal billing, all-in):** days 0–5 $8.16 · tranche A (T-21) $20.16 · B0 $11.91 (cap raised to $12) → $40.23 by 18 Nov · tranche B (T-24 R1–R4) $16.64 (cap raised to $17.5 after the client-kill rerun) → **$56.87 by 24 Nov** · tranche D (T-24 round 2, 4 A10G runs, est. ≈ $14, worst ≈ $16.5) running. The $75 workspace usage limit stands.
 
 ## 5. Reproduce (from the repo root)
 
@@ -131,6 +138,15 @@ $P scripts/run/day4_oracles.py --pred-dir data/predictions/axonpath --name axonp
 for n in b1 cellpose_b1; do $P scripts/run/day4_oracles.py --pred-dir data/predictions/$n --name $n --sem-dir data/predictions/b1_sem; done
 $P scripts/run/day5_analysis.py
 $P scripts/run/day4_fp_gallery.py --pred-dir data/predictions/b1 --cls other_bg --n 16 --out data/processed/day4/b1_other_bg_gallery.png
+
+# T-24 (C3 pilot; 07-plan §7.6–7.7): all CPU on the M4, training on Modal
+$P scripts/run/t24_simulate.py; $P scripts/run/t24_candidates.py; $P scripts/run/t24_build_arms.py     # round 1 arms R1–R4
+$P scripts/run/t24_probe.py; $P scripts/run/t24_build_arms_v2.py                                        # round 2 arms R6/R4b/R4h
+nnUNet_raw=... nnUNet_preprocessed=... $P scripts/run/t24_nnunet_datasets.py [--arms ...]               # datasets 503–509
+#   upload seg/pkl/json/gt with upload_dir.py, copy image b2nd files from Dataset502 server-side, verify sizes
+#   train: modal deploy, then spawn train_nnunet(<ds>, "2d_bigpatch", "0", <trainer>, "nnUNetResEncUNetMPlans", <cap>)
+#   download fold_0/validation/*.png to data/predictions/t24/<arm>/
+PYTHONPATH=src:scripts/run $P scripts/run/t24_score.py                                                  # H9 and H10
 ```
 
 ## 6. Where files live

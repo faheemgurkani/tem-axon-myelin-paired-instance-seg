@@ -427,3 +427,27 @@ Benchmark (D-35/D-42/D-43): ASTIH TEM1, 12 training mice with simulated two-part
 - Hard-normal recall R4 − R2: CI [−0.026, +0.003].
 
 Reading: recall and violations move together along one axis, which is how much candidate background is removed from the background loss. Hard ignore recovers recall but also re-learns the excluded fibers. The selection model (â AUC 0.74) is too weak to separate the two. Caveats: one seed per arm; R2 was trained on an A10G, the others on an L4.
+
+### 11.1 Why R4 lost: audit (24 Nov; exploratory, H9 stands)
+
+- **Code and data:** no bug. The loss equals nnU-Net's at weight 1, and zero-weight pixels get no gradient. The weights survive augmentation, and the preprocessed weight channel equals the d map. Simulated labels are exact. Candidate footprints cover deleted fibers well: mean pixel coverage is 0.92 for random deletions and 0.75 for stratum deletions.
+- **What R4 did:** its pixel-weighted mean weight was 0.73 on missed normals and 0.76 on stratum fibers, so it was a near-uniform down-weight. Frontier excess (recall above the R1–R2 line at the arm's own violation): R4 +0.002 [−0.003, +0.009], R3 +0.005 [−0.004, +0.015].
+- **Causes:**
+  1. The selection model never used the 3,278 labelled-fiber instances as "normal" examples (PU, D-44).
+  2. It was linear, so it could not express the two-sided band (D-45).
+  3. H9's recall-only comparison against hard ignore was nearly unwinnable.
+  4. There was one run per arm.
+- **Selection model after the fixes**, scored on the non-expert candidates (decisions used only expert-subset information):
+
+  | Variant | â AUC | Weight, missed normals | Weight, stratum |
+  |---|---|---|---|
+  | Round 1 (deployed) | 0.73 | 0.73 | 0.76 |
+  | PU boosted trees, band terms, uncalibrated | 0.87 | 0.32 | 0.75 |
+  | PU boosted trees, band terms, calibrated (R4b) | 0.87 | 0.68 | 0.89 |
+
+  The R4h gate (top 161 candidates by q) ignores 49% of missed-normal pixels and 6% of stratum pixels, with a precision of 0.66.
+- **Feature ceiling:** B1's features track the truth closely: correlation with true g 0.92, with true eccentricity 0.93. With the true g and eccentricity, â AUC would reach 0.95. 38% of real unlabelled fibers lie within 0.03 of a g cut-off.
+
+### 11.2 Round 2 and H10 (pre-registered 24 Nov; 07-plan §7.7)
+
+Running: R6 oracle, R4b, R4h and R1b, each on an A10G for 80 epochs. Results will be added here once scored.
