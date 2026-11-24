@@ -471,3 +471,94 @@ Reading: recall and violations move together along one axis, which is how much c
 - **What it means (exploratory):** ignoring exactly the randomly missed normal fibers recovers only +0.004 recall (≈ noise), while ignoring every candidate (R2) recovers +0.026. The recall R1 loses is therefore caused mainly by the *protocol-excluded* (stratum) fibers taught as background, not by the 7% random misses, to which nnU-Net is nearly robust. A selection model that separates missed normals from exclusions has nothing to recover here. This revises our reading since D-35 and supports H8's hidden-stratification finding in C1.
 - **Noise:** R1 vs R1b differ by 0.031 in violation, so single-run violation differences of ≈ 0.03 are noise.
 - **Limits:** one seed per arm; 7% omission and the stratum rule are our simulation choices; a higher random-omission rate was not tested.
+
+## 12. Reviewer-lens checks for the C1 paper (25 Nov; T-28, D-49)
+
+**Scripts:** `scripts/run/paper_cis.py`, `paper_taxonomy_extras.py`, `paper_h4_tem1.py`, `paper_fig_qualitative.py`.
+- **Outputs:** `results/paper/{cis,taxonomy_sensitivity,protocol_realism,h4_tem1}.json` and `h4_tem1_images.csv`.
+- **Compute:** CPU only, plus local MPS for the TEM1 predictions; $0.
+
+### 12.1 Confidence intervals (G4)
+
+**B1's broad selection share** (cluster bootstrap, 1,000 resamples):
+
+| Data | Broad selection share [95% CI] | Clusters |
+|---|---|---|
+| Ours, 3-fold | 79.5% [76.2, 82.8] | 236 groups |
+| TEM1 | 3.6% [2.4, 4.7] | 20 mice |
+| TEM2 | 10.7% [7.4, 15.7] | 10 images |
+| TEM2 test | 9.7% [0, 22.9] | 21 images |
+| AxonPath | 3.4% [0.9, 6.9] | 20 images |
+
+- **Strict selection share** on ours: 16.0% [13.9, 18.3].
+- **Separation share** on ours: 3.8% [2.8, 4.7].
+- **Separation share is larger on the outside sets:** TEM1 10.5%, TEM2 23.6%. With few selection errors, the other causes make up a larger share of a much smaller total.
+
+**Benchmark, normal recall / violation per arm** (mouse bootstrap):
+
+| Arm | Normal recall [95% CI] | Violation [95% CI] |
+|---|---|---|
+| R1 | 0.961 [0.947, 0.975] | 0.667 [0.614, 0.720] |
+| R2 | 0.987 [0.980, 0.993] | 0.855 [0.811, 0.885] |
+| R6 | 0.965 [0.951, 0.978] | 0.684 [0.629, 0.737] |
+
+- **R6 − R1 recall:** +0.005 [−0.002, +0.010]. The paper text said +0.004; it is now +0.005, rounded from 0.0046.
+- **R1b − R1 violation:** +0.031 [0.016, 0.046]. The replicate differs "significantly" by the mouse bootstrap, so **the bootstrap over test mice does not capture training noise.** Single-run gaps of ≈ 0.03 are not evidence.
+
+**Visual check:** 7 of 16 *other background* fibers are real. Wilson 95% CI: 23–67%.
+
+### 12.2 Taxonomy sensitivity (G5; 266 out-of-fold images, 1,866 errors)
+
+| Setting | Strict selection | Broad selection | Separation |
+|---|---|---|---|
+| Ring-detector ds ∈ {3, 4, 5} × min hole diameter ∈ {200, 300, 400} nm | 13.1–17.1% | 79.5% | 3.8% |
+| Default (ds 4, 300 nm) | 16.0% | 79.5% | 3.8% |
+| IoU 0.75 (2,230 errors) | 13.4% | 66.5% | 4.8% |
+
+- The broad share and the separation share do not depend on the detector.
+- **The headline is robust.**
+
+### 12.3 Protocol realism (G3)
+
+Share of fibers in the simulated T-24 stratum (g > 0.85 or g < 0.65 or ecc > 0.9) on our data:
+
+| Fibers | Count | In stratum | g > 0.85 | ecc > 0.9 |
+|---|---|---|---|---|
+| Labelled GT | 7,968 | 9.4% | 3.3% | 1.6% |
+| B1 matched | 7,699 | 11.6% | — | — |
+| B1 *unlabelled real* | 298 | 25.5% | 11.1% | 7.7% |
+| B1 *other background* | 1,186 | 47.6% | 24.5% | 21.2% |
+
+- The real protocol leaves out the kind of fibers the simulation deletes: unlabelled predictions are enriched 2.7–5×.
+- The *other background* class includes true false positives with irregular shapes, so its figure is an upper bound.
+
+### 12.4 H4 (registered 25 Nov, `07-plan` §7.8, `dae7a63`): **fails**
+
+64 held-out TEM1 images, 8 mice:
+
+| Model | F1@0.5 | g-MAE | GQ₀.₁ | Broad selection | Separation |
+|---|---|---|---|---|---|
+| B1 | 0.945 | 0.0296 | 0.680 | 3.1% | 12.4% |
+| Cellpose+B1 | 0.942 | **0.0252** | **0.713** | 1.2% | 3.2% |
+| AxonPath | **0.961** | 0.0405 | 0.599 | 24.9% | 28.3% |
+| Reference (not in the rule) | 0.971 | 0.0267 | 0.725 | — | — |
+
+**F1 order reverses: AxonPath comes first**, after ranking last on our dev split (0.784).
+- F1 B1 − Cellpose+B1: +0.003 [0.000, 0.007].
+- F1 Cellpose+B1 − AxonPath: −0.019 [−0.027, −0.013].
+
+**The g-MAE order reproduces, with every CI excluding 0:**
+- B1 − Cellpose+B1: +0.0044 [0.0034, 0.0051].
+- AxonPath − Cellpose+B1: +0.0153 [0.0091, 0.0213].
+
+**Exploratory reading:**
+- AxonPath's training labels exclude only degenerating fibers. On our selective labels its extra detections count as false positives; on TEM1's complete labels they count as hits.
+- So **F1 rankings partly measure agreement with the training protocol.** That supports the paper's thesis.
+- GQ₀.₁ ranks Cellpose+B1 > B1 > AxonPath on both datasets.
+- **Caveat:** AxonPath's training-data overlap with TEM1 is not documented.
+
+### 12.5 Qualitative figure (G7)
+
+- Only TEM1 crops are shown (CC-BY): 99 held-out thin fibers (g > 0.85) are missed by B1 and found by the reference.
+- The figure shows one crop each from mice 34, 26 and 31.
+- No challenge images are used.

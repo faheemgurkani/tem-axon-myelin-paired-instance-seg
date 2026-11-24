@@ -198,7 +198,7 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - ~~Reproducing ASTIH TEM1 with our evaluator (T-17).~~ Done 16 Nov (D-38).
 - The expert ratings (T-20, Gate 1) and the organiser email (T-19): owner actions.
 - ~~T-24 round 2 scoring (H10).~~ Done 24 Nov: fails (D-48).
-- ~~The C1 write-up (Phase 4).~~ First full draft 25 Nov (T-27): `docs/paper/` (git-ignored), MIDL 2027 template; its README lists the 12 items that would strengthen it. Modal budget: $70.75 of $75 spent; no GPU work is planned.
+- ~~The C1 write-up (Phase 4).~~ First full draft 25 Nov (T-27): `docs/paper/` (git-ignored), MIDL 2027 template; its README lists the 12 items that would strengthen it. **T-28 (25 Nov):** a reviewer-lens audit found 16 gaps (G1–G16). The CPU ones are fixed: CIs, taxonomy sensitivity, protocol realism, a TEM1 figure, references and an anonymous release. **H4 fails:** F1 rankings flip between labs, but g-MAE rankings hold (`05-results` §12). GPU fixes (a second architecture; benchmark seeds and omission sweep) wait for budget. Modal budget: $70.75 of $75 spent; no GPU work is planned.
 
 ## 8. Easy to miss (the traps, collected once)
 
