@@ -407,3 +407,23 @@ B1 zero-shot (out of domain), 20 images, 1,836 matched fibers, hand-drawn pairs,
 - H5c captures **13% [−4, 29]** of that gain: the frozen rule barely helps out of domain.
 - Defects are less concentrated: defective fibers are 35.6% of matched fibers and carry 39.3% of \|g error\| and 40.1% of O-sep's reduction (all below the H5b bars). Out of domain, g error is spread across boundary placement as well as topology, which fits B1's higher base g-MAE there (0.029 vs 0.016).
 
+
+## 11. Phase 3b (24 Nov): T-24 TEM1 controlled omission pilot and H9
+
+Benchmark (D-35/D-42/D-43): ASTIH TEM1, 12 training mice with simulated two-part omission (27% of training fibers removed: 1,081 from the protocol stratum g > 0.85 / g < 0.65 / ecc > 0.9 with p = 0.9, 230 at random), 8 held-out mice with full labels. Four arms with the same nnU-Net ResEnc-M `2d_bigpatch` recipe for 80 epochs: R1 naive, R2 hard ignore on 1,169 mined candidates, R3 the same ignore budget at random positions, R4 selection-gated soft weights (w = 1 − t·(1 − a)). Scored with `scripts/run/t24_score.py`, which was written before training (pairing D-11, IoU > 0.5, mouse bootstrap with 1,000 resamples).
+
+| Arm | Normal recall | Violation (stratum found) | Hard-normal recall | Protocol F1 | g-MAE |
+|---|---|---|---|---|---|
+| R1 naive | 0.961 | 0.667 | 0.952 | 0.841 | 0.028 |
+| R2 hard ignore | 0.987 | 0.855 | 0.977 | 0.832 | 0.023 |
+| R3 random ignore | 0.971 | 0.707 | 0.950 | 0.841 | 0.029 |
+| R4 selection-gated soft | 0.973 | 0.744 | 0.964 | 0.839 | 0.026 |
+| Reference (complete labels) | 0.995 | 0.958 | 0.988 | 0.819 | 0.021 |
+
+**H9 fails.**
+- R4 − R2 = −0.013, CI [−0.020, −0.005].
+- R4 − R3 = +0.003, CI [−0.002, +0.007].
+- Violation R4 − R1 = +0.076, above the +0.05 guard.
+- Hard-normal recall R4 − R2: CI [−0.026, +0.003].
+
+Reading: recall and violations move together along one axis, which is how much candidate background is removed from the background loss. Hard ignore recovers recall but also re-learns the excluded fibers. The selection model (â AUC 0.74) is too weak to separate the two. Caveats: one seed per arm; R2 was trained on an A10G, the others on an L4.
