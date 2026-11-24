@@ -50,3 +50,6 @@ downloads/
 # local client/preprocessing logs (Modal training logs live on the Volume)
 logs/
 
+
+# Paper write-up (never commit)
+docs/paper/

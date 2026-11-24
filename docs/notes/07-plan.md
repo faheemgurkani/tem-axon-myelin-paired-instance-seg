@@ -572,6 +572,27 @@ And does a decoder that is nested by construction remove (b)?
   - **What the oracle shows (exploratory reading, not a new hypothesis):** ignoring *exactly* the randomly missed normal fibers (23.2M px, 92% footprint coverage of them) recovers almost none of the recall R1 lost; R2's +0.026 recall therefore comes mainly from ignoring the stratum and non-fiber candidates (97.2M px), the same act that raises violations. So on this benchmark the 7% random omission is close to harmless to nnU-Net (it learns through that label noise), and the recall–violation trade-off is driven by the *protocol exclusion*: fibers deliberately labelled background teach the network to leave similar-looking normal fibers out. **The error in our understanding since 15 Nov (D-35):** we read R1's recall loss as caused by the missed normals and built C3 to recover them; the oracle says the loss is caused by the excluded stratum. No selection model over these candidates had headroom. This connects to H8 (selective labelling creates hidden stratification, which held on outside data) and belongs in C1.
   - **Noise lesson:** R1 and its replicate R1b differ by 0.031 in violation and 0.002 in recall; single-run violation differences of ≈ 0.03 are within run-to-run noise (H9's violation gap of +0.076 is still beyond it).
   - **Caveats:** one seed per arm (R1 twice); the benchmark's omission rate (7%) and stratum rule are ours; a higher random-omission rate might leave room that 7% does not. Not tested; no budget is left for it ($4.25).
+- **25 Nov, T-27 C1 paper, first full draft (Phase 4).**
+  - **Location:** `docs/paper/`, which is git-ignored and never committed (owner rule, 25 Nov).
+  - **Venue and template:** MIDL 2027 full paper, official MIDL LaTeX template (`midl.cls` v1.5). It fits a pre-registered analysis paper and is where ASTIH appeared. SIPAIM 2026 is already over, and its 4-page IEEE format is too small for this paper.
+  - **Title:** "Selection, not pairing: what fiber-level errors in TEM axon–myelin segmentation actually measure".
+  - **Size:** 8 pages of main text plus appendices A–F; 13 pages in all.
+  - **Figures** (`docs/paper/scripts/make_figures.py`): built only from committed metric files; no challenge images are used.
+  - **Story:** the evaluator, then selection 79.5% vs separation 3.8%, then the label effect (H6) and hidden stratification (H8), then the controlled benchmark (H9/H10 negative, oracle shows that random omission is harmless), then morphometry (H5, the g-MAE gaming curve).
+  - **Strengthening list** (`docs/paper/README.md`):
+    1. Expert ratings (T-20).
+    2. Organiser protocol confirmation (T-19).
+    3. ASTIH notice (D-38).
+    4. Omission-rate sweep and seeds; needs budget.
+    5. TEM1 (CC-BY) qualitative figure.
+    6. A second trained architecture.
+    7. H4.
+    8. Missing CIs.
+    9. Taxonomy sensitivity.
+    10. Verify three references.
+    11. Anonymous code release.
+    12. Check the MIDL 2027 call.
+  - Next IDs: D-49, T-28, H11.
 
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)

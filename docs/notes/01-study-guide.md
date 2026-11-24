@@ -198,7 +198,7 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - ~~Reproducing ASTIH TEM1 with our evaluator (T-17).~~ Done 16 Nov (D-38).
 - The expert ratings (T-20, Gate 1) and the organiser email (T-19): owner actions.
 - ~~T-24 round 2 scoring (H10).~~ Done 24 Nov: fails (D-48).
-- The C1 write-up (Phase 4), now including T-24 as a controlled benchmark. Modal budget: $70.75 of $75 spent; no GPU work is planned.
+- ~~The C1 write-up (Phase 4).~~ First full draft 25 Nov (T-27): `docs/paper/` (git-ignored), MIDL 2027 template; its README lists the 12 items that would strengthen it. Modal budget: $70.75 of $75 spent; no GPU work is planned.
 
 ## 8. Easy to miss (the traps, collected once)
 
