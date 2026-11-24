@@ -53,7 +53,7 @@ And does a decoder that is nested by construction remove (b)?
 | **H1** | On B1, the separation oracle gains ≥ 0.03 F1@0.5, **and** ≥ the selection-oracle gain, **and** separation is ≥ 30% of errors → GO (build C2) | **NO-GO** (13 Nov): −0.001 / +0.016 / 0.6% |
 | H2 | C2 cuts (merge + split + gap FP) by ≥ 30% vs B1 and AxonPath, with Dice within B1's CI | Moot: B1 already has 2 such errors in 1,619 fibers |
 | **H3** | C3 raises recall on overlap-disagreement fibers (labelled in one tile, background in the other) by ≥ 10 points, with no official metric outside B1's CI | Open (T-15′) Evaluation rule added 15 Nov (D-34): judge C3 only on fibers known to be real (overlap disagreements; thin fibers on outside sets, H8), never on official precision alone ("observed-label illusion", Parikh 2026) **Power (15 Nov audit):** the overlap-disagreement set is only **18 fibers** (FP 7 + FN 11, [05](05-results.md) §2), so H3 is reported as secondary; the proposed TEM1 controlled benchmark (T-24) is the primary known-positive test if adopted |
-| H4 | The method ranking is the same on ASTIH TEM1 | Open. T-17 reproduced ASTIH's TEM1/TEM2 numbers (D-38); no method ranking run yet |
+| H4 | The method ranking is the same on ASTIH TEM1 | Open. T-17 reproduced ASTIH's TEM1/TEM2 numbers (D-38); no method ranking run yet. **Re-registered 25 Nov with a numeric rule (D-49, §7.8), before any TEM1 score of AxonPath or Cellpose+B1 exists** |
 | **H5** *(post hoc, 13 Nov, NOT pre-registered)* | Grouping and ring topology drive g-ratio error. Evidence: O-sep −42% g-MAE; instance-first grouping beats the watershed by 0.0046 g; broken rings carry 56% of g error | **Pre-registered 15 Nov (D-29)** as H5a (O-sep cuts g-MAE ≥ 25%), H5b (topology carries it) and H5c (frozen post-processing captures ≥ 50% of O-sep's gain within F1/recall guards). Confirmed **only** on the 213 non-dev images via T-21; dev values are not evidence. Full rules in §7.2 **Result (19 Nov, 213 non-dev):** H5a holds (−52.7%), H5b holds (25% / 49% / 62%), **H5c fails** (27.7% of O-sep's gain; guards pass) → Gate 3a: C2-for-morphometry candidate, owner budget decision (`05-results` §10) |
 | **H6** *(pre-registered 15 Nov, D-31, before any TEM1 prediction exists)* | Selection errors track label incompleteness. On TEM1, which the completeness audit shows is near-complete (u 0.6% vs ours 5.1%), the selection share of errors is small. **H6a:** on `sub-nyuMouse26` with ASTIH's released TEM1 model + ADS post-processing, scored at IoU 0.5, strict selection share (unlabelled_real) ≤ 5% **and** broad share (unlabelled_real + other_bg) ≤ 39% (half of B1's 78.9% on ours). **H6b:** the modal TEM1 FP class is not unlabelled_real. **H6c (TEM2, added 15 Nov after its audit, before any TEM2 score):** the same two thresholds on TEM2's external test set. Prerequisite: T-17 reproduces ASTIH (±0.01 Dice, ±0.03 F1) on each dataset | Open. Full rule in §7.4. **Limitation (15 Nov):** the leakage-free TEM1 test mouse looks control-like (proxy), so a TEM1 pass speaks mainly for healthy tissue. The earlier informal H6 ("high on TEM1, low on TEM2") was **withdrawn before any data**: the audit reversed its premise. **Result (16 Nov):** TEM1: H6a holds at ds 4 (strict 0%, broad 33%) but strict is 9.5% at ds 3; H6b holds (top FP class split_piece). TEM2: H6c holds (strict 0/14, broad 7%). B1 zero-shot broad share 3–11% on all four outside sets vs 79% on ours (`05-results` §9) |
 | **H7** *(added 15 Nov, D-34; C1)* | The labelling protocol biases the morphometric endpoint. **Two-sided.** H7a: including the expert-confirmed skipped fibers shifts mean per-fiber g by \|Δ\| ≥ 0.03. H7b: the protocol under-counts myelinated fibers by ≥ 5%. H7c: it changes the share of fibers with g > 0.85 by ≥ 2 points (absolute) | Planned (T-23). **Feasibility caveat written before any data:** Δ mean g ≈ p·(g_skipped − g_labelled); at p ≈ 5% H7a needs a g difference ≈ 0.6 and will almost surely fail. It is kept to report honestly; H7b/H7c are the better-powered readouts. "Masks disease" needs per-image condition (A2). Full rule §7.5 |
@@ -113,6 +113,7 @@ And does a decoder that is nested by construction remove (b)?
 | **D-46** | **Calibration of q:** q_raw = t(1 − a) (D-43) recalibrated by one-input Platt on the expert subset, with cross-fitted stratum scores. Chosen by expert-subset CV log-loss only (0.375 vs 0.591 uncalibrated, 0.387 two-input), never by benchmark truth | 24 Nov. §7.7 |
 | **D-47** | **Round 2 of T-24 (T-26) and H10 pre-registered; tranche D opened** (owner, 24 Nov: "correct your mistakes … re-run the tests … budget of at least 20 dollars; do what must be done"). Arms R6 oracle, R4b, R4h, R1b replicate on A10G, 80 epochs, `--max-gpu-hours 2.8` each; frontier excess as the endpoint; est. ≈ $14, worst ≈ $16.5 (project ≤ ≈ $73.4 of the $75 workspace limit) | 24 Nov. §7.7 |
 | **D-48** | **C3 methods route closed; T-24 reported in C1** (applies §7.7's pre-registered rule "H10a fails", 24 Nov). Even perfect selection (R6) gains no recall beyond the R1–R2 line, so no selection-gated ignore can beat uniform ignore on this benchmark. Tranche C (R5/R7) never opens. T-24 (rounds 1–2) is written up in C1 as a controlled-omission benchmark result (§6 24 Nov, "round 2 results") | 24 Nov. 05-results §11.2 |
+| **D-49** | **Reviewer-lens audit of the C1 draft adopted as T-28; H4 re-registered with a numeric rule** (owner, 25 Nov: "identify gaps and holes from the lens of a reviewer… fill them beforehand… start working on them in priority order"). 16 gaps G1–G16 with fixes, costs and order are in `docs/paper/REVIEW_PLAN.md` (git-ignored) and summarised in §6 25 Nov. CPU fixes run now. GPU fixes (G1 second architecture ≈ $5; G2 benchmark seeds, omission sweep and an 80-epoch complete-label control ≈ $17.5 minimum; G10 explicit-exclusion arm ≈ $3.5) wait for an owner budget decision, because $4.25 is left under the $75 limit | 25 Nov. §7.8 |
 
 ## 4. Tasks
 
@@ -165,6 +166,8 @@ And does a decoder that is nested by construction remove (b)?
   - D-37 additions: the selection model carries a per-image random effect; t_k follows the D-37 calibration rule; a(x) uses same-pipeline features with a threshold from T-20. *(D-42 dropped the random effect for T-24, where omission is i.i.d. by construction; it stays for R7 on our data. t_k is Platt-calibrated on the expert subset, D-42.)*
   - *(Round 1 DONE 24 Nov: H9 fails, `05-results` §11.)*
 - **T-26 T-24 round 2 (H10; D-44–D-47):** probe (`t24_probe.py`), corrected selection model and arms R6/R4b/R4h (`t24_build_arms_v2.py`), datasets 507–509 (`t24_nnunet_datasets.py --arms R6 R4b R4h`), R1b = Dataset503 with `nnUNetTrainer_80epochs_ckpt10_rep2`; score with `t24_score.py` (H10 block written before training). **Done 24 Nov:** all four ran 80 epochs on A10G without restart; H10a/b/c fail; tranche D billed $13.88 (D-48).
+- **T-27 C1 paper draft** (25 Nov): `docs/paper/` (git-ignored), MIDL 2027 template; done.
+- **T-28 Reviewer-lens fixes (D-49):** G1–G16 in `docs/paper/REVIEW_PLAN.md`. CPU now: references, prior-work check, CIs, protocol realism, taxonomy sensitivity, H4 ranking on TEM1 (§7.8), qualitative TEM1 figure, writing fixes, anonymous release snapshot. GPU after an owner budget decision.
 - **T-25 Image fingerprint (analysis only; D-37; Phase 1–2, CPU)** *(Phase 1 part DONE 16 Nov, `05-results` §8.1; H8/H6 stratification in Phase 2)*:
   1. One vector per image: the same-pipeline features of all labelled fibers and candidates, averaged (diameter, g, myelin fraction, density, contrast). Optionally add pooled frozen-encoder features (B1 encoder or μSAM), mean-pooled, with no training.
   2. Cluster on our 266 images and on TEM1's 20 mice. Check against TEM1's 3-cluster condition proxy (Phase 0b note 07 §6) as a sanity test.
@@ -593,6 +596,26 @@ And does a decoder that is nested by construction remove (b)?
     11. Anonymous code release.
     12. Check the MIDL 2027 call.
   - Next IDs: D-49, T-28, H11.
+- **25 Nov, reviewer-lens audit of the C1 draft (T-28, D-49).** The draft was read as three reviewers: methodologist, EM domain expert, ML reviewer. 16 gaps found; full fixes and costs are in `docs/paper/REVIEW_PLAN.md`.
+  - **Could sink the paper:**
+    - G1, "selection dominates" shown only for nnU-Net pixels. Fix: a fine-tuned Cellpose-SAM pair (fiber and axon instances), GPU.
+    - G2, one seed and one omission rate in the benchmark, and the complete-label reference trained 150 vs 80 epochs. Fix: R0 at 80 epochs, R1/R6 at 35% random omission, seeds; GPU.
+  - **Likely weaknesses:**
+    - G3, realism of the simulated stratum. Fix: compare B1's unlabelled predictions on our data with labelled fibers.
+    - G4, missing CIs.
+    - G5, taxonomy sensitivity to detector settings and the IoU threshold.
+    - G6, ranking across labs (H4, §7.8).
+    - G7, no micrographs. Fix: TEM1 is CC-BY.
+    - G8, endpoint switch H9 → H10. Fix: commit hashes, and present H9 as primary.
+    - G9, novelty against TIDE.
+    - G12, expert-free selection evidence.
+  - **Minor:** G10 recommendations (optional R7 explicit-exclusion arm), G11 GQ evaluation, G13 references, G14 anonymous code, G15 venue timing, G16 prior work on this data.
+  - **References checked:**
+    - Chuter = *Bioengineering* 13:647 (2026);
+    - Bukas = MICCAI 2026 Workshops (HAIC), LNCS 17279;
+    - AxonPath = Zenodo models 10.5281/zenodo.22982902 and data 10.5281/zenodo.23084690 (preprint in preparation).
+  - **MIDL 2027 call:** not posted (25 Nov). Porto, 14–16 Jul 2027; past full-paper deadlines were 10 Dec 2025 and 31 Jan 2025.
+  - Next IDs: D-50, T-29, H11.
 
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
@@ -848,3 +871,29 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
 **Known confounds.** R1, R3 and R4 trained on L4, R2 and all round-2 arms on A10G (same recipe and data; R1b on A10G against R1 on L4 measures seed + GPU noise together). The selection model and K use the expert subset of round 1 (same 101 candidates, seed 0).
 
 **Tranche D (D-47).** 4 runs on A10G (≈ 98 s/epoch, ≈ $1.47/h all-in from R2's bill), 80 epochs, `--max-gpu-hours 2.8` each: est. ≈ $14, worst ≈ $16.5. Spend before: $56.87; worst after ≈ $73.4, inside the $75 workspace limit. Launched with `modal deploy` + `Function.spawn` (never a local client holding the run).
+
+### 7.8 D-49: H4 re-registered (25 Nov 2026, before any TEM1 score of AxonPath or Cellpose+B1)
+
+**Question (reviewer gap G6).** Does the evaluator rank methods the same way on another lab's data?
+
+**Data and models.**
+- **Data:** the 64 held-out TEM1 images (8 mice, fold 0 of Dataset502), on the 2.152 nm grid, with complete GT pairs (`data/processed/t24/gt_pairs`). This is the same set as H8.
+- **Models:** B1 (zero-shot, D-11 pairing; predictions exist), Cellpose+B1 (zero-shot Cellpose-SAM regions split by B1's pixels, D-26 pipeline unchanged) and AxonPath (zero-shot, D-13 pipeline unchanged; ×0.269 to 8 nm/px).
+- The TEM1 reference model is reported alongside but is not part of the rule (it is in-domain).
+
+**Our-data ranking to reproduce** (dev split, `05-results` §4):
+- F1@0.5: B1 0.904 > Cellpose+B1 0.885 > AxonPath 0.784.
+- g-MAE: Cellpose+B1 0.0114 < B1 0.0160 < AxonPath 0.060.
+
+**Rule.**
+- **H4 holds** if both orders reproduce on TEM1 and every adjacent paired difference has a mouse-bootstrap 95% CI (1,000 resamples) that excludes 0 in the same direction. There are 4 differences: F1 B1 − Cellpose+B1, F1 Cellpose+B1 − AxonPath, g-MAE B1 − Cellpose+B1, g-MAE AxonPath − Cellpose+B1.
+- **Holds partially** if both point orders reproduce but one or more CIs include 0.
+- **Fails** if any point order reverses.
+
+**Expectations, stated now.**
+- AxonPath last on both: very likely.
+- B1 vs Cellpose+B1 on F1: uncertain. The 0.019 gap on our data is small, and all three are out of domain on TEM1.
+- The g-MAE order: likely, since the grouping argument (H5) does not depend on the lab.
+- Overall: "holds partially" is the most likely outcome.
+
+**Secondary (not part of the rule):** g-quality GQ₀.₁ for all four models, and the selection and separation shares of each.
