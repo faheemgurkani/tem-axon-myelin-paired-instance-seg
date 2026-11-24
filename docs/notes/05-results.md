@@ -446,6 +446,7 @@ Reading: recall and violations move together along one axis, which is how much c
   | PU boosted trees, band terms, calibrated (R4b) | 0.87 | 0.68 | 0.89 |
 
   The R4h gate (top 161 candidates by q) ignores 49% of missed-normal pixels and 6% of stratum pixels, with a precision of 0.66.
+- **Violation floor:** stratum fibers near a cut are almost always found. The share found ranges from 0.80 within 0.02 of a cut to 0.51 deeper than 0.05 for R1, and from 0.99 to 0.90 for the reference. R1 still finds 83% of oblique stratum fibers. A segmenter cannot learn a global-threshold protocol, so the endpoint is a trade-off.
 - **Feature ceiling:** B1's features track the truth closely: correlation with true g 0.92, with true eccentricity 0.93. With the true g and eccentricity, â AUC would reach 0.95. 38% of real unlabelled fibers lie within 0.03 of a g cut-off.
 
 ### 11.2 Round 2 and H10 (pre-registered 24 Nov; 07-plan §7.7)
