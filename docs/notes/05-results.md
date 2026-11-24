@@ -451,4 +451,23 @@ Reading: recall and violations move together along one axis, which is how much c
 
 ### 11.2 Round 2 and H10 (pre-registered 24 Nov; 07-plan §7.7)
 
-Running: R6 oracle, R4b, R4h and R1b, each on an A10G for 80 epochs. Results will be added here once scored.
+**Result: H10a, H10b and H10c all fail** (24 Nov; `results/phase3b/t24_scores.json`). Same 64 test images (8 mice), 2,179 normal and 850 stratum test fibers. All four runs completed 80 epochs on A10G without restart; tranche D cost $13.88.
+
+| Arm | What it is | Normal recall | Violation | Hard-normal recall | g-MAE | Frontier excess E [95% CI] |
+|---|---|---|---|---|---|---|
+| R1 | naive (round 1) | 0.961 | 0.667 | 0.952 | 0.028 | 0 (line end) |
+| R1b | R1 replicate | 0.963 | 0.698 | 0.950 | 0.028 | −0.002 [−0.005, +0.001] |
+| R2 | ignore all candidates (round 1) | 0.987 | 0.855 | 0.977 | 0.023 | 0 (line end) |
+| R3 | random ignore (round 1) | 0.971 | 0.707 | 0.950 | 0.029 | +0.005 [−0.004, +0.015] |
+| R4 | round-1 soft weights | 0.973 | 0.744 | 0.964 | 0.026 | +0.002 [−0.003, +0.009] |
+| **R6** | **oracle: ignore exactly the missed normals** | 0.965 | 0.684 | 0.953 | 0.025 | **+0.002 [−0.005, +0.010]** |
+| R4b | PU-corrected soft weights | 0.969 | 0.716 | 0.957 | 0.026 | +0.001 [−0.007, +0.009] |
+| R4h | PU-corrected hard gate (top 161) | 0.962 | 0.686 | 0.950 | 0.027 | −0.001 [−0.012, +0.011] |
+| ref | complete labels | 0.995 | 0.958 | 0.988 | 0.021 | — |
+
+- Noise N = |E(R1b)| = 0.002. E − E(R3): R4b [−0.012, +0.003], R4h [−0.015, +0.003]. With R1b as the line's low end every E rises by ≈ 0.002; no verdict changes.
+- **H10a fails:** even the oracle does not beat the R1–R2 line. Pre-registered consequence: C3 as a methods paper is dropped; T-24 is a benchmark result for C1 (07-plan D-48).
+- **The pipeline was checked before reading this:** R6's training labels carry exactly the 23.2M oracle ignore pixels, and they survive preprocessing (label 3: 23.9M in Dataset507 vs 0.73M in 503).
+- **What it means (exploratory):** ignoring exactly the randomly missed normal fibers recovers only +0.004 recall (≈ noise), while ignoring every candidate (R2) recovers +0.026. The recall R1 loses is therefore caused mainly by the *protocol-excluded* (stratum) fibers taught as background, not by the 7% random misses, to which nnU-Net is nearly robust. A selection model that separates missed normals from exclusions has nothing to recover here. This revises our reading since D-35 and supports H8's hidden-stratification finding in C1.
+- **Noise:** R1 vs R1b differ by 0.031 in violation, so single-run violation differences of ≈ 0.03 are noise.
+- **Limits:** one seed per arm; 7% omission and the stratum rule are our simulation choices; a higher random-omission rate was not tested.

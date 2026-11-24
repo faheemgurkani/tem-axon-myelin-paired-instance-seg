@@ -102,7 +102,7 @@ The old copy in `~/Local Projects/` is left for the owner to delete.
 
 Check spend with `modal billing summary` / `modal billing report --for "this month"`.
 
-**Spend history (Modal billing, all-in):** days 0–5 $8.16 · tranche A (T-21) $20.16 · B0 $11.91 (cap raised to $12) → $40.23 by 18 Nov · tranche B (T-24 R1–R4) $16.64 (cap raised to $17.5 after the client-kill rerun) → **$56.87 by 24 Nov** · tranche D (T-24 round 2, 4 A10G runs, est. ≈ $14, worst ≈ $16.5) running. The $75 workspace usage limit stands.
+**Spend history (Modal billing, all-in):** days 0–5 $8.16 · tranche A (T-21) $20.16 · B0 $11.91 (cap raised to $12) → $40.23 by 18 Nov · tranche B (T-24 R1–R4) $16.64 (cap raised to $17.5 after the client-kill rerun) → **$56.87 by 24 Nov** · tranche D (T-24 round 2, 4 A10G runs, est. ≈ $14) **$13.88 → $70.75 by 24 Nov; $4.25 left** under the $75 workspace usage limit, which stands.
 
 ## 5. Reproduce (from the repo root)
 

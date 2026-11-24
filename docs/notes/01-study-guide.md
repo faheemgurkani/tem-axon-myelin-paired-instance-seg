@@ -147,7 +147,7 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
   - **C3** is judged only on fibers known to be real ("observed-label illusion").
   - **C1 add-ons:** a PQ-style g-quality metric; "repeat-annotation agreement" wording; the selection share is a lower bound.
   - The abnormal-fiber class is only a Gate 1 option (prior art exists). The SIPAIM-winners test was dropped.
-- **Standings:** C1 is stronger and remains the paper; C3 is viable with a modest gain; H5 is untested.
+- **Standings:** C1 is stronger and remains the paper; C3 is viable with a modest gain; H5 is untested. *(Superseded 24 Nov: C3's methods route closed by H10, D-48; T-24 goes into C1.)*
 - **C3 methods opening (15 Nov, `docs/reports/C3 methodology design.md`):**
   - No method in EM or elsewhere models *why* objects are unlabelled.
   - Proposed C3: a fiber-level selection model (missed normal / excluded by protocol / not a fiber) that softens the loss on likely-missed fibers, inside the unchanged B1 recipe. Its family is SAR propensity-weighted PU, not "MNAR".
@@ -185,6 +185,9 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - **H9 fails.** Ignoring all candidates (R2) gives the most normal-fiber recall but also re-learns the protocol-excluded fibers; R4 sat on the line between R1 and R2.
 - **Why (audit, 24 Nov):** no code bug. The selection model gave missed normals and excluded fibers almost the same weight (0.73 vs 0.76) because (1) it learned "normal" from 17 expert examples while 3,278 labelled fibers were available — the PU idea the design named but round 1 did not implement (D-44), (2) its linear form could not express a two-sided g band (D-45), (3) H9 compared recall alone against hard ignore, which is the recall ceiling over the same candidates, and (4) one run per arm.
 - **Round 2 (H10, pre-registered 24 Nov):** corrected selection model (PU + boosted trees with band terms + expert-only calibration, D-44–D-46), judged by frontier excess (recall above the R1–R2 line at equal violation), with an oracle arm (R6), a hard-gated arm (R4h) and a replicate of R1 for noise (R1b).
+- **H10 fails, all three parts (24 Nov, $13.88).** Even the oracle R6, which ignores *exactly* the missed normal fibers, gains only +0.004 recall over R1 (frontier excess +0.002, CI spans 0; noise 0.002). R4b and R4h gain nothing either. By the pre-registered rule, **C3 as a methods paper is dropped and T-24 becomes a C1 benchmark result (D-48).**
+- **The real lesson:** we assumed R1 lost recall because of the 7% randomly missed fibers. The oracle shows it did not: nnU-Net is nearly robust to that noise. The recall loss comes from the *protocol-excluded* fibers taught as background, which also teach the network to skip similar normal fibers. That is the hidden-stratification story of H8, now shown in a controlled simulation. Selection-based ignoring had no headroom on this benchmark.
+- Replicate noise: R1 vs R1b differ by 0.03 in violation, so single-run violation gaps of that size mean nothing.
 
 **Superseded open questions (13 Nov), kept for the story:**
 1. **Budget.** $8.16 of the $10 is spent. C3 needs ≈ $31 of GPU time: out-of-fold predictions on all images, then a retrain. Cheaper variants are in [07](07-plan.md).
@@ -194,7 +197,8 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 **Not yet done:**
 - ~~Reproducing ASTIH TEM1 with our evaluator (T-17).~~ Done 16 Nov (D-38).
 - The expert ratings (T-20, Gate 1) and the organiser email (T-19): owner actions.
-- T-24 round 2 scoring (H10), then the write-up (Phase 4).
+- ~~T-24 round 2 scoring (H10).~~ Done 24 Nov: fails (D-48).
+- The C1 write-up (Phase 4), now including T-24 as a controlled benchmark. Modal budget: $70.75 of $75 spent; no GPU work is planned.
 
 ## 8. Easy to miss (the traps, collected once)
 
@@ -205,6 +209,8 @@ An **oracle** uses the ground truth to fix exactly *one* kind of error in a mode
 - Never test a selective method against "ignore everything" on recall alone: that arm is the recall ceiling over the same candidates. Compare at equal protocol cost (frontier excess).
 - One training run per arm gives no noise estimate; bootstrap over mice does not capture it.
 - Killing a local `modal run --detach` client can stop a running call; launch long jobs with deploy + spawn.
+- **Run the oracle first.** A perfect-selection arm (R6) tells you whether *any* selection method has headroom; ours had none, and running it in round 1 would have saved round 2. Write the expected oracle gain down before training (ours was +0.02; actual +0.002).
+- Moderate random label omission (7%) barely hurts nnU-Net; systematic omission of a fiber type does. Don't assume the noise you can simulate most easily is the one that matters.
 
 
 **Data and labels:**
