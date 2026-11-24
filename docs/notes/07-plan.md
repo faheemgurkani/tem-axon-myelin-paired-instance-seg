@@ -59,6 +59,7 @@ And does a decoder that is nested by construction remove (b)?
 | **H7** *(added 15 Nov, D-34; C1)* | The labelling protocol biases the morphometric endpoint. **Two-sided.** H7a: including the expert-confirmed skipped fibers shifts mean per-fiber g by \|Δ\| ≥ 0.03. H7b: the protocol under-counts myelinated fibers by ≥ 5%. H7c: it changes the share of fibers with g > 0.85 by ≥ 2 points (absolute) | Planned (T-23). **Feasibility caveat written before any data:** Δ mean g ≈ p·(g_skipped − g_labelled); at p ≈ 5% H7a needs a g difference ≈ 0.6 and will almost surely fail. It is kept to report honestly; H7b/H7c are the better-powered readouts. "Masks disease" needs per-image condition (A2). Full rule §7.5 |
 | **H8** *(added 15 Nov, D-34; C1, + C3 outside test)* | Training on selective labels creates a hidden stratification. On near-complete outside data, B1's recall gap (thin-myelin minus normal fibers) is worse than a reference model trained on complete labels. Holds if (gap_B1 − gap_ref) ≤ −0.10 with a mouse-bootstrap CI below 0 | **HOLDS (18 Nov):** gap_B1 − gap_ref = −0.178 [−0.258, −0.138], 8 held-out TEM1 mice (B1 −0.196, reference −0.018). Confound: B1 out of domain on TEM1; T-24 is the clean test (`05-results` §9). *Original plan:* (T-22). Tests **thin-myelin** fibers only (outside sets also exclude degenerating rings). The reference must be leakage-free and see thin fibers, so it needs a TEM1 fold holding out the remyelinating-like mice (≈ $8, reserve). Full rule §7.5 |
 | **H9** *(pre-registered 15 Nov, D-35; C3)* | On the TEM1 controlled two-part omission benchmark (T-24), the fiber-level selection-gated soft ignore (R4) beats **both** hard ignore (R2) and the random-ignore control (R3) on normal-fiber recall against protocol truth (paired mouse-bootstrap 95% CI of each difference > 0), **and** its protocol-violation rate is ≤ the naive arm's (R1) + 0.05. Official metrics never decide | **Fails (24 Nov, T-24 pilot).** R4 − R2 = −0.013 [−0.020, −0.005] (hard ignore is *better*); R4 − R3 = +0.003 [−0.002, +0.007]; violation(R4) − violation(R1) = +0.076 > 0.05. All three conditions fail. Per the rule, R5–R7 (tranche C) do not run. 05-results §11 |
+| **H10** *(pre-registered 24 Nov, D-47, before any round-2 training; C3)* | After correcting the selection model (D-44–D-46), on the same T-24 benchmark: **H10a** the oracle arm R6 (ignore exactly the missed normals) buys more recall than the R1–R2 line at its own violation rate (frontier excess E > 0, mouse-bootstrap CI lower bound > 0, and E > the replicate noise N = \|E(R1b)\|); **H10b** (primary method) the PU-corrected soft weights R4b: E > 0 (CI), E(R4b) − E(R3) > 0 (CI) and E > N; **H10c** (secondary) the PU-gated hard ignore R4h: the same. Each verdict must also hold with R1b as the line's low end. Full rule §7.7 | Open (round 2 running) |
 
 ## 3. Decision register (compact)
 
@@ -107,6 +108,10 @@ And does a decoder that is nested by construction remove (b)?
 | **D-41** | **C3 CPU preparation starts before Gate 1; GPU only after the owner confirms** (owner, 19 Nov). Tranche B's own conditions (B0 done, H9 fixed) are met and the pilot runs on TEM1, independent of the expert; PLAN.md had it 'after Gate 1'. All local work (candidate masks, selection model, weight maps, soft-weight trainer test) proceeds; before any tranche-B GPU run, a timed cost goes to the owner | 19 Nov |
 | **D-42** | **T-24 operational choices, fixed before any T-24 label or candidate is built** (research engineer, 19 Nov; §6 19 Nov has the full list). H9's parameters (§7.6) are unchanged; this fills what §7.6 left open: fiber unit, side-information sizes (second draw 136, expert subset 101 = T-20's size), candidate source (D-18 holes ∪ unmatched B1 instances), t_k calibration (Platt on the expert subset), a(x) features, R3 construction, R4 storage (weight channel), no per-image random effect in T-24 | 19 Nov |
 | **D-43** | **Two T-24 build corrections, made after inspecting the selection model's inputs and before any arm was preprocessed, uploaded or trained** (research engineer, 19 Nov). (1) R4's weight uses q = t·(1−a): t and a are fitted on unlabelled candidates, so D-35's population formula t(1−a)(1−r)/(1−t(1−a)r) conditioned on "unlabelled" twice (mean q for missed normals 0.017, i.e. R4 ≈ R1). Same posterior, single conditioning. (2) R3 places footprint-shaped ignore regions on free background outside the candidates until each image matches R2's pixel count (whole-footprint relocation reached only 67% of the budget) | 19 Nov. §6 19 Nov |
+| **D-44** | **PU normals for the selection model** (research engineer, 24 Nov, after the H9 audit). Round 1 learned "normal" from the expert subset's 17 normal fibers although 3,278 B1 instances sit on still-labelled fibers; random omission makes missed normals a random sample of normals, so the labelled fibers are valid "normal" examples (they carry the ~3% labelled stratum fibers, as real data would). This is the PU logic D-35 named but round 1 did not implement | 24 Nov. §7.7 |
+| **D-45** | **Selection-model form:** gradient-boosted trees (depth 3) on the round-1 features plus two-sided band terms ((g − 0.75)², max(ecc − 0.8, 0)), balanced classes, prior shift to π = 0.817 (stratum share among the expert subset's real candidates). Round 1's linear model could not express the two-sided stratum | 24 Nov. §7.7 |
+| **D-46** | **Calibration of q:** q_raw = t(1 − a) (D-43) recalibrated by one-input Platt on the expert subset, with cross-fitted stratum scores. Chosen by expert-subset CV log-loss only (0.375 vs 0.591 uncalibrated, 0.387 two-input), never by benchmark truth | 24 Nov. §7.7 |
+| **D-47** | **Round 2 of T-24 (T-26) and H10 pre-registered; tranche D opened** (owner, 24 Nov: "correct your mistakes … re-run the tests … budget of at least 20 dollars; do what must be done"). Arms R6 oracle, R4b, R4h, R1b replicate on A10G, 80 epochs, `--max-gpu-hours 2.8` each; frontier excess as the endpoint; est. ≈ $14, worst ≈ $16.5 (project ≤ ≈ $73.4 of the $75 workspace limit) | 24 Nov. §7.7 |
 
 ## 4. Tasks
 
@@ -156,7 +161,9 @@ And does a decoder that is nested by construction remove (b)?
   4. per-cluster on TEM1 as context.
 
 - **T-24 TEM1 controlled two-part omission benchmark (C3, H9; D-35):** see §7.6 for the steps and the compute map.
-  - D-37 additions: the selection model carries a per-image random effect; t_k follows the D-37 calibration rule; a(x) uses same-pipeline features with a threshold from T-20.
+  - D-37 additions: the selection model carries a per-image random effect; t_k follows the D-37 calibration rule; a(x) uses same-pipeline features with a threshold from T-20. *(D-42 dropped the random effect for T-24, where omission is i.i.d. by construction; it stays for R7 on our data. t_k is Platt-calibrated on the expert subset, D-42.)*
+  - *(Round 1 DONE 24 Nov: H9 fails, `05-results` §11.)*
+- **T-26 T-24 round 2 (H10; D-44–D-47):** probe (`t24_probe.py`), corrected selection model and arms R6/R4b/R4h (`t24_build_arms_v2.py`), datasets 507–509 (`t24_nnunet_datasets.py --arms R6 R4b R4h`), R1b = Dataset503 with `nnUNetTrainer_80epochs_ckpt10_rep2`; score with `t24_score.py` (H10 block written before training).
 - **T-25 Image fingerprint (analysis only; D-37; Phase 1–2, CPU)** *(Phase 1 part DONE 16 Nov, `05-results` §8.1; H8/H6 stratification in Phase 2)*:
   1. One vector per image: the same-pipeline features of all labelled fibers and candidates, averaged (diameter, g, myelin fraction, density, contrast). Optionally add pooled frozen-encoder features (B1 encoder or μSAM), mean-pooled, with no training.
   2. Cluster on our 266 images and on TEM1's 20 mice. Check against TEM1's 3-cluster condition proxy (Phase 0b note 07 §6) as a sanity test.
@@ -307,6 +314,252 @@ And does a decoder that is nested by construction remove (b)?
   - **New fact:** the per-image unlabelled-candidate rate is over-dispersed (2.2× Poisson) after controlling for background area, density and median g. So the C3 selection model needs a per-image random effect.
   - The naive density and g correlations were an area artefact. No support for "skip rate rises with pathology" (relevant to H7's wording).
   - **Adopted as D-37** (owner, 16 Nov): the per-image random effect in the selection model, plus the image fingerprint as an analysis proxy (new task T-25). Calibration and novelty-gate rules recorded in D-37. FiLM, distillation and zero-shot protocol transfer rejected.
+- **16 Nov, Phase 1 executed** (owner: "start and complete Phase 1 end to end"; numbers in [05](05-results.md) §8):
+  - **TOC** added to `PLAN.md` and this file (`scripts/toc.py`; re-run after heading changes).
+  - **Wording:** `02` §2 "textbook g trend" corrected (an artefact of plotting g against axon diameter).
+  - **Error breakdown:** selection dominates all three models (broad share 79% / 81% / 68%).
+  - **T-16′ done:**
+    - perimeter g is unsafe (biased, flips ranks);
+    - rankings are stable on 9 of 11 metrics;
+    - g-MAE isn't gameable by fiber size, but dropping the worst 5% of fibers cuts it by 27%;
+    - g-quality: Cellpose+B1 0.785 > B1 0.766;
+    - g error is flat across fiber diameter; oblique fibers are 1.7%.
+  - **H5c developed on dev and frozen at 7c673ca:** nearest-axon watershed, 54% of O-sep's gain on dev (in-sample), guards pass.
+  - **T-21 launched (tranche A, ≈ $23, caps 6.8 GPU-h × 3)** on Modal: folds 1 and 3 training normally (~147 s/epoch); fold 2 is waiting for an L4 (no cost while queued). Its first app sat unscheduled for 30 min, so it was stopped (no compute used) and relaunched as `ap-5wXDJEkWXEnD1P0OSD4783`, which is still queued for L4 capacity per Modal. **Fallback if not scheduled within a few hours:** A10G via `TEM_MODAL_GPU=A10G`, after a 5-epoch timing run (≈ $0.4), because the GPU type changes.
+  - **18-fiber addendum packet built** (exact reproduction).
+  - **T-23 provisional:**
+    - tracer **failed** its validation gate (bias −0.025 after one revision), so H7a/H7c need expert or hand tracing;
+    - detector recall 65%;
+    - **H7b provisional 6.5% [5.5, 7.5]** (passes the rule if the expert confirms the real share);
+    - `ring_candidates` gained `skip_labelled_filter` (default unchanged; tests pass).
+  - **Gate 1: NOT passed yet.** It waits on the D-33 expert ratings (T-20 ≥ 70% real, κ ≥ 0.6); everything else in Phase 1 is done or running.
+- **16 Nov, T-21 finished (tranche A):**
+  - All three cv3 folds completed on Modal L4 (one attempt each, no pre-emption, no cap hit):
+
+    | nnU-Net fold | Stop | Best EMA Dice | Mean validation Dice | Wall time |
+    |---|---|---|---|---|
+    | 1 | early stop, epoch 119 | 0.871 (ep 89) | 0.851 | 5.18 h |
+    | 2 | full 150 epochs | — | 0.859 | 6.41 h |
+    | 3 | early stop, epoch 116 | 0.861 (ep 86) | 0.847 | 5.02 h |
+
+  - About 146.5 s per epoch on every fold. Total 16.6 L4-hours. **Actual cost $20.16** (`modal billing report`, 15–16 Nov: fold 1 $6.33, fold 2 $7.79, fold 3 $6.09, about $1.21 per hour). That is under tranche A's $23 estimate and $25 cap. **Spend to date: $28.32 of the $75 ceiling.**
+  - The out-of-fold semantic PNGs (89 + 89 + 88 = 266, every image predicted by the fold that didn't train on it) were downloaded file by file to `data/predictions/b1_cv3_sem/` (git-ignored). The npz probabilities stay on the Volume for C3's t_k.
+  - The 53 dev images are in the validation folds too (14 / 18 / 21). They stay development-only; H5 confirmation uses the other 213.
+  - Next: Phase 3a (score H5a/b/c on the 213 with the frozen H5c rule, 7c673ca) and the 3-fold C1 numbers. CPU, local.
+- **16 Nov, T-21 epoch audit (was 150 epochs worth it?)** (`scripts/run/t21_epoch_audit.py`; logs in `results/phase1/t21_logs/`, per-epoch table `results/phase1/t21_epochs.csv`):
+
+  | Fold | EMA pseudo Dice at ep 60 / 80 / 100 / 116 / last | Best EMA (epoch) | First epoch within 0.005 / 0.002 of best | Stop |
+  |---|---|---|---|---|
+  | 1 | 0.860 / 0.867 / 0.867 / 0.869 / 0.872 | 0.872 (119; nnU-Net's > 0.001 rule: 0.871 at 89) | 78 / 89 | early stop, 119 |
+  | 2 | 0.846 / 0.855 / 0.858 / 0.871 / 0.875 | 0.875 (149) | 116 / 147 | ran all 150 |
+  | 3 | 0.849 / 0.856 / 0.853 / 0.860 / 0.860 | 0.862 (91) | 81 / 83 | early stop, 116 |
+
+  - **No overfitting in any fold.** Validation loss never turned upwards; over the last 30 epochs it was still falling slightly (slope −0.0005 to −0.0011 per epoch) while train loss fell faster, so the train–val gap widened without validation getting worse.
+  - **Folds 1 and 3 plateaued at about 80–90 epochs.** The extra ~30 epochs each were early-stopping patience, costing about 1.2 GPU-h ≈ $1.5 per fold.
+  - **Fold 2 needed the full 150.** It gained +0.017 EMA after epoch 100, mostly in the final low-learning-rate phase (epochs 100–150), and was still improving at the end.
+  - **Caveat 1: the learning rate is tied to the 150-epoch schedule (poly decay).** "Epoch 85 was enough" in a 150-epoch run doesn't mean an 85-epoch run would match. A shorter run anneals sooner, and fold 2's late gain came from the annealing. Only a shorter-schedule run would show the true optimum; we don't need that run.
+  - **Caveat 2: pseudo Dice is nnU-Net's patch-sampled proxy, not our endpoint** (F1@0.5, g-MAE). Only the best and final checkpoints exist, so per-epoch endpoint scores can't be computed.
+  - **Verdict:** 150 epochs was right for T-21. B1 used the same recipe, so comparing with B1 requires it (D-03, H5). Early stopping already saved about 64 epochs (≈ $3) on folds 1 and 3. A blanket 100-epoch cap would have saved about $4 but cut fold 2 short (≈ −0.017 EMA).
+  - **Bearing on C3 (D-35, 80 epochs per arm): no change.** All C3 arms share the same schedule, so the comparison is fair even below the plateau. At epoch 80 of a 150-epoch schedule the EMA was 0.005–0.02 below its best, so 80-epoch arms will sit slightly below B1's absolute level. Report the arms against each other, not against B1's absolute numbers.
+- **16 Nov, T-25 image fingerprint done (Phase 1 part)** (`05-results` §8.1):
+  - **Choice made (research engineer):** the candidate rate is left out of the fingerprint, because it is H7's outcome and clustering on it would be circular.
+  - Our 266 images form 2 weak clusters (silhouette 0.31; bootstrap ARI median 0.96, 5th percentile 0.62): dense with low g vs sparse with high g, partly acquisition.
+  - TEM1 reproduces the Phase 0b proxy (ARI 1.0, a consistency check only).
+  - **New result vs expectation:** per background area the skip rate is similar across clusters (rate ratio 0.78 [0.58, 1.03]), but the provisional H7b count bias is **4.0% [3.0, 5.0] vs 9.2% [7.7, 10.9]**. The pooled 6.5% hides a two-fold difference.
+    - Expected: no structure, since the AG2 check found no density effect per area.
+    - Consequence: H7b is reported per cluster as well as pooled (D-37 already requires that). No rule changes.
+  - Cluster labels are saved for H8 and the H6 limitations in Phase 2.
+  - **Phase 1 status:** every task we can do ourselves is done. T-20 (expert ratings) and the confirmatory H7 (T-23, needs those ratings plus expert-traced rings for H7a/H7c) wait on the expert, so Gate 1 waits only on the expert.
+- **16 Nov, Phase 2 started (owner: "on towards phase 2"; Gate 1 still waits on the expert, and Phase 2's outside-data work doesn't depend on it).**
+  - **T-17 on TEM1** (`scripts/run/phase2_t17_h6.py`; ASTIH's released model via `nnUNetPredictor` on the M4/MPS, 8 images, 6 min, no Modal cost):
+    - Dice **reproduces exactly**: 0.9744 / 0.9243 (published 0.974 / 0.924).
+    - F1 does **not** reproduce with a correct watershed (0.905 vs 0.791). Cause found: ASTIH's evaluation script feeds (1, H, W) arrays to ADS's watershed, which turns each seed into a full image row. Replicating that gives **0.792 / P 0.748** (published 0.791 / 0.747). So the evaluator is validated, and the gate is judged passed (**D-38**).
+    - A further 91 of 615 ASTIH-scheme predicted instances are axon-only specks (median 1 px) that a paired-fiber evaluator doesn't count.
+  - **H6a/H6b on TEM1** (our evaluator, GT `astih_to_pairs` with border fibers scored, ring candidates ds 4, px 2.36 nm):
+    - F1@0.5 **0.979** (501 TP, 19 FP, 2 FN; 21 errors in all).
+    - **H6a holds at the pre-registered setting:** strict selection share 0/21 = **0%** (≤ 5%), broad (0 + 7)/21 = **33%** (≤ 39%; image-bootstrap CI 12–56%).
+    - **Fragile:** at the ds 3 sensitivity 2 FPs become unlabelled_real, so strict = 9.5% and H6a fails there. With only 21 errors, any reading is weak.
+    - **H6b holds:** the top FP class is split_piece (11 of 19), not unlabelled_real. Nine of those are 1–93-px axon specks seeded by the centroid watershed (post-processing debris); 2 are real splits. The other 7 FPs are other_bg objects of real size (to check by eye). 33% of errors touch the image border.
+    - **Reading:** on near-complete labels a good model makes almost no selection errors. Its few errors are post-processing debris and a handful of unlabelled objects. This fits C1's mechanism, with the fragility stated. TEM1's "low precision" was an evaluation artefact (D-38), not a phenomenon to explain.
+    - **Not pre-registered:** the planned TEM1 separation-share expectation was not written before this run. That item is closed as missed; the 11 split pieces are reported descriptively.
+  - **Power check for H8:** thin fibers (GT g > 0.85) in proxy cluster 2 = **261** across 6 mice (24–65 each); cluster 0 = 141; cluster 1 = 92. A held-out fold of the 6 cluster-2 mice plus 2 control-like mice (proposed: 26, ASTIH's test mouse, and 27) has ≈ 290 thin fibers, enough for the ±0.10 recall-gap rule.
+  - **Blocked on the owner:**
+    - TEM2's model is not yet downloaded (≈ 250 MB from GitHub; download needs approval).
+    - Tranche B0 (B1 zero-shot inference ≈ $1, timing run ≈ $0.4, TEM1 reference ≈ $7.7) has "Gate 1 passed" as its opening condition, which hasn't happened yet.
+- **16 Nov, T-17 and H6c on TEM2** (owner approved the TEM2 model download, 1.73 GB, 5-fold ensemble, checkpoint_best, labels myelin 2 / axon 3; 21 test ROIs on the M4, 3 min):
+  - **Gate passed:** Dice 0.9717 / 0.9294 (published 0.971 / 0.929). F1 0.947 by ASTIH's as-run path (published 0.949) and 0.960 with point seeds, both within ±0.03.
+    - D-38's explanation now reproduces the published F1 on both sets to ≤ 0.002. The row-seed artefact costs little on 600² ROIs (−0.013) and a lot on TEM1's 2286×3762 frames (−0.113).
+  - **H6c holds:** F1@0.5 0.976 (287 TP, 9 FP, 5 FN). Strict selection share 0/14 = **0%**, broad 1/14 = **7%**, identical at ds 1, 2 and 3.
+    - With border fibers ignored: 3 errors, 0% / 33%.
+    - 86% of errors touch the ROI frame; the top FP class is low_iou (5 of 9).
+  - **Combined reading (TEM1 + TEM2):** on both near-complete outside sets the released models make 14–21 errors per test set, and almost none are selection (0–2). On ours, B1 makes 331 errors on dev, 79% broad selection.
+    - C1's mechanism replicates: selection errors scale with label incompleteness.
+    - Caveat for the paper: the error counts are small, and the models are in-domain (trained on the same lab's data). B1 zero-shot on the same sets (H8, running) is the cross-domain check.
+- **16 Nov, tranche B0 opened by the owner before Gate 1** (asked in chat: "Open B0 now"; reason: nothing in B0 depends on the expert ratings, and the TEM1 run is shared with T-24).
+  - **B1 zero-shot inference** on TEM1 (158), TEM2 full images (10), TEM2 test (21) and AxonPath (20). Inputs were rescaled to 2.152 nm/px locally (`phase2_t22_prep_inputs.py`). Modal L4, fold-0 B1, checkpoint_final; TEM1 probabilities kept on the Volume for t_k.
+    - The TEM1 app was cut off at 146/158 when the local client lost its connection. The 12 missing cases were re-run alone, with no duplicate work.
+  - **D-39 (research engineer):** the TEM1 reference uses B1's recipe at a **fixed 150 epochs without early stopping** (`nnUNetTrainer_150epochs_ckpt10`).
+    - Its nnU-Net validation fold is the 8 held-out test mice, so early stopping (or `--val_best`) would choose on the test set. The fixed schedule chooses nothing on them.
+    - Cost ≈ 6.1 L4-h ≈ $7.4.
+    - Same images as B1 (2.152 nm grid); B1's plans moved to dataset 502; 94 training images (12 mice) / 64 held-out (8 mice).
+  - **B1 zero-shot scores (`scripts/run/phase2_t22_h8.py`, D-11 pairing, our evaluator):**
+
+    | Set | Fibers | F1@0.5 | Errors | Strict / broad selection share | Recall thin (g > 0.85) / normal | Gap |
+    |---|---|---|---|---|---|---|
+    | TEM1 (all 20 mice) | 7,853 | 0.930 | 1,060 | 0.1% / 3.6% | 0.728 / 0.914 | −0.186 |
+    | TEM1, 8 held-out mice | 3,029 | | | | 0.751 / 0.947 | **−0.196 [−0.274, −0.155]** |
+    | TEM2 full images | 4,234 | 0.931 | 568 | 1.9% / 10.7% | 0.657 / 0.911 (35 thin) | −0.254 |
+    | TEM2 test ROIs | 292 | 0.946 | 31 | 0% / 9.7% | 1.0 / 0.936 (9 thin) | +0.064 |
+    | AxonPath CC | 2,009 | 0.947 | 207 | 0.5% / 3.4% | 0.781 / 0.958 (503 thin) | −0.177 |
+
+  - **C1, strongest single result so far:** the *same* model (B1) has 79% broad selection on our dev images but **3–11% on all four near-complete outside sets**. Model, recipe and post-processing are held fixed and only the labels change, so selection errors follow the labels.
+  - **H8 is not decided yet.** B1 misses thin fibers more often (gap −0.18 to −0.25 on the three large sets). Whether that comes from selective training labels or from thin fibers simply being harder needs the complete-label reference on the same held-out mice (`--compare`).
+
+- **16 Nov, B0 overrun and cap raised to $12 (owner decision, asked in chat).**
+  - Modal billing for 16 Nov showed **$4.02** already spent in B0 (TEM1/TEM2 ASTIH inference, B1 inference on the four outside sets, the timing run), against ≈ $1.4 estimated. The gap: CPU + memory add ≈ $0.41/h on top of the L4's $0.80/h (≈ $1.21/h all-in), and the TEM1 predict app was run twice (the 12-case rerun).
+  - Dataset502 upload: the first `upload_dir.py` run hung at 400/474 for ~6 h (0 CPU progress); restarted, finished 76 remaining files in minutes. All 474 + plans + splits verified on the Volume.
+  - **Timing run** (D502, 2d_bigpatch, fold 0, 5 epochs): epoch 0 377 s (warm-up), epochs 1–4 **143.5 s**; GPU mean util 73%; EMA pseudo-Dice 0.774 at epoch 4. 150 epochs ≈ 6.1 h + final validation ≈ 6.3 GPU-h ≈ **$7.6**, which would overrun the $9.5 cap by ≈ $2.2.
+  - Options put to the owner: raise cap to $12 / cut to a fixed 100 epochs / hold. **Owner chose: raise B0 to $12.** D-39 (fixed 150 epochs, no early stopping) is unchanged.
+  - **Reference run launched** (`nnUNetTrainer_150epochs_ckpt10`, `--max-gpu-hours 6.6`, app `ap-CcHTABHVeSvb40kioFGOgh`); worst case B0 total ≈ $4.02 + 6.6 × 1.21 ≈ $12.0. Project total after it ≈ $40 of $75.
+  - **Lesson for later tranches:** estimate at $1.21/h all-in for L4 jobs, not the GPU rate alone. Tranche B's $16.4 estimate must be redone at this rate before it opens.
+
+- **18 Nov, TEM1 reference finished and H8 decided (T-22 done).**
+  - Run `ap-CcHTABHVeSvb40kioFGOgh` completed all 150 epochs (16 Nov 17:57 → 17 Nov 00:11, ≈ 145 s/epoch). Validation Dice axon 0.962 / myelin 0.892 on the 8 held-out mice.
+  - **H8 holds:** gap_B1 − gap_ref = **−0.178 [−0.258, −0.138]** (B1 gap −0.196; reference gap −0.018). Details and the domain-shift confound in `05-results.md` §9.
+  - **B0 actual cost $11.91** (16 Nov $11.52 + 17 Nov $0.38), inside the raised $12 cap. Project total **$40.23 of $75**. B0 closed.
+  - The reference checkpoint stays on the Volume; it is the shared complete-label arm for T-24 (C3).
+  - Next: Phase 3a (H5a/b/c on the 213 non-dev images with frozen H5c). Tranche B must be re-costed at $1.21/h before it opens.
+
+- **18 Nov, status snapshot after Phase 2 (given to the owner in chat; recorded here in full).**
+  - **Modal account check:** every GPU command runs with `MODAL_PROFILE=muhammadfaheem-mansha`; `modal profile current` under that pin returns `muhammadfaheem-mansha`. The machine's *default* profile is `i220485`, so an unpinned command would bill the wrong account; this is why the pin is mandatory (`06-compute-and-reproduce.md` §3).
+  - **Phase status:**
+
+    | Phase | What it is | Status |
+    |---|---|---|
+    | 0 / 0b | Setup, data checks, finding the problem | Done |
+    | 1 | Build B1 and measure it properly (T-21, T-25) | Done except the expert-dependent tasks (T-20, T-23); Gate 1 waits on the expert |
+    | 2 | Test the claim on other labs' datasets (T-17, H6, T-22/H8) | **Done 18 Nov** |
+    | 3a | Final paper-1 numbers on the 213 non-dev images (H5a/b/c, frozen H5c `7c673ca`; 3-fold C1 numbers) | Next; CPU only, no GPU cost |
+    | 3b | Paper 2 (C3) experiments: T-24 pilot, H9 | Later; needs tranche B (re-cost at $1.21/h first) |
+
+  - **Key findings in plain terms:**
+    1. *The problem:* the challenge labels don't mark every fiber; annotators labelled some and left others blank, and a model trained on them learns that skipping is correct.
+    2. *It's the labels, not the model:* the same B1 has 79% of its "errors" in the selection category (right fiber, label skipped it) on our data, but only 3–11% on three near-completely labelled outside datasets (TEM1, TEM2 full/test, AxonPath). Paper 1's central result.
+    3. *B1 learned to skip thin fibers (H8):* B1 finds 75% of thin-myelin fibers vs 95% of normal ones; a complete-label reference finds 97% vs 99%. Thin fibers are barely harder; most of B1's shortfall is learned from the labels. Biologically this matters: thin myelin marks damage or repair, so such a model undercounts exactly the fibers researchers care about.
+    4. *Side finding (D-38):* ASTIH's published TEM1 F1 0.791 comes from a seed bug in their evaluation script; with point seeds it is ≈ 0.90.
+  - **Publication standing:** C1 (analysis paper) ≈ three-quarters evidenced, up from ≈ two-thirds on 16 Nov; both main findings now have outside evidence. Limitation to state: B1 was out of domain on TEM1 while the reference was in domain, so part of the thin-fiber gap could be domain shift; T-24 (same images, labels made selective on purpose) removes this, and it reuses the reference checkpoint already on the Volume. C3 (methods paper): no results yet; tranche B (≈ $16.4 at GPU-only rate) is re-costed at $1.21/h before the owner is asked to open it.
+  - **Budget:** $40.23 of $75 (B0 $11.91 within its $12 cap).
+  - **Owner actions outstanding:** find the expert (T-20 + addendum); organiser permission email (T-19); decide whether to tell the ASTIH authors about the seed bug.
+  - **Next:** Phase 3a, run locally at no GPU cost.
+
+- **19 Nov, Phase 3a started; H5b's reduction share defined before scoring (no T-21 non-dev result has been looked at for H5).**
+  - §7.2 gives H5b's second part ("≥ 50% of O-sep's total |g error| reduction comes from fibers defective in the base prediction") but its dev value was "never computed", so the operational definition was never written. Fixed now, before any non-dev H5 number exists:
+    - Unit: GT fibers matched (IoU > 0.5) in **both** base and O-sep. Reduction per fiber = |g_err_base| − |g_err_O-sep|. Share = sum over fibers whose *base* predicted fiber is defective (ring Euler ≠ 0, axon touches background, or axon > 1 component; `day5_analysis.py` flags) ÷ sum over all such fibers. Fibers matched in only one condition are reported separately (count and their |g error| sum) as a sensitivity, not part of the rule.
+  - H5a/H5c computed as §7.2: fiber-weighted g-MAE with equivalent-circle g at IoU > 0.5; 1,000-resample paired cluster bootstrap over overlap groups (D-22); H5c guards on the lower CI bounds of ΔF1@0.5 and Δrecall (micro).
+  - Base = D-11 `semantic_to_paired_instances` on the T-21 out-of-fold semantics; H5c = frozen `semantic_to_paired_instances_h5c` (7c673ca, unchanged since).
+  - Same run gives D-03's 3-fold C1 numbers on all 266 out-of-fold images (taxonomy shares, O-sel strict/broad, O-sep gains); the 53 dev images are included there because C1 is not an H5 claim.
+
+- **19 Nov, tranche B re-costed; correction to the 16/18 Nov entries.**
+  - The 16 and 18 Nov entries said tranche B's ≈ $16.4 "was costed at the GPU rate alone" and must be redone. **That was wrong.** D-36's per-run figure (≈ $4.1 per 80-epoch arm) already used T-21's billed all-in rate (≈ $1.21/h): 80 × ≈ 145 s ≈ 3.2 h + final validation ≈ 3.4 h × $1.21 ≈ $4.1. The Dataset502 timing run (143.5 s/epoch, 18 Nov) confirms the per-epoch time for TEM1.
+  - **Where B0's overrun really came from:** the inference items (ASTIH TEM1/TEM2 prediction, B1 on four outside sets; estimated "≈ $1" with no timing basis) cost ≈ $3.6, including one rerun of the TEM1 predict job. Training estimates were accurate (reference: ≈ 6.3 h, ≈ $7.6 est. vs ≈ $7.9 actual).
+  - **Tranche B now:** R1–R4 at 80 epochs ≈ 4 × $4.1 ≈ $16.4; the held-out-mouse predictions come from each arm's final validation (no separate job). Cap $17 leaves ≈ $0.6 of margin, so **any extra inference (e.g. TTA or a fold ensemble for t_k) must be timed and costed before it runs**, and each arm is launched with `--max-gpu-hours 3.5`.
+  - Budget left: $75 − $40.23 = $34.77 against caps B $17 + C $15.3 = $32.3.
+  - The 18 Nov status snapshot and the self-study Q&A carry the same wrong sentence; they are corrected by this entry (status snapshot) and an added Q&A note.
+
+- **19 Nov, Phase 3a scored (H5 + 3-fold C1).** `scripts/run/phase3a_h5.py` on 266 out-of-fold images, local M4 (6 workers ≈ 20 min, owner approved the local run). Smoke test on 2 images first (sample_0002, sample_0100; numbers only used to time the run).
+  - **H5a holds:** O-sep −52.7%, Δg-MAE −0.0085 [−0.0096, −0.0073]. **H5b holds:** defective 25.4% of fibers, 49.0% of \|g error\|, 61.5% of O-sep's reduction. **H5c fails:** frozen rule captures 27.7% of O-sep's gain (needed ≥ 50%); its Δg-MAE CI excludes 0 and both guards pass. Dev's in-sample 54% shrank to 28%, as §7.2 anticipated.
+  - **Gate 3a = row 3 of §7.2: "C2 for morphometry becomes a candidate (new budget decision)".** Not started: it needs an owner decision on budget (remaining $34.77 vs caps B $17 + C $15.3 = $32.3; a C2 run would compete with C3).
+  - **3-fold C1 numbers (D-03):** all 266: F1 0.892, broad selection 79.5%, strict 16.0%, separation 3.8%; O-sel broad +0.084 F1 [0.074, 0.094] vs O-sep +0.003. Dev headline (78.9%) replicates.
+  - Expectation vs result: H5c expected to shrink (stated 16 Nov); it shrank below the bar. Expectation is not rewritten.
+  - Remaining Phase 3a item: exploratory AxonPath repeat (our models only).
+  - **Exploratory AxonPath repeat done** (`05-results` §10.3): O-sep −24.6% [21.1, 28.9], H5c captures 13% [−4, 29], defects carry 39% of g error. Grouping still matters out of domain but less; context only. **Phase 3a complete except the Gate 3a budget decision.**
+
+- **19 Nov, owner decisions after Phase 3a:** **D-40** C2 deferred (H5 reported in C1 as a measurement finding); **D-41** C3 CPU prep now, tranche-B GPU only after the owner confirms a timed cost. Next IDs: D-42, T-26, H10.
+
+- **19 Nov, D-42: T-24 operational choices (fixed before any T-24 label, candidate or weight is built; none has been).**
+  - **Fiber unit and stratum:** fibers = complete pairs from `astih_to_pairs` on the native TEM1 grid; g = √(axon area / fiber area); eccentricity of axon ∪ myelin (`regionprops`). Stratum = g > 0.85 or g < 0.65 or eccentricity > 0.9 (§7.6). Deleted fibers become background (0) in both compartments; ignore-label (border/incomplete) pixels stay 3. Then resized to the 2.152 nm grid exactly as Dataset502 (nearest).
+  - **Deletion draw (seed 0):** each training stratum fiber deleted with p = 0.9; each remaining training fiber with p = 0.07. Test mice keep full labels (scoring uses protocol truth = full − stratum).
+  - **Second labelling draw (r̂):** 136 random non-stratum training fibers; draw 1 = their simulated status, draw 2 = independent Bernoulli(0.93). r̂ from discordance among fibers labelled at least once, P(disc) = 2(1−r)/(2−r). r sweep 0.88–0.96 is a CPU sensitivity on q, not an extra GPU arm.
+  - **Candidates (training images, 2.152 grid):** union of (i) D-18 `ring_candidates` holes on the simulated labels (ds 4, px 2.152) and (ii) B1 zero-shot paired instances (D-11) overlapping no remaining labelled fiber by ≥ 50% of their area. A hole inside a B1 instance takes that instance's footprint; a hole with none is dilated by 0.43 × its equivalent radius (g ≈ 0.7). Footprints are dilated 2 px into background only; overlapping candidates are merged.
+  - **t_k:** mean B1 zero-shot fiber probability (1 − p_background) over the footprint (B1's mirrored inference from T-22), **Platt-calibrated** on the simulated expert subset (real fiber vs not). This replaces D-37's "temperature scaling on dev" for T-24, because dev is another domain; on our data (R7) D-37's rule stands.
+  - **Simulated expert subset:** 101 random training candidates (T-20's size), labelled from the complete GT as missed-normal / stratum / not-a-fiber (candidate overlapping a GT fiber by IoU ≥ 0.5 = real).
+  - **a(x):** L2 logistic regression, stratum vs normal, on the expert subset's real fibers, features from the **same pipeline for every fiber** (B1 semantics inside the footprint): equivalent g, outer diameter, myelin thickness, eccentricity, solidity, ring contrast. AUC of â vs the true stratum is reported on all candidates.
+  - **q_k = t(1−a)(1−r̂) / (1 − t(1−a)r̂)**; R4 weight w_k = 1 − q_k on the candidate's background pixels; labelled pixels weight 1. *(Superseded before any training by D-43: q = t(1−a). Round 2 adds D-44–D-46.)*
+  - **Arms:** R1 = simulated labels. R2 = R1 + every candidate footprint's background pixels → ignore (3). R3 = R2's footprints moved, per image, to random positions lying wholly on R1 background (same pixel budget, seed 0). R4 = R1 labels + a weight channel multiplied into CE (reduction none) and the Dice `loss_mask` *(as built: down-weight levels d = 0–20, weight 1 − d/20, `SoftWeightDCCE`)*.
+  - **No per-image random effect in T-24 (deviation from D-37's T-24 line):** the simulated omission is i.i.d. across images by construction, so a random effect would only estimate zero variance. It stays in the selection model for our data (R7), where the 2.2× over-dispersion was observed.
+  - **Storage:** arm label sets are made locally; preprocessed seg files are rebuilt locally; image files are copied on the Volume server-side from Dataset502 (identical pixels and plans), so only seg files are uploaded.
+
+- **19 Nov, T-24 CPU build (D-41/D-42/D-43).**
+  - **Simulation** (`t24_simulate.py`, `results/phase3b/t24_sim_summary.json`): training 94 images / 12 mice / 4,824 fibers; stratum 1,214 (thin 355, thick 578, oblique 532); deleted 1,081 stratum + 230 random = 27% of training labels. Test 64 images / 8 mice: 2,179 known-positive normal fibers, 850 stratum. Second draw: r̂ = 0.953 (true 0.93).
+  - **Probabilities:** B1 zero-shot softmax for the 94 training images downloaded from the Volume (≈ 10 GB, free egress; two corrupt downloads caught by a full-decompression check and re-fetched).
+  - **Candidates** (`t24_candidates.py`): 1,169 (B1 1,133 + D-18 36): 215 missed normals (93% of random deletions), 834 stratum (77%), 120 not fibers. Raw t AUC real-vs-not 0.89.
+  - **Selection model** (`t24_build_arms.py`, `t24_selection_summary.json`): expert subset 101 (93 real, 76 stratum). â AUC stratum vs normal 0.74 (eccentricity and low g dominate). **D-43 correction:** q = t(1−a); mean q missed normal 0.24 / stratum 0.15 / not-fiber 0.06; AUC of q for missed normals 0.76. Under D-35's formula the means were 0.017 / 0.010 / 0.003 (R4 would have equalled R1).
+  - **Arms:** R2 ignores 97.2 M pixels; R3 97.0 M (D-43 construction); R4 down-weight levels median 4/20 on missed normals, 2/20 on stratum, 1/20 on not-fibers.
+  - **Trainer:** `nnUNetTrainer_80epochs_ckpt10` (R1–R3), `_softw` (R4). Unit tests: loss equals nnU-Net's at weight 1; zero-weight pixels get no gradient. Local MPS smoke (4 cases, small patch): 2-channel targets pass all 6 deep-supervision scales, weight levels stay integral 0–20 through augmentation (25 batches), train/val steps run.
+  - **Expectation, stated now:** the q separation is modest (AUC 0.76), so any R4 advantage over R2 will be small; the design report's theory (gains only on ambiguous fibers) predicts the same. H9 is not changed.
+  - **Scoring script** `t24_score.py` written before any arm is trained.
+
+
+- **19 Nov, paused by the owner.** All local processing, downloads and GPU work paused; nothing running locally or on Modal. Two decisions deferred to a later discussion: (1) local preprocessing of the four T-24 arm datasets (`t24_nnunet_datasets.py`, ≈ 30–45 min CPU, ≈ 15 GB); (2) opening tranche B (R4 first with a live timing check, then R1–R3, each capped at 3.5 GPU-h; expected $16.40, worst case $16.94 vs cap $17; project would reach ≈ $57 of $75). Spend unchanged at $40.23.
+
+- **23 Nov, resumed by the owner ("continue from where we left off … continue working with [the Modal account]").** This opens the two decisions deferred on 19 Nov: local preprocessing of the T-24 arms and tranche B.
+  - **Audit of "done" work before resuming:** working tree clean and in sync with origin; nothing running locally or on Modal; T-24 intermediates complete (158 cases = 94 train + 64 test in gt_pairs, labels_R1, arms R1–R4 and R4_d; 94 candidate maps and 94 B1 probability files; 64 reference predictions); Dataset502 complete on the Volume (474 preprocessed files); Phase 3a and 3b result files present. Modal profile confirmed `muhammadfaheem-mansha`.
+  - **Preprocessing** (`t24_nnunet_datasets.py`): Datasets 503–506 built in ≈ 6 min (not the 30–45 min estimated). The script's byte-identity check on image files printed False: the blosc2 containers differ in bytes, but a full decode shows **pixels and case properties (bbox, spacing, shapes) equal to 502's for all 632 image files**, so the server-side copy from 502 stays valid.
+  - **Label check:** every arm's preprocessed seg equals its label map inside the crop box; the 64 test cases equal 502's labels in every arm (including the original TEM1 ignore label 3, which the test GT already carries; R1's 0.73 M ignore pixels are those, not simulation); R4's second channel equals the d map on training cases and is 0 on all test cases.
+  - **Upload:** the Volume is V1, so `modal volume cp -r` is unavailable; seg/pkl/json/gt files are uploaded with `upload_dir.py` and the 158 image files are copied by name from 502. `upload_dir.py` hung once again (40 files, then no progress for 10 min); it now runs under a 480 s watchdog with resume, and gained a `--no-skip` flag for folders seeded from another dataset.
+  - **R4 dataset on the Volume** (Dataset506): 636 files, every size equal to the local file (seg/pkl/json/gt) or to 502's image file. R1–R3 uploads follow the same path. Tranche B launch (R4 first, `nnUNetTrainer_80epochs_ckpt10_softw`, `--max-gpu-hours 3.5`) is waiting for an explicit go from the owner in chat; no GPU spend yet. Spend unchanged at $40.23.
+- **23 Nov 15:00 PKT, tranche B opened by the owner ("Go and proceed. Run all of the next and remaining modal processes").** All four arms launched detached on L4, each `--max-gpu-hours 3.5` (worst case $16.94, cap $17): R4 `ap-t3vx2mYmeNopKqhDJz2Mpp` (506, `_softw`), R1 `ap-Q4SoeVOt23g5ROHnkaEKup` (503), R2 `ap-ZzIqZnHO8GAGIaiLNg7Phu` (504), R3 `ap-ATk1IkayOieIQemLeGFfcg` (505). R1 and R2 started training at once; R4 and R3 were queued for L4 capacity (no cost while queued). Next: when each finishes, download fold_0/validation PNGs to data/predictions/t24/R*/, run `t24_score.py`, decide H9; record billed cost.
+- **24 Nov, tranche B status and R1/R2 rerun.**
+  - **R3 and R4 completed** (80 epochs, ≈ 148 s/epoch, ≈ 3.45 h each; final validation Dice R3 0.883, R4 0.886 on the 8 test mice; billed $4.21 and $4.18).
+  - **R1 and R2 were killed after 1–2 epochs (my error).** Both stopped at ≈ 15:10 PKT on 23 Nov, the moment the four local `modal run --detach` clients were killed to let the owner close the IDE; the ledgers show a single attempt each. R3/R4 were still queued for an L4 then and were unaffected. **Lesson:** killing a `modal run --detach` client can stop a running call; launch long jobs with `modal deploy` + `Function.spawn` (no local process involved). Billed $0.13 + $0.19.
+  - **Tranche B cap raised to $17.5 by the owner** (asked in chat): spent $8.70; R1 + R2 rerun ≈ $8.40 (worst $8.47) → ≈ $17.1–17.2. Project ≈ $57.4 of $75 when done.
+  - **Rerun:** partial fold_0 folders and spent ledgers for 503/504 deleted on the Volume; app deployed (`ap-PkhNi1laCdNbA0wE6vUqDR`); spawned `fc-01M84YK73H3RTQ8HC2GJF142AP` (R1) and `fc-01M84YK7BSAPGJJ3WY59NB3QTA` (R2), each `--max-gpu-hours 3.5`; queued for L4 at 00:37 PKT.
+  - **Interim scores (R3, R4, reference; H9 not decidable until R1/R2):** normal recall R3 0.971, R4 0.973, ref 0.995; violation R3 0.707, R4 0.744, ref 0.958; hard-normal recall R3 0.950, R4 0.964, ref 0.988; protocol F1 R3 0.840, R4 0.839, ref 0.819; g-MAE R3 0.029, R4 0.026, ref 0.021. R4 − R3 on the primary is +0.003 (small, as stated before training). Not interpreted further until all arms are in.
+- **24 Nov, R2 moved to A10G (owner: "if L4 is not free … move to the next available option"; budget available ≈ $32).** R1 (`fc-01M84YK73H3RTQ8HC2GJF142AP`) got an L4 and is training. R2's L4 call was still queued, so it was cancelled and respawned on **A10G** (`fc-01M85078CY44FTWP2Q0Y777HK1`, `with_options(gpu="A10G")`; Modal's `with_options` takes one GPU type, not a fallback list) with `--max-gpu-hours 4.5`, since A10G speed for this job is untimed (worst case ≈ 4.5 h × ≈ $1.5/h ≈ $6.8). **Deviation to report:** R2 trains on a different GPU from R1/R3/R4; same plans, batch size, epochs and seeds-policy, so only floating-point nondeterminism differs (already present between any two runs). `results/phase3b/t24_scores.json` currently holds the interim R3/R4/ref scores; it is overwritten by the full run.
+- **24 Nov, T-24 complete; H9 fails (pre-registered rule applied as written).**
+  - **Runs:** R1 (L4, 80 epochs, ≈ 142 s/epoch, val Dice 0.871) and R2 (A10G, 80 epochs, ≈ 98 s/epoch, preempted twice and resumed from the epoch-30 checkpoint each time, val Dice 0.911) finished; all four arms have the 64 test-mouse predictions. The A10G was ≈ 1.45× faster than the L4 for this job; worth considering for later runs.
+  - **Cost:** tranche B billed **$16.64** (R3 $4.21, R4 $4.18, killed R1/R2 $0.32, rerun R1+R2 $7.93) against the raised $17.5 cap. **Project spend $56.87 of $75; $18.13 left.**
+  - **Scores** (8 held-out mice; 2,179 normal, 850 stratum, 727 hard-normal test fibers; `results/phase3b/t24_scores.json`):
+
+    | Arm | Normal recall | Violation | Hard-normal recall | Protocol F1 | g-MAE |
+    |---|---|---|---|---|---|
+    | R1 naive | 0.961 | 0.667 | 0.952 | 0.841 | 0.028 |
+    | R2 hard ignore | **0.987** | 0.855 | **0.977** | 0.832 | **0.023** |
+    | R3 random ignore | 0.971 | 0.707 | 0.950 | 0.841 | 0.029 |
+    | R4 selection-gated soft | 0.973 | 0.744 | 0.964 | 0.839 | 0.026 |
+    | Reference (full labels) | 0.995 | 0.958 | 0.988 | 0.819 | 0.021 |
+
+  - **H9 decision: fails on all three conditions** (above). No rescue analysis replaces the rule.
+  - **What it means (descriptive, not a new hypothesis):** on this benchmark, the one lever that matters is *how much* of the candidate background stops being taught as background. R2 removes all of it and recovers most of the normal-fiber recall lost to omission (0.961 → 0.987 of the reference's 0.995), but it also brings back the protocol-excluded fibers (violation 0.667 → 0.855), because the candidate set is 71% stratum fibers and ignoring them removes the only signal that they should be left out. R4 down-weights only partly (mean weight loss ≈ 0.15–0.24), so it lands between R1 and R2 on both axes, and is no better than spending the same ignore budget at random (R3). With â AUC 0.74 and q AUC 0.76, the selection model did not separate missed normals from protocol exclusions well enough to get the recall of R2 without its violations. The expectation written on 19 Nov (small gain at most) was borne out on the R3 comparison; the R2 comparison is a clear loss.
+  - **Caveats:** one seed per arm; R2 trained on a different GPU type (A10G) from R1/R3/R4 (same recipe and data; only numerical nondeterminism differs); the simulated omission is an idealisation (i.i.d., known stratum).
+  - **Consequence for C3:** the paper as designed (selection-gated soft ignore beats hard ignore) is not supported by the pilot. Options for the owner, not decided here: (a) drop C3 as a methods paper and fold T-24 into C1 as evidence that selective omission is learnable and that hard ignore trades violations for recall; (b) a new, separately pre-registered variant (e.g. a better a(x), or hard-ignore gated by â) — would need a fresh hypothesis and budget; (c) write T-24 up as a benchmark/negative-result contribution. Tranche C does not open.
+- **24 Nov, post-hoc audit of why R4 lost (owner: "probe deeper … error, oversight … understanding and code"). Exploratory; the H9 decision stands.** *(Deepened the same day; the root cause behind oversight 2 is D-44, see the next entry.)*
+  - **Code: no bug found.** `SoftWeightDCCE` equals nnU-Net's loss at weight 1, gives zero-weight pixels no gradient (tests), weight levels survive augmentation (smoke run), preprocessed weight channel equals the d map (23 Nov check), the direction is right (high q → low weight), validation strips the channel.
+  - **What R4 actually did:** pixel-weighted mean weight on missed normals **0.73** vs on stratum fibers **0.76** (not-fibers 0.92); only 6% of missed normals got weight ≤ 0.5. R4 was in effect a uniform ≈ 25% down-weight of all candidates, i.e. a mild R2, which is why it sits on the R1–R2 line: recall above that line at its own violation R4 +0.002 [−0.003, +0.009], R3 +0.005 [−0.004, +0.015] (neither beats the trade-off).
+  - **Oversight 1, model form (ours):** a(x) was **linear** in g, but the stratum is two-sided (g > 0.85 **or** g < 0.65, or ecc > 0.9); a linear term cannot express "too high or too low". The B1 features are accurate (corr with truth: g 0.92, ecc 0.93), so the features were not the problem. Same 101-candidate subset with band terms ((g − 0.75)², ecc above 0.8): â AUC 0.74 → 0.80, q AUC 0.76 → 0.82, pixel weight missed/stratum 0.70/0.79.
+  - **Oversight 2, too few examples:** the T-20-sized expert subset holds 93 real fibers of which only **17 normal**. With all 1,049 real candidates (5-fold CV, so leak-free), the same B1 features reach AUC 0.89 (band logistic) / 0.91 (boosting); with the true g/ecc the ceiling is 0.95. 38% of real unlabelled fibers lie within 0.03 of a g cut, so some confusion is irreducible.
+  - **Oversight 3, the hypothesis (ours):** H9 asked R4 to beat R2 on recall alone. R2 removes *all* background push on candidates, so on recall it is the ceiling of any weighting over the same candidates; R4 could only win by being better on the recall–violation trade-off, which H9 judged only through the R1-relative guard. A better-posed test: recall at matched violation (or the frontier), against R2, R3 and an oracle.
+  - **Oversight 4, statistics:** the CIs resample mice, not training runs; with one seed per arm, differences of ≈ 0.003 (R4 vs R3) are within likely seed noise.
+  - **Structural, not an error:** the benchmark makes missed normals 20% of real unlabelled candidates (stratum deleted at p = 0.9, others at 7%), so even a good posterior gives most candidates low q; the method can only help if a(x) is sharp.
+  - **Most informative next run (proposal, not started; needs a new pre-registered hypothesis and the owner's yes):** R6 oracle ignore (ignore exactly the missed normals, keep stratum as background), ≈ $3.3 on A10G. If even the oracle does not beat the R1–R2 frontier, the selection-gated idea is dead on this benchmark; if it does, a corrected a(x) (band terms, larger subset) is worth one more arm (≈ $3.3).
+- **24 Nov, deeper probe and round 2 set up (owner: "correct your mistakes and all other gaps … go deeper and wider … re-run the tests … budget of at least $20").** Exploratory findings before any round-2 training (`scripts/run/t24_probe.py`, `results/phase3b/t24_selection_v2_summary.json`):
+  - **Ruled out:** simulated labels are exact (0 deleted-fiber pixels left labelled, 0 kept-fiber pixels lost); candidate footprints cover deleted fibers well (mean pixel coverage 0.92 random / 0.75 stratum; ≥ 0.8 coverage for 93% / 73%), so R2's and R4's reach is not the limit; loss code, weight channel and augmentation were already verified (previous entry).
+  - **Root cause (the smoking gun): the selection model ignored the labelled fibers.** Of 4,411 B1 instances on the training images, 3,278 sit on still-labelled fibers (3,106 normal, 103 stratum, 69 no GT match). Random omission makes missed normals a random sample of normals, so these are thousands of valid "normal" examples; round 1 learned "normal" from 17. That is the PU idea D-35 itself named (SAR-PU) but round 1 did not implement (**D-44**).
+  - **Effect of the fixes on the selection model** (evaluated on the 1,068 non-expert candidates; the decisions used expert-subset information only):
+
+    | Selection model | â AUC | q AUC | pixel weight missed normal / stratum |
+    |---|---|---|---|
+    | Round 1 (linear, expert-only) | 0.73 | 0.76 | 0.73 / 0.76 |
+    | + band terms (expert-only) | 0.80 | 0.82 | 0.70 / 0.79 |
+    | PU, linear logistic | 0.73 | 0.75 | 0.73 / 0.76 |
+    | PU, band logistic | 0.85 | 0.86 | 0.72 / 0.83 |
+    | PU, gradient boosting + band, prior shift (uncalibrated) | 0.87 | 0.87 | 0.32 / 0.75 |
+    | **D-46: + one-input Platt on the expert subset (R4b)** | 0.87 | 0.86 | **0.68 / 0.89** |
+
+  - **Learning: AUC is not enough; calibration decides the weights.** The uncalibrated PU model over-predicts missed normals (mean q 0.32 vs actual 0.185); calibration on only 17 expert positives under-predicts (mean 0.135, top bin 0.64 vs actual 0.94). A posterior-weighted soft ignore is therefore weak whenever the calibration set is small: the expert set limits R4b even with a good ranking. This motivates R4h (hard ignore of the top K = round(Σq) = 161 candidates: 49% of missed-normal pixels vs 6% of stratum pixels, precision 0.66), which uses q only as a ranking.
+  - **Round 2 built (T-26):** arms R6/R4b/R4h → Datasets 507/508/509, preprocessed locally (≈ 5 min); decoded image pixels and case properties equal to 502's for all 474 image files; every seg equals its arm map inside the crop box; test cases equal 502's labels; R4b's weight channel equals its d map and is 0 on test cases. R1b reuses Dataset503 with the identical `nnUNetTrainer_80epochs_ckpt10_rep2`.
+  - **Docs aligned:** the §6 entries of 16–24 Nov that had been appended below §7.6 were moved back into §6; stale design lines (D-35's q formula, "0–100" weights, D-37's random effect for T-24) now point to what was built.
+
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
 
@@ -530,231 +783,32 @@ Source of the proposals: `11_overlooked_gaps.md`, validated in `docs/reports/Ove
 | The soft-weight trainer subclass (~50 lines) | Written and unit-tested **locally** (CPU, tiny synthetic case) before any GPU run | Avoids debugging on paid GPU time |
 
 **Efficiency rules:** keep GPU containers single-use (no warm pool); no idle GPU while data copies (already 3 s staging); never re-upload unchanged data (the uploader skips same-size files); batch all predictions of a run into the same container as its training where the app allows.
-- **16 Nov, Phase 1 executed** (owner: "start and complete Phase 1 end to end"; numbers in [05](05-results.md) §8):
-  - **TOC** added to `PLAN.md` and this file (`scripts/toc.py`; re-run after heading changes).
-  - **Wording:** `02` §2 "textbook g trend" corrected (an artefact of plotting g against axon diameter).
-  - **Error breakdown:** selection dominates all three models (broad share 79% / 81% / 68%).
-  - **T-16′ done:**
-    - perimeter g is unsafe (biased, flips ranks);
-    - rankings are stable on 9 of 11 metrics;
-    - g-MAE isn't gameable by fiber size, but dropping the worst 5% of fibers cuts it by 27%;
-    - g-quality: Cellpose+B1 0.785 > B1 0.766;
-    - g error is flat across fiber diameter; oblique fibers are 1.7%.
-  - **H5c developed on dev and frozen at 7c673ca:** nearest-axon watershed, 54% of O-sep's gain on dev (in-sample), guards pass.
-  - **T-21 launched (tranche A, ≈ $23, caps 6.8 GPU-h × 3)** on Modal: folds 1 and 3 training normally (~147 s/epoch); fold 2 is waiting for an L4 (no cost while queued). Its first app sat unscheduled for 30 min, so it was stopped (no compute used) and relaunched as `ap-5wXDJEkWXEnD1P0OSD4783`, which is still queued for L4 capacity per Modal. **Fallback if not scheduled within a few hours:** A10G via `TEM_MODAL_GPU=A10G`, after a 5-epoch timing run (≈ $0.4), because the GPU type changes.
-  - **18-fiber addendum packet built** (exact reproduction).
-  - **T-23 provisional:**
-    - tracer **failed** its validation gate (bias −0.025 after one revision), so H7a/H7c need expert or hand tracing;
-    - detector recall 65%;
-    - **H7b provisional 6.5% [5.5, 7.5]** (passes the rule if the expert confirms the real share);
-    - `ring_candidates` gained `skip_labelled_filter` (default unchanged; tests pass).
-  - **Gate 1: NOT passed yet.** It waits on the D-33 expert ratings (T-20 ≥ 70% real, κ ≥ 0.6); everything else in Phase 1 is done or running.
-- **16 Nov, T-21 finished (tranche A):**
-  - All three cv3 folds completed on Modal L4 (one attempt each, no pre-emption, no cap hit):
 
-    | nnU-Net fold | Stop | Best EMA Dice | Mean validation Dice | Wall time |
-    |---|---|---|---|---|
-    | 1 | early stop, epoch 119 | 0.871 (ep 89) | 0.851 | 5.18 h |
-    | 2 | full 150 epochs | — | 0.859 | 6.41 h |
-    | 3 | early stop, epoch 116 | 0.861 (ep 86) | 0.847 | 5.02 h |
+### 7.7 D-44 to D-47: T-24 round 2 and H10 (pre-registered 24 Nov 2026, before any round-2 training)
 
-  - About 146.5 s per epoch on every fold. Total 16.6 L4-hours. **Actual cost $20.16** (`modal billing report`, 15–16 Nov: fold 1 $6.33, fold 2 $7.79, fold 3 $6.09, about $1.21 per hour). That is under tranche A's $23 estimate and $25 cap. **Spend to date: $28.32 of the $75 ceiling.**
-  - The out-of-fold semantic PNGs (89 + 89 + 88 = 266, every image predicted by the fold that didn't train on it) were downloaded file by file to `data/predictions/b1_cv3_sem/` (git-ignored). The npz probabilities stay on the Volume for C3's t_k.
-  - The 53 dev images are in the validation folds too (14 / 18 / 21). They stay development-only; H5 confirmation uses the other 213.
-  - Next: Phase 3a (score H5a/b/c on the 213 with the frozen H5c rule, 7c673ca) and the 3-fold C1 numbers. CPU, local.
-- **16 Nov, T-21 epoch audit (was 150 epochs worth it?)** (`scripts/run/t21_epoch_audit.py`; logs in `results/phase1/t21_logs/`, per-epoch table `results/phase1/t21_epochs.csv`):
+**Why a round 2.** H9 failed (§6, 24 Nov). The audit found no code bug but four design errors: (1) the selection model ignored the 3,278 labelled fibers as normal examples (D-44, the main one); (2) its linear form could not express the two-sided stratum (D-45); (3) H9 compared recall alone against hard ignore, which is the recall ceiling of any weighting over the same candidates; (4) one run per arm, no noise estimate. H9 stays failed; H10 is a new, separately registered test.
 
-  | Fold | EMA pseudo Dice at ep 60 / 80 / 100 / 116 / last | Best EMA (epoch) | First epoch within 0.005 / 0.002 of best | Stop |
-  |---|---|---|---|---|
-  | 1 | 0.860 / 0.867 / 0.867 / 0.869 / 0.872 | 0.872 (119; nnU-Net's > 0.001 rule: 0.871 at 89) | 78 / 89 | early stop, 119 |
-  | 2 | 0.846 / 0.855 / 0.858 / 0.871 / 0.875 | 0.875 (149) | 116 / 147 | ran all 150 |
-  | 3 | 0.849 / 0.856 / 0.853 / 0.860 / 0.860 | 0.862 (91) | 81 / 83 | early stop, 116 |
+**Arms** (TEM1 benchmark, simulation, candidates, test mice, recipe and 80 epochs unchanged from round 1):
+- **R6 oracle:** R1 + ignore on the footprints of candidates that are truly missed normals (benchmark truth; the ceiling of any selection model over these candidates, not a method).
+- **R4b:** R1 + soft down-weights from the corrected selection model (D-44–D-46), trainer `_softw`.
+- **R4h:** R1 + hard ignore on the top K = round(Σq) = 161 candidates by the same q.
+- **R1b:** R1 rerun (identical trainer, new name), the run-to-run noise yardstick.
 
-  - **No overfitting in any fold.** Validation loss never turned upwards; over the last 30 epochs it was still falling slightly (slope −0.0005 to −0.0011 per epoch) while train loss fell faster, so the train–val gap widened without validation getting worse.
-  - **Folds 1 and 3 plateaued at about 80–90 epochs.** The extra ~30 epochs each were early-stopping patience, costing about 1.2 GPU-h ≈ $1.5 per fold.
-  - **Fold 2 needed the full 150.** It gained +0.017 EMA after epoch 100, mostly in the final low-learning-rate phase (epochs 100–150), and was still improving at the end.
-  - **Caveat 1: the learning rate is tied to the 150-epoch schedule (poly decay).** "Epoch 85 was enough" in a 150-epoch run doesn't mean an 85-epoch run would match. A shorter run anneals sooner, and fold 2's late gain came from the annealing. Only a shorter-schedule run would show the true optimum; we don't need that run.
-  - **Caveat 2: pseudo Dice is nnU-Net's patch-sampled proxy, not our endpoint** (F1@0.5, g-MAE). Only the best and final checkpoints exist, so per-epoch endpoint scores can't be computed.
-  - **Verdict:** 150 epochs was right for T-21. B1 used the same recipe, so comparing with B1 requires it (D-03, H5). Early stopping already saved about 64 epochs (≈ $3) on folds 1 and 3. A blanket 100-epoch cap would have saved about $4 but cut fold 2 short (≈ −0.017 EMA).
-  - **Bearing on C3 (D-35, 80 epochs per arm): no change.** All C3 arms share the same schedule, so the comparison is fair even below the plateau. At epoch 80 of a 150-epoch schedule the EMA was 0.005–0.02 below its best, so 80-epoch arms will sit slightly below B1's absolute level. Report the arms against each other, not against B1's absolute numbers.
-- **16 Nov, T-25 image fingerprint done (Phase 1 part)** (`05-results` §8.1):
-  - **Choice made (research engineer):** the candidate rate is left out of the fingerprint, because it is H7's outcome and clustering on it would be circular.
-  - Our 266 images form 2 weak clusters (silhouette 0.31; bootstrap ARI median 0.96, 5th percentile 0.62): dense with low g vs sparse with high g, partly acquisition.
-  - TEM1 reproduces the Phase 0b proxy (ARI 1.0, a consistency check only).
-  - **New result vs expectation:** per background area the skip rate is similar across clusters (rate ratio 0.78 [0.58, 1.03]), but the provisional H7b count bias is **4.0% [3.0, 5.0] vs 9.2% [7.7, 10.9]**. The pooled 6.5% hides a two-fold difference.
-    - Expected: no structure, since the AG2 check found no density effect per area.
-    - Consequence: H7b is reported per cluster as well as pooled (D-37 already requires that). No rule changes.
-  - Cluster labels are saved for H8 and the H6 limitations in Phase 2.
-  - **Phase 1 status:** every task we can do ourselves is done. T-20 (expert ratings) and the confirmatory H7 (T-23, needs those ratings plus expert-traced rings for H7a/H7c) wait on the expert, so Gate 1 waits only on the expert.
-- **16 Nov, Phase 2 started (owner: "on towards phase 2"; Gate 1 still waits on the expert, and Phase 2's outside-data work doesn't depend on it).**
-  - **T-17 on TEM1** (`scripts/run/phase2_t17_h6.py`; ASTIH's released model via `nnUNetPredictor` on the M4/MPS, 8 images, 6 min, no Modal cost):
-    - Dice **reproduces exactly**: 0.9744 / 0.9243 (published 0.974 / 0.924).
-    - F1 does **not** reproduce with a correct watershed (0.905 vs 0.791). Cause found: ASTIH's evaluation script feeds (1, H, W) arrays to ADS's watershed, which turns each seed into a full image row. Replicating that gives **0.792 / P 0.748** (published 0.791 / 0.747). So the evaluator is validated, and the gate is judged passed (**D-38**).
-    - A further 91 of 615 ASTIH-scheme predicted instances are axon-only specks (median 1 px) that a paired-fiber evaluator doesn't count.
-  - **H6a/H6b on TEM1** (our evaluator, GT `astih_to_pairs` with border fibers scored, ring candidates ds 4, px 2.36 nm):
-    - F1@0.5 **0.979** (501 TP, 19 FP, 2 FN; 21 errors in all).
-    - **H6a holds at the pre-registered setting:** strict selection share 0/21 = **0%** (≤ 5%), broad (0 + 7)/21 = **33%** (≤ 39%; image-bootstrap CI 12–56%).
-    - **Fragile:** at the ds 3 sensitivity 2 FPs become unlabelled_real, so strict = 9.5% and H6a fails there. With only 21 errors, any reading is weak.
-    - **H6b holds:** the top FP class is split_piece (11 of 19), not unlabelled_real. Nine of those are 1–93-px axon specks seeded by the centroid watershed (post-processing debris); 2 are real splits. The other 7 FPs are other_bg objects of real size (to check by eye). 33% of errors touch the image border.
-    - **Reading:** on near-complete labels a good model makes almost no selection errors. Its few errors are post-processing debris and a handful of unlabelled objects. This fits C1's mechanism, with the fragility stated. TEM1's "low precision" was an evaluation artefact (D-38), not a phenomenon to explain.
-    - **Not pre-registered:** the planned TEM1 separation-share expectation was not written before this run. That item is closed as missed; the 11 split pieces are reported descriptively.
-  - **Power check for H8:** thin fibers (GT g > 0.85) in proxy cluster 2 = **261** across 6 mice (24–65 each); cluster 0 = 141; cluster 1 = 92. A held-out fold of the 6 cluster-2 mice plus 2 control-like mice (proposed: 26, ASTIH's test mouse, and 27) has ≈ 290 thin fibers, enough for the ±0.10 recall-gap rule.
-  - **Blocked on the owner:**
-    - TEM2's model is not yet downloaded (≈ 250 MB from GitHub; download needs approval).
-    - Tranche B0 (B1 zero-shot inference ≈ $1, timing run ≈ $0.4, TEM1 reference ≈ $7.7) has "Gate 1 passed" as its opening condition, which hasn't happened yet.
-- **16 Nov, T-17 and H6c on TEM2** (owner approved the TEM2 model download, 1.73 GB, 5-fold ensemble, checkpoint_best, labels myelin 2 / axon 3; 21 test ROIs on the M4, 3 min):
-  - **Gate passed:** Dice 0.9717 / 0.9294 (published 0.971 / 0.929). F1 0.947 by ASTIH's as-run path (published 0.949) and 0.960 with point seeds, both within ±0.03.
-    - D-38's explanation now reproduces the published F1 on both sets to ≤ 0.002. The row-seed artefact costs little on 600² ROIs (−0.013) and a lot on TEM1's 2286×3762 frames (−0.113).
-  - **H6c holds:** F1@0.5 0.976 (287 TP, 9 FP, 5 FN). Strict selection share 0/14 = **0%**, broad 1/14 = **7%**, identical at ds 1, 2 and 3.
-    - With border fibers ignored: 3 errors, 0% / 33%.
-    - 86% of errors touch the ROI frame; the top FP class is low_iou (5 of 9).
-  - **Combined reading (TEM1 + TEM2):** on both near-complete outside sets the released models make 14–21 errors per test set, and almost none are selection (0–2). On ours, B1 makes 331 errors on dev, 79% broad selection.
-    - C1's mechanism replicates: selection errors scale with label incompleteness.
-    - Caveat for the paper: the error counts are small, and the models are in-domain (trained on the same lab's data). B1 zero-shot on the same sets (H8, running) is the cross-domain check.
-- **16 Nov, tranche B0 opened by the owner before Gate 1** (asked in chat: "Open B0 now"; reason: nothing in B0 depends on the expert ratings, and the TEM1 run is shared with T-24).
-  - **B1 zero-shot inference** on TEM1 (158), TEM2 full images (10), TEM2 test (21) and AxonPath (20). Inputs were rescaled to 2.152 nm/px locally (`phase2_t22_prep_inputs.py`). Modal L4, fold-0 B1, checkpoint_final; TEM1 probabilities kept on the Volume for t_k.
-    - The TEM1 app was cut off at 146/158 when the local client lost its connection. The 12 missing cases were re-run alone, with no duplicate work.
-  - **D-39 (research engineer):** the TEM1 reference uses B1's recipe at a **fixed 150 epochs without early stopping** (`nnUNetTrainer_150epochs_ckpt10`).
-    - Its nnU-Net validation fold is the 8 held-out test mice, so early stopping (or `--val_best`) would choose on the test set. The fixed schedule chooses nothing on them.
-    - Cost ≈ 6.1 L4-h ≈ $7.4.
-    - Same images as B1 (2.152 nm grid); B1's plans moved to dataset 502; 94 training images (12 mice) / 64 held-out (8 mice).
-  - **B1 zero-shot scores (`scripts/run/phase2_t22_h8.py`, D-11 pairing, our evaluator):**
+**Endpoint: frontier excess.** For an arm with normal recall ρ and violation v, E = ρ − [ρ₁ + (ρ₂ − ρ₁)(v − v₁)/(v₂ − v₁)], where (ρ₁, v₁) and (ρ₂, v₂) are R1 and R2 (round 1). E > 0 means the arm buys more recall than uniformly ignoring candidates would at the same protocol cost. Round 1 for reference: E(R3) = +0.0045 [−0.0035, +0.0147], E(R4) = +0.0022 [−0.0031, +0.0089] (R4 was a near-uniform down-weight, which supports the line as the "no selection" baseline). Noise N = |E(R1b)|. CIs: paired mouse bootstrap, 1,000 resamples, seed 0 (`t24_score.py`).
 
-    | Set | Fibers | F1@0.5 | Errors | Strict / broad selection share | Recall thin (g > 0.85) / normal | Gap |
-    |---|---|---|---|---|---|---|
-    | TEM1 (all 20 mice) | 7,853 | 0.930 | 1,060 | 0.1% / 3.6% | 0.728 / 0.914 | −0.186 |
-    | TEM1, 8 held-out mice | 3,029 | | | | 0.751 / 0.947 | **−0.196 [−0.274, −0.155]** |
-    | TEM2 full images | 4,234 | 0.931 | 568 | 1.9% / 10.7% | 0.657 / 0.911 (35 thin) | −0.254 |
-    | TEM2 test ROIs | 292 | 0.946 | 31 | 0% / 9.7% | 1.0 / 0.936 (9 thin) | +0.064 |
-    | AxonPath CC | 2,009 | 0.947 | 207 | 0.5% / 3.4% | 0.781 / 0.958 (503 thin) | −0.177 |
+**Rules.**
+- **H10a:** CI lower bound of E(R6) > 0 and E(R6) > N.
+- **H10b (primary method):** CI lower bounds of E(R4b) and of E(R4b) − E(R3) > 0, and E(R4b) > N.
+- **H10c (secondary):** the same for R4h.
+- **Robustness:** each verdict must also hold with R1b as the line's low end; if not, it is reported as "not robust".
 
-  - **C1, strongest single result so far:** the *same* model (B1) has 79% broad selection on our dev images but **3–11% on all four near-complete outside sets**. Model, recipe and post-processing are held fixed and only the labels change, so selection errors follow the labels.
-  - **H8 is not decided yet.** B1 misses thin fibers more often (gap −0.18 to −0.25 on the three large sets). Whether that comes from selective training labels or from thin fibers simply being harder needs the complete-label reference on the same held-out mice (`--compare`).
+**Interpretation, fixed now.**
+- H10a fails → selection-gated ignore cannot beat uniform ignore on this benchmark even with perfect selection; C3 as a methods paper is dropped and T-24 is reported as a benchmark result in C1.
+- H10a holds, H10b and H10c fail → the idea works in principle but the selection model is the bottleneck; C3 = benchmark + ceiling result, no method claim.
+- H10b or H10c holds → C3's methods route is alive (corrected selection model); before any paper claim, it needs a second seed of the winning arm and of R2/R3 (new budget).
 
-- **16 Nov, B0 overrun and cap raised to $12 (owner decision, asked in chat).**
-  - Modal billing for 16 Nov showed **$4.02** already spent in B0 (TEM1/TEM2 ASTIH inference, B1 inference on the four outside sets, the timing run), against ≈ $1.4 estimated. The gap: CPU + memory add ≈ $0.41/h on top of the L4's $0.80/h (≈ $1.21/h all-in), and the TEM1 predict app was run twice (the 12-case rerun).
-  - Dataset502 upload: the first `upload_dir.py` run hung at 400/474 for ~6 h (0 CPU progress); restarted, finished 76 remaining files in minutes. All 474 + plans + splits verified on the Volume.
-  - **Timing run** (D502, 2d_bigpatch, fold 0, 5 epochs): epoch 0 377 s (warm-up), epochs 1–4 **143.5 s**; GPU mean util 73%; EMA pseudo-Dice 0.774 at epoch 4. 150 epochs ≈ 6.1 h + final validation ≈ 6.3 GPU-h ≈ **$7.6**, which would overrun the $9.5 cap by ≈ $2.2.
-  - Options put to the owner: raise cap to $12 / cut to a fixed 100 epochs / hold. **Owner chose: raise B0 to $12.** D-39 (fixed 150 epochs, no early stopping) is unchanged.
-  - **Reference run launched** (`nnUNetTrainer_150epochs_ckpt10`, `--max-gpu-hours 6.6`, app `ap-CcHTABHVeSvb40kioFGOgh`); worst case B0 total ≈ $4.02 + 6.6 × 1.21 ≈ $12.0. Project total after it ≈ $40 of $75.
-  - **Lesson for later tranches:** estimate at $1.21/h all-in for L4 jobs, not the GPU rate alone. Tranche B's $16.4 estimate must be redone at this rate before it opens.
+**Expectations, stated before training.** R6: clearly positive (≈ R2's recall at ≈ R1's violation; E ≈ +0.02). R4b: small (weights 0.68 vs 0.89; E ≈ +0.003–0.006), likely not past N or the R3 test, so H10b likely fails. R4h: between (E ≈ +0.008–0.012), uncertain. R1b: E ≈ 0 ± 0.005.
 
-- **18 Nov, TEM1 reference finished and H8 decided (T-22 done).**
-  - Run `ap-CcHTABHVeSvb40kioFGOgh` completed all 150 epochs (16 Nov 17:57 → 17 Nov 00:11, ≈ 145 s/epoch). Validation Dice axon 0.962 / myelin 0.892 on the 8 held-out mice.
-  - **H8 holds:** gap_B1 − gap_ref = **−0.178 [−0.258, −0.138]** (B1 gap −0.196; reference gap −0.018). Details and the domain-shift confound in `05-results.md` §9.
-  - **B0 actual cost $11.91** (16 Nov $11.52 + 17 Nov $0.38), inside the raised $12 cap. Project total **$40.23 of $75**. B0 closed.
-  - The reference checkpoint stays on the Volume; it is the shared complete-label arm for T-24 (C3).
-  - Next: Phase 3a (H5a/b/c on the 213 non-dev images with frozen H5c). Tranche B must be re-costed at $1.21/h before it opens.
+**Known confounds.** R1, R3 and R4 trained on L4, R2 and all round-2 arms on A10G (same recipe and data; R1b on A10G against R1 on L4 measures seed + GPU noise together). The selection model and K use the expert subset of round 1 (same 101 candidates, seed 0).
 
-- **18 Nov, status snapshot after Phase 2 (given to the owner in chat; recorded here in full).**
-  - **Modal account check:** every GPU command runs with `MODAL_PROFILE=muhammadfaheem-mansha`; `modal profile current` under that pin returns `muhammadfaheem-mansha`. The machine's *default* profile is `i220485`, so an unpinned command would bill the wrong account; this is why the pin is mandatory (`06-compute-and-reproduce.md` §3).
-  - **Phase status:**
-
-    | Phase | What it is | Status |
-    |---|---|---|
-    | 0 / 0b | Setup, data checks, finding the problem | Done |
-    | 1 | Build B1 and measure it properly (T-21, T-25) | Done except the expert-dependent tasks (T-20, T-23); Gate 1 waits on the expert |
-    | 2 | Test the claim on other labs' datasets (T-17, H6, T-22/H8) | **Done 18 Nov** |
-    | 3a | Final paper-1 numbers on the 213 non-dev images (H5a/b/c, frozen H5c `7c673ca`; 3-fold C1 numbers) | Next; CPU only, no GPU cost |
-    | 3b | Paper 2 (C3) experiments: T-24 pilot, H9 | Later; needs tranche B (re-cost at $1.21/h first) |
-
-  - **Key findings in plain terms:**
-    1. *The problem:* the challenge labels don't mark every fiber; annotators labelled some and left others blank, and a model trained on them learns that skipping is correct.
-    2. *It's the labels, not the model:* the same B1 has 79% of its "errors" in the selection category (right fiber, label skipped it) on our data, but only 3–11% on three near-completely labelled outside datasets (TEM1, TEM2 full/test, AxonPath). Paper 1's central result.
-    3. *B1 learned to skip thin fibers (H8):* B1 finds 75% of thin-myelin fibers vs 95% of normal ones; a complete-label reference finds 97% vs 99%. Thin fibers are barely harder; most of B1's shortfall is learned from the labels. Biologically this matters: thin myelin marks damage or repair, so such a model undercounts exactly the fibers researchers care about.
-    4. *Side finding (D-38):* ASTIH's published TEM1 F1 0.791 comes from a seed bug in their evaluation script; with point seeds it is ≈ 0.90.
-  - **Publication standing:** C1 (analysis paper) ≈ three-quarters evidenced, up from ≈ two-thirds on 16 Nov; both main findings now have outside evidence. Limitation to state: B1 was out of domain on TEM1 while the reference was in domain, so part of the thin-fiber gap could be domain shift; T-24 (same images, labels made selective on purpose) removes this, and it reuses the reference checkpoint already on the Volume. C3 (methods paper): no results yet; tranche B (≈ $16.4 at GPU-only rate) is re-costed at $1.21/h before the owner is asked to open it.
-  - **Budget:** $40.23 of $75 (B0 $11.91 within its $12 cap).
-  - **Owner actions outstanding:** find the expert (T-20 + addendum); organiser permission email (T-19); decide whether to tell the ASTIH authors about the seed bug.
-  - **Next:** Phase 3a, run locally at no GPU cost.
-
-- **19 Nov, Phase 3a started; H5b's reduction share defined before scoring (no T-21 non-dev result has been looked at for H5).**
-  - §7.2 gives H5b's second part ("≥ 50% of O-sep's total |g error| reduction comes from fibers defective in the base prediction") but its dev value was "never computed", so the operational definition was never written. Fixed now, before any non-dev H5 number exists:
-    - Unit: GT fibers matched (IoU > 0.5) in **both** base and O-sep. Reduction per fiber = |g_err_base| − |g_err_O-sep|. Share = sum over fibers whose *base* predicted fiber is defective (ring Euler ≠ 0, axon touches background, or axon > 1 component; `day5_analysis.py` flags) ÷ sum over all such fibers. Fibers matched in only one condition are reported separately (count and their |g error| sum) as a sensitivity, not part of the rule.
-  - H5a/H5c computed as §7.2: fiber-weighted g-MAE with equivalent-circle g at IoU > 0.5; 1,000-resample paired cluster bootstrap over overlap groups (D-22); H5c guards on the lower CI bounds of ΔF1@0.5 and Δrecall (micro).
-  - Base = D-11 `semantic_to_paired_instances` on the T-21 out-of-fold semantics; H5c = frozen `semantic_to_paired_instances_h5c` (7c673ca, unchanged since).
-  - Same run gives D-03's 3-fold C1 numbers on all 266 out-of-fold images (taxonomy shares, O-sel strict/broad, O-sep gains); the 53 dev images are included there because C1 is not an H5 claim.
-
-- **19 Nov, tranche B re-costed; correction to the 16/18 Nov entries.**
-  - The 16 and 18 Nov entries said tranche B's ≈ $16.4 "was costed at the GPU rate alone" and must be redone. **That was wrong.** D-36's per-run figure (≈ $4.1 per 80-epoch arm) already used T-21's billed all-in rate (≈ $1.21/h): 80 × ≈ 145 s ≈ 3.2 h + final validation ≈ 3.4 h × $1.21 ≈ $4.1. The Dataset502 timing run (143.5 s/epoch, 18 Nov) confirms the per-epoch time for TEM1.
-  - **Where B0's overrun really came from:** the inference items (ASTIH TEM1/TEM2 prediction, B1 on four outside sets; estimated "≈ $1" with no timing basis) cost ≈ $3.6, including one rerun of the TEM1 predict job. Training estimates were accurate (reference: ≈ 6.3 h, ≈ $7.6 est. vs ≈ $7.9 actual).
-  - **Tranche B now:** R1–R4 at 80 epochs ≈ 4 × $4.1 ≈ $16.4; the held-out-mouse predictions come from each arm's final validation (no separate job). Cap $17 leaves ≈ $0.6 of margin, so **any extra inference (e.g. TTA or a fold ensemble for t_k) must be timed and costed before it runs**, and each arm is launched with `--max-gpu-hours 3.5`.
-  - Budget left: $75 − $40.23 = $34.77 against caps B $17 + C $15.3 = $32.3.
-  - The 18 Nov status snapshot and the self-study Q&A carry the same wrong sentence; they are corrected by this entry (status snapshot) and an added Q&A note.
-
-- **19 Nov, Phase 3a scored (H5 + 3-fold C1).** `scripts/run/phase3a_h5.py` on 266 out-of-fold images, local M4 (6 workers ≈ 20 min, owner approved the local run). Smoke test on 2 images first (sample_0002, sample_0100; numbers only used to time the run).
-  - **H5a holds:** O-sep −52.7%, Δg-MAE −0.0085 [−0.0096, −0.0073]. **H5b holds:** defective 25.4% of fibers, 49.0% of \|g error\|, 61.5% of O-sep's reduction. **H5c fails:** frozen rule captures 27.7% of O-sep's gain (needed ≥ 50%); its Δg-MAE CI excludes 0 and both guards pass. Dev's in-sample 54% shrank to 28%, as §7.2 anticipated.
-  - **Gate 3a = row 3 of §7.2: "C2 for morphometry becomes a candidate (new budget decision)".** Not started: it needs an owner decision on budget (remaining $34.77 vs caps B $17 + C $15.3 = $32.3; a C2 run would compete with C3).
-  - **3-fold C1 numbers (D-03):** all 266: F1 0.892, broad selection 79.5%, strict 16.0%, separation 3.8%; O-sel broad +0.084 F1 [0.074, 0.094] vs O-sep +0.003. Dev headline (78.9%) replicates.
-  - Expectation vs result: H5c expected to shrink (stated 16 Nov); it shrank below the bar. Expectation is not rewritten.
-  - Remaining Phase 3a item: exploratory AxonPath repeat (our models only).
-  - **Exploratory AxonPath repeat done** (`05-results` §10.3): O-sep −24.6% [21.1, 28.9], H5c captures 13% [−4, 29], defects carry 39% of g error. Grouping still matters out of domain but less; context only. **Phase 3a complete except the Gate 3a budget decision.**
-
-- **19 Nov, owner decisions after Phase 3a:** **D-40** C2 deferred (H5 reported in C1 as a measurement finding); **D-41** C3 CPU prep now, tranche-B GPU only after the owner confirms a timed cost. Next IDs: D-42, T-26, H10.
-
-- **19 Nov, D-42: T-24 operational choices (fixed before any T-24 label, candidate or weight is built; none has been).**
-  - **Fiber unit and stratum:** fibers = complete pairs from `astih_to_pairs` on the native TEM1 grid; g = √(axon area / fiber area); eccentricity of axon ∪ myelin (`regionprops`). Stratum = g > 0.85 or g < 0.65 or eccentricity > 0.9 (§7.6). Deleted fibers become background (0) in both compartments; ignore-label (border/incomplete) pixels stay 3. Then resized to the 2.152 nm grid exactly as Dataset502 (nearest).
-  - **Deletion draw (seed 0):** each training stratum fiber deleted with p = 0.9; each remaining training fiber with p = 0.07. Test mice keep full labels (scoring uses protocol truth = full − stratum).
-  - **Second labelling draw (r̂):** 136 random non-stratum training fibers; draw 1 = their simulated status, draw 2 = independent Bernoulli(0.93). r̂ from discordance among fibers labelled at least once, P(disc) = 2(1−r)/(2−r). r sweep 0.88–0.96 is a CPU sensitivity on q, not an extra GPU arm.
-  - **Candidates (training images, 2.152 grid):** union of (i) D-18 `ring_candidates` holes on the simulated labels (ds 4, px 2.152) and (ii) B1 zero-shot paired instances (D-11) overlapping no remaining labelled fiber by ≥ 50% of their area. A hole inside a B1 instance takes that instance's footprint; a hole with none is dilated by 0.43 × its equivalent radius (g ≈ 0.7). Footprints are dilated 2 px into background only; overlapping candidates are merged.
-  - **t_k:** mean B1 zero-shot fiber probability (1 − p_background) over the footprint (B1's mirrored inference from T-22), **Platt-calibrated** on the simulated expert subset (real fiber vs not). This replaces D-37's "temperature scaling on dev" for T-24, because dev is another domain; on our data (R7) D-37's rule stands.
-  - **Simulated expert subset:** 101 random training candidates (T-20's size), labelled from the complete GT as missed-normal / stratum / not-a-fiber (candidate overlapping a GT fiber by IoU ≥ 0.5 = real).
-  - **a(x):** L2 logistic regression, stratum vs normal, on the expert subset's real fibers, features from the **same pipeline for every fiber** (B1 semantics inside the footprint): equivalent g, outer diameter, myelin thickness, eccentricity, solidity, ring contrast. AUC of â vs the true stratum is reported on all candidates.
-  - **q_k = t(1−a)(1−r̂) / (1 − t(1−a)r̂)**; R4 weight w_k = 1 − q_k on the candidate's background pixels; labelled pixels weight 1.
-  - **Arms:** R1 = simulated labels. R2 = R1 + every candidate footprint's background pixels → ignore (3). R3 = R2's footprints moved, per image, to random positions lying wholly on R1 background (same pixel budget, seed 0). R4 = R1 labels + a weight channel (0–100, ÷100 in the trainer) multiplied into CE (reduction none) and the Dice `loss_mask`.
-  - **No per-image random effect in T-24 (deviation from D-37's T-24 line):** the simulated omission is i.i.d. across images by construction, so a random effect would only estimate zero variance. It stays in the selection model for our data (R7), where the 2.2× over-dispersion was observed.
-  - **Storage:** arm label sets are made locally; preprocessed seg files are rebuilt locally; image files are copied on the Volume server-side from Dataset502 (identical pixels and plans), so only seg files are uploaded.
-
-- **19 Nov, T-24 CPU build (D-41/D-42/D-43).**
-  - **Simulation** (`t24_simulate.py`, `results/phase3b/t24_sim_summary.json`): training 94 images / 12 mice / 4,824 fibers; stratum 1,214 (thin 355, thick 578, oblique 532); deleted 1,081 stratum + 230 random = 27% of training labels. Test 64 images / 8 mice: 2,179 known-positive normal fibers, 850 stratum. Second draw: r̂ = 0.953 (true 0.93).
-  - **Probabilities:** B1 zero-shot softmax for the 94 training images downloaded from the Volume (≈ 10 GB, free egress; two corrupt downloads caught by a full-decompression check and re-fetched).
-  - **Candidates** (`t24_candidates.py`): 1,169 (B1 1,133 + D-18 36): 215 missed normals (93% of random deletions), 834 stratum (77%), 120 not fibers. Raw t AUC real-vs-not 0.89.
-  - **Selection model** (`t24_build_arms.py`, `t24_selection_summary.json`): expert subset 101 (93 real, 76 stratum). â AUC stratum vs normal 0.74 (eccentricity and low g dominate). **D-43 correction:** q = t(1−a); mean q missed normal 0.24 / stratum 0.15 / not-fiber 0.06; AUC of q for missed normals 0.76. Under D-35's formula the means were 0.017 / 0.010 / 0.003 (R4 would have equalled R1).
-  - **Arms:** R2 ignores 97.2 M pixels; R3 97.0 M (D-43 construction); R4 down-weight levels median 4/20 on missed normals, 2/20 on stratum, 1/20 on not-fibers.
-  - **Trainer:** `nnUNetTrainer_80epochs_ckpt10` (R1–R3), `_softw` (R4). Unit tests: loss equals nnU-Net's at weight 1; zero-weight pixels get no gradient. Local MPS smoke (4 cases, small patch): 2-channel targets pass all 6 deep-supervision scales, weight levels stay integral 0–20 through augmentation (25 batches), train/val steps run.
-  - **Expectation, stated now:** the q separation is modest (AUC 0.76), so any R4 advantage over R2 will be small; the design report's theory (gains only on ambiguous fibers) predicts the same. H9 is not changed.
-  - **Scoring script** `t24_score.py` written before any arm is trained.
-
-
-- **19 Nov, paused by the owner.** All local processing, downloads and GPU work paused; nothing running locally or on Modal. Two decisions deferred to a later discussion: (1) local preprocessing of the four T-24 arm datasets (`t24_nnunet_datasets.py`, ≈ 30–45 min CPU, ≈ 15 GB); (2) opening tranche B (R4 first with a live timing check, then R1–R3, each capped at 3.5 GPU-h; expected $16.40, worst case $16.94 vs cap $17; project would reach ≈ $57 of $75). Spend unchanged at $40.23.
-
-- **23 Nov, resumed by the owner ("continue from where we left off … continue working with [the Modal account]").** This opens the two decisions deferred on 19 Nov: local preprocessing of the T-24 arms and tranche B.
-  - **Audit of "done" work before resuming:** working tree clean and in sync with origin; nothing running locally or on Modal; T-24 intermediates complete (158 cases = 94 train + 64 test in gt_pairs, labels_R1, arms R1–R4 and R4_d; 94 candidate maps and 94 B1 probability files; 64 reference predictions); Dataset502 complete on the Volume (474 preprocessed files); Phase 3a and 3b result files present. Modal profile confirmed `muhammadfaheem-mansha`.
-  - **Preprocessing** (`t24_nnunet_datasets.py`): Datasets 503–506 built in ≈ 6 min (not the 30–45 min estimated). The script's byte-identity check on image files printed False: the blosc2 containers differ in bytes, but a full decode shows **pixels and case properties (bbox, spacing, shapes) equal to 502's for all 632 image files**, so the server-side copy from 502 stays valid.
-  - **Label check:** every arm's preprocessed seg equals its label map inside the crop box; the 64 test cases equal 502's labels in every arm (including the original TEM1 ignore label 3, which the test GT already carries; R1's 0.73 M ignore pixels are those, not simulation); R4's second channel equals the d map on training cases and is 0 on all test cases.
-  - **Upload:** the Volume is V1, so `modal volume cp -r` is unavailable; seg/pkl/json/gt files are uploaded with `upload_dir.py` and the 158 image files are copied by name from 502. `upload_dir.py` hung once again (40 files, then no progress for 10 min); it now runs under a 480 s watchdog with resume, and gained a `--no-skip` flag for folders seeded from another dataset.
-  - **R4 dataset on the Volume** (Dataset506): 636 files, every size equal to the local file (seg/pkl/json/gt) or to 502's image file. R1–R3 uploads follow the same path. Tranche B launch (R4 first, `nnUNetTrainer_80epochs_ckpt10_softw`, `--max-gpu-hours 3.5`) is waiting for an explicit go from the owner in chat; no GPU spend yet. Spend unchanged at $40.23.
-- **23 Nov 15:00 PKT, tranche B opened by the owner ("Go and proceed. Run all of the next and remaining modal processes").** All four arms launched detached on L4, each `--max-gpu-hours 3.5` (worst case $16.94, cap $17): R4 `ap-t3vx2mYmeNopKqhDJz2Mpp` (506, `_softw`), R1 `ap-Q4SoeVOt23g5ROHnkaEKup` (503), R2 `ap-ZzIqZnHO8GAGIaiLNg7Phu` (504), R3 `ap-ATk1IkayOieIQemLeGFfcg` (505). R1 and R2 started training at once; R4 and R3 were queued for L4 capacity (no cost while queued). Next: when each finishes, download fold_0/validation PNGs to data/predictions/t24/R*/, run `t24_score.py`, decide H9; record billed cost.
-- **24 Nov, tranche B status and R1/R2 rerun.**
-  - **R3 and R4 completed** (80 epochs, ≈ 148 s/epoch, ≈ 3.45 h each; final validation Dice R3 0.883, R4 0.886 on the 8 test mice; billed $4.21 and $4.18).
-  - **R1 and R2 were killed after 1–2 epochs (my error).** Both stopped at ≈ 15:10 PKT on 23 Nov, the moment the four local `modal run --detach` clients were killed to let the owner close the IDE; the ledgers show a single attempt each. R3/R4 were still queued for an L4 then and were unaffected. **Lesson:** killing a `modal run --detach` client can stop a running call; launch long jobs with `modal deploy` + `Function.spawn` (no local process involved). Billed $0.13 + $0.19.
-  - **Tranche B cap raised to $17.5 by the owner** (asked in chat): spent $8.70; R1 + R2 rerun ≈ $8.40 (worst $8.47) → ≈ $17.1–17.2. Project ≈ $57.4 of $75 when done.
-  - **Rerun:** partial fold_0 folders and spent ledgers for 503/504 deleted on the Volume; app deployed (`ap-PkhNi1laCdNbA0wE6vUqDR`); spawned `fc-01M84YK73H3RTQ8HC2GJF142AP` (R1) and `fc-01M84YK7BSAPGJJ3WY59NB3QTA` (R2), each `--max-gpu-hours 3.5`; queued for L4 at 00:37 PKT.
-  - **Interim scores (R3, R4, reference; H9 not decidable until R1/R2):** normal recall R3 0.971, R4 0.973, ref 0.995; violation R3 0.707, R4 0.744, ref 0.958; hard-normal recall R3 0.950, R4 0.964, ref 0.988; protocol F1 R3 0.840, R4 0.839, ref 0.819; g-MAE R3 0.029, R4 0.026, ref 0.021. R4 − R3 on the primary is +0.003 (small, as stated before training). Not interpreted further until all arms are in.
-- **24 Nov, R2 moved to A10G (owner: "if L4 is not free … move to the next available option"; budget available ≈ $32).** R1 (`fc-01M84YK73H3RTQ8HC2GJF142AP`) got an L4 and is training. R2's L4 call was still queued, so it was cancelled and respawned on **A10G** (`fc-01M85078CY44FTWP2Q0Y777HK1`, `with_options(gpu="A10G")`; Modal's `with_options` takes one GPU type, not a fallback list) with `--max-gpu-hours 4.5`, since A10G speed for this job is untimed (worst case ≈ 4.5 h × ≈ $1.5/h ≈ $6.8). **Deviation to report:** R2 trains on a different GPU from R1/R3/R4; same plans, batch size, epochs and seeds-policy, so only floating-point nondeterminism differs (already present between any two runs). `results/phase3b/t24_scores.json` currently holds the interim R3/R4/ref scores; it is overwritten by the full run.
-- **24 Nov, T-24 complete; H9 fails (pre-registered rule applied as written).**
-  - **Runs:** R1 (L4, 80 epochs, ≈ 142 s/epoch, val Dice 0.871) and R2 (A10G, 80 epochs, ≈ 98 s/epoch, preempted twice and resumed from the epoch-30 checkpoint each time, val Dice 0.911) finished; all four arms have the 64 test-mouse predictions. The A10G was ≈ 1.45× faster than the L4 for this job; worth considering for later runs.
-  - **Cost:** tranche B billed **$16.64** (R3 $4.21, R4 $4.18, killed R1/R2 $0.32, rerun R1+R2 $7.93) against the raised $17.5 cap. **Project spend $56.87 of $75; $18.13 left.**
-  - **Scores** (8 held-out mice; 2,179 normal, 850 stratum, 727 hard-normal test fibers; `results/phase3b/t24_scores.json`):
-
-    | Arm | Normal recall | Violation | Hard-normal recall | Protocol F1 | g-MAE |
-    |---|---|---|---|---|---|
-    | R1 naive | 0.961 | 0.667 | 0.952 | 0.841 | 0.028 |
-    | R2 hard ignore | **0.987** | 0.855 | **0.977** | 0.832 | **0.023** |
-    | R3 random ignore | 0.971 | 0.707 | 0.950 | 0.841 | 0.029 |
-    | R4 selection-gated soft | 0.973 | 0.744 | 0.964 | 0.839 | 0.026 |
-    | Reference (full labels) | 0.995 | 0.958 | 0.988 | 0.819 | 0.021 |
-
-  - **H9 decision: fails on all three conditions** (above). No rescue analysis replaces the rule.
-  - **What it means (descriptive, not a new hypothesis):** on this benchmark, the one lever that matters is *how much* of the candidate background stops being taught as background. R2 removes all of it and recovers most of the normal-fiber recall lost to omission (0.961 → 0.987 of the reference's 0.995), but it also brings back the protocol-excluded fibers (violation 0.667 → 0.855), because the candidate set is 71% stratum fibers and ignoring them removes the only signal that they should be left out. R4 down-weights only partly (mean weight loss ≈ 0.15–0.24), so it lands between R1 and R2 on both axes, and is no better than spending the same ignore budget at random (R3). With â AUC 0.74 and q AUC 0.76, the selection model did not separate missed normals from protocol exclusions well enough to get the recall of R2 without its violations. The expectation written on 19 Nov (small gain at most) was borne out on the R3 comparison; the R2 comparison is a clear loss.
-  - **Caveats:** one seed per arm; R2 trained on a different GPU type (A10G) from R1/R3/R4 (same recipe and data; only numerical nondeterminism differs); the simulated omission is an idealisation (i.i.d., known stratum).
-  - **Consequence for C3:** the paper as designed (selection-gated soft ignore beats hard ignore) is not supported by the pilot. Options for the owner, not decided here: (a) drop C3 as a methods paper and fold T-24 into C1 as evidence that selective omission is learnable and that hard ignore trades violations for recall; (b) a new, separately pre-registered variant (e.g. a better a(x), or hard-ignore gated by â) — would need a fresh hypothesis and budget; (c) write T-24 up as a benchmark/negative-result contribution. Tranche C does not open.
-- **24 Nov, post-hoc audit of why R4 lost (owner: "probe deeper … error, oversight … understanding and code"). Exploratory; the H9 decision stands.**
-  - **Code: no bug found.** `SoftWeightDCCE` equals nnU-Net's loss at weight 1, gives zero-weight pixels no gradient (tests), weight levels survive augmentation (smoke run), preprocessed weight channel equals the d map (23 Nov check), the direction is right (high q → low weight), validation strips the channel.
-  - **What R4 actually did:** pixel-weighted mean weight on missed normals **0.73** vs on stratum fibers **0.76** (not-fibers 0.92); only 6% of missed normals got weight ≤ 0.5. R4 was in effect a uniform ≈ 25% down-weight of all candidates, i.e. a mild R2, which is why it sits on the R1–R2 line: recall above that line at its own violation R4 +0.002 [−0.003, +0.009], R3 +0.005 [−0.004, +0.015] (neither beats the trade-off).
-  - **Oversight 1, model form (ours):** a(x) was **linear** in g, but the stratum is two-sided (g > 0.85 **or** g < 0.65, or ecc > 0.9); a linear term cannot express "too high or too low". The B1 features are accurate (corr with truth: g 0.92, ecc 0.93), so the features were not the problem. Same 101-candidate subset with band terms ((g − 0.75)², ecc above 0.8): â AUC 0.74 → 0.80, q AUC 0.76 → 0.82, pixel weight missed/stratum 0.70/0.79.
-  - **Oversight 2, too few examples:** the T-20-sized expert subset holds 93 real fibers of which only **17 normal**. With all 1,049 real candidates (5-fold CV, so leak-free), the same B1 features reach AUC 0.89 (band logistic) / 0.91 (boosting); with the true g/ecc the ceiling is 0.95. 38% of real unlabelled fibers lie within 0.03 of a g cut, so some confusion is irreducible.
-  - **Oversight 3, the hypothesis (ours):** H9 asked R4 to beat R2 on recall alone. R2 removes *all* background push on candidates, so on recall it is the ceiling of any weighting over the same candidates; R4 could only win by being better on the recall–violation trade-off, which H9 judged only through the R1-relative guard. A better-posed test: recall at matched violation (or the frontier), against R2, R3 and an oracle.
-  - **Oversight 4, statistics:** the CIs resample mice, not training runs; with one seed per arm, differences of ≈ 0.003 (R4 vs R3) are within likely seed noise.
-  - **Structural, not an error:** the benchmark makes missed normals 20% of real unlabelled candidates (stratum deleted at p = 0.9, others at 7%), so even a good posterior gives most candidates low q; the method can only help if a(x) is sharp.
-  - **Most informative next run (proposal, not started; needs a new pre-registered hypothesis and the owner's yes):** R6 oracle ignore (ignore exactly the missed normals, keep stratum as background), ≈ $3.3 on A10G. If even the oracle does not beat the R1–R2 frontier, the selection-gated idea is dead on this benchmark; if it does, a corrected a(x) (band terms, larger subset) is worth one more arm (≈ $3.3).
+**Tranche D (D-47).** 4 runs on A10G (≈ 98 s/epoch, ≈ $1.47/h all-in from R2's bill), 80 epochs, `--max-gpu-hours 2.8` each: est. ≈ $14, worst ≈ $16.5. Spend before: $56.87; worst after ≈ $73.4, inside the $75 workspace limit. Launched with `modal deploy` + `Function.spawn` (never a local client holding the run).

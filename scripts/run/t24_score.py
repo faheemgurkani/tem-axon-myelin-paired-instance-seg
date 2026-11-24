@@ -12,7 +12,15 @@ Per arm:
   same-pipeline features from B1 zero-shot semantics inside the GT footprint; fixed across arms);
 - protocol-truth F1@0.5 (stratum fibers removed from GT, so predicting them counts as FP), g-MAE with recall.
 H9: R4 − R2 > 0 and R4 − R3 > 0 on the primary (paired mouse bootstrap, 1,000 resamples, CI lower bounds > 0)
-and violation(R4) ≤ violation(R1) + 0.05.
+and violation(R4) ≤ violation(R1) + 0.05.  (Decided 24 Nov: fails.)
+
+H10 (round 2, pre-registered 24 Nov before any round-2 training; 07-plan §7.7): frontier excess
+E(arm) = normal recall − the R1–R2 line's recall at the arm's own violation rate (how much more recall an arm buys
+than uniformly ignoring candidates would at the same protocol cost). Noise yardstick N = |E(R1b)| (R1b = R1 rerun).
+  H10a (oracle R6):  CI lower bound of E(R6) > 0 and E(R6) > N.
+  H10b (R4b, primary method):  CI lower bounds of E(R4b) and of E(R4b) − E(R3) > 0, and E(R4b) > N.
+  H10c (R4h, secondary method): the same for R4h.
+Robustness: each verdict must also hold with R1b in place of R1 as the line's low end; otherwise "not robust".
 
     .venv/bin/python scripts/run/t24_score.py [--arms R1 R2 R3 R4 ref]
 """
@@ -35,7 +43,7 @@ from axon_myelin_seg.postprocessing.pairing import semantic_to_paired_instances
 REPO = Path(__file__).resolve().parents[2]
 T24 = REPO / "data/processed/t24"
 RES = REPO / "results/phase3b"
-PRED = {a: REPO / "data/predictions/t24" / a for a in ("R1", "R2", "R3", "R4", "R5", "R6")}
+PRED = {a: REPO / "data/predictions/t24" / a for a in ("R1", "R2", "R3", "R4", "R1b", "R4b", "R4h", "R6")}
 PRED["ref"] = REPO / "data/predictions/tem1ref"
 
 
@@ -86,7 +94,7 @@ def stats(fb: pd.DataFrame, im: pd.DataFrame) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arms", nargs="+", default=["R1", "R2", "R3", "R4", "ref"])
+    ap.add_argument("--arms", nargs="+", default=["R1", "R2", "R3", "R4", "R1b", "R4b", "R4h", "R6", "ref"])
     arms = [a for a in ap.parse_args().arms if any(PRED[a].glob("*.png"))]
     F = pd.read_csv(T24 / "fibers.csv")
     F = F[F.test]
@@ -130,6 +138,35 @@ def main() -> None:
                    "holds": bool(c42[0] > 0 and c43[0] > 0 and guard <= 0.05),
                    "hard_normal_R4_minus_R2_ci95": ci(lambda b: b["R4"]["hard_normal_recall"]
                                                       - b["R2"]["hard_normal_recall"])}
+    if {"R1", "R2", "R3", "R1b", "R4b", "R4h", "R6"} <= set(arms):
+        def excess(st, a, lo="R1"):
+            (r1, v1), (r2, v2) = ((st[x]["normal_recall"], st[x]["violation"]) for x in (lo, "R2"))
+            return st[a]["normal_recall"] - (r1 + (r2 - r1) * (st[a]["violation"] - v1) / (v2 - v1))
+
+        def ci(fn):
+            v = [fn(b) for b in boots]
+            return [float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))]
+
+        st = S["arms"]
+        H = {"excess": {a: excess(st, a) for a in ("R3", "R4", "R1b", "R4b", "R4h", "R6")},
+             "excess_ci95": {a: ci(lambda b, a=a: excess(b, a)) for a in ("R3", "R4", "R1b", "R4b", "R4h", "R6")},
+             "excess_lo_R1b": {a: excess(st, a, "R1b") for a in ("R3", "R4", "R1", "R4b", "R4h", "R6")}}
+        N = abs(H["excess"]["R1b"])
+        H["noise_N"] = N
+
+        def verdict(a, lo):
+            e = (lambda b: excess(b, a, lo))
+            c = ci(e)
+            if a == "R6":
+                return bool(c[0] > 0 and e(st) > N)
+            d = ci(lambda b: excess(b, a, lo) - excess(b, "R3", lo))
+            H.setdefault("minus_R3_ci95", {})[f"{a}|{lo}"] = d
+            return bool(c[0] > 0 and d[0] > 0 and e(st) > N)
+
+        for name, a in (("H10a", "R6"), ("H10b", "R4b"), ("H10c", "R4h")):
+            main_v, rob_v = verdict(a, "R1"), verdict(a, "R1b")
+            H[name] = {"holds": main_v, "robust_with_R1b_low_end": rob_v == main_v}
+        S["H10"] = H
     (RES / "t24_scores.json").write_text(json.dumps(S, indent=1, default=float))
     print(json.dumps(S, indent=1, default=float))
 

@@ -197,3 +197,8 @@ class nnUNetTrainer_80epochs_ckpt10_softw(nnUNetTrainer_80epochs_ckpt10):
         t = batch["target"]
         batch["target"] = [x[:, :1] for x in t] if isinstance(t, list) else t[:, :1]
         return super().validation_step(batch)
+
+
+class nnUNetTrainer_80epochs_ckpt10_rep2(nnUNetTrainer_80epochs_ckpt10):
+    """T-24 round 2 (H10, D-47): an identical replicate of the 80-epoch trainer under a new name, so a second run of
+    the same arm gets its own results folder. Its spread from the first run is the run-to-run noise yardstick."""

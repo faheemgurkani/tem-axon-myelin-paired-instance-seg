@@ -1,0 +1,29 @@
+{
+ "pi_stratum_among_real_unlabelled": 0.8172043010752689,
+ "n_labelled_normal_source": 3278,
+ "K_gate": 161,
+ "calibration": {
+  "coef": 0.6029082632649221,
+  "intercept": -1.6290460957393953
+ },
+ "auc_a2_stratum_vs_normal_nonexpert": 0.8680738786279683,
+ "auc_q2_missed_normal_nonexpert": 0.8610588645071404,
+ "mean_q2_nonexpert": 0.13528826960292847,
+ "actual_missed_normal_rate_nonexpert": 0.1853932584269663,
+ "R4b_pixel_weight_by_truth": {
+  "deleted_random": 0.682708181946691,
+  "deleted_stratum": 0.8851079314930415,
+  "not_fiber": 0.8734904655299457
+ },
+ "R4h_ignored_pixel_share_by_truth": {
+  "deleted_random": 0.4878096407617909,
+  "deleted_stratum": 0.06393654476773314,
+  "not_fiber": 0.0682126447301109
+ },
+ "R4h_precision": 0.6583850931677019,
+ "pixels": {
+  "R4h": 16046457,
+  "R6": 23167775,
+  "R4b_downweighted": 91283781
+ }
+}
