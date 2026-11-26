@@ -631,6 +631,35 @@ And does a decoder that is nested by construction remove (b)?
   - **G14:** `scripts/release/make_anon_release.py` builds `docs/paper/anon_release/` (177 files; the anonymity check passes); publishing is the owner's step.
   - **G16:** no SIPAIM 2026 challenge results or papers are public (challenge repo last updated 11 Nov).
   - **Still open, GPU** (owner budget): G1 (second architecture, ≈ $5), G2 (R0 at 80 epochs, R1/R6 at 35% random, seed 1; ≈ $17.5), optional G10 R7 (≈ $3.5).
+- **26 Nov, T-29: the C3 methods experiment is now a full section of the C1 paper** (owner: "include this story… every meaningful experiment… no need to worry about length").
+  - **New §6 of the paper** (`docs/paper/sections/c3.tex`) covers:
+    - the formal SAR-PU setup and the selection model q = t(1−a), including the D-43 correction of the doubly conditioned formula;
+    - the weighted loss;
+    - benchmark construction (TikZ design diagram) and composition tables;
+    - an arms table with pixel budgets;
+    - round 1 / H9;
+    - the audit (no bug; four design errors; feature ceiling);
+    - round 2 / H10 with the frontier-excess equation, pre-registered consequences and written expectations;
+    - a full results table with CIs and paired differences;
+    - what the oracle reveals (random misses harmless, violation floor, noise);
+    - six lessons.
+  - **New figures** (`scripts/run/paper_fig_c3.py`; metrics in `results/paper/c3_extras.json`):
+    - selection-model diagnostics: q distributions; pixel weights by class (round 1 0.73 / 0.76; round 2 uncalibrated 0.31 / 0.70; R4b 0.68 / 0.89); share of pixels each hard-ignore arm removes;
+    - the frontier with CIs for every arm;
+    - the violation floor by depth inside the stratum (R1 0.79 / 0.66 / 0.52 / 0.60; complete labels 0.99 / 0.98 / 0.95 / 0.87);
+    - footprint coverage (random 0.92, stratum 0.75).
+  - **New appendices I–Q** (`sections/appendix_extra.tex`) cover every other experiment:
+    - data audit and completeness table;
+    - overlap groups, the registration bug and the ceiling;
+    - pairing-rule check and GT violation baseline;
+    - training runs;
+    - error breakdown for every model and 3-fold table;
+    - morphometry details (g definitions, ring topology, H5c dev variants, H5 on 213, AxonPath exploratory);
+    - ASTIH reproduction and zero-shot transfer;
+    - fingerprint and provisional H7 (labelled provisional);
+    - spending.
+  - **Size:** the paper is now 30 pages. A submission version must cut back to 8 + appendix.
+  - Next IDs: D-50, T-30, H11.
 
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)
