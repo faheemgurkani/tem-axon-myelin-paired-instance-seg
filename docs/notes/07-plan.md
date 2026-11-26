@@ -60,7 +60,7 @@ And does a decoder that is nested by construction remove (b)?
 | **H8** *(added 15 Nov, D-34; C1, + C3 outside test)* | Training on selective labels creates a hidden stratification. On near-complete outside data, B1's recall gap (thin-myelin minus normal fibers) is worse than a reference model trained on complete labels. Holds if (gap_B1 − gap_ref) ≤ −0.10 with a mouse-bootstrap CI below 0 | **HOLDS (18 Nov):** gap_B1 − gap_ref = −0.178 [−0.258, −0.138], 8 held-out TEM1 mice (B1 −0.196, reference −0.018). Confound: B1 out of domain on TEM1; T-24 is the clean test (`05-results` §9). *Original plan:* (T-22). Tests **thin-myelin** fibers only (outside sets also exclude degenerating rings). The reference must be leakage-free and see thin fibers, so it needs a TEM1 fold holding out the remyelinating-like mice (≈ $8, reserve). Full rule §7.5 |
 | **H9** *(pre-registered 15 Nov, D-35; C3)* | On the TEM1 controlled two-part omission benchmark (T-24), the fiber-level selection-gated soft ignore (R4) beats **both** hard ignore (R2) and the random-ignore control (R3) on normal-fiber recall against protocol truth (paired mouse-bootstrap 95% CI of each difference > 0), **and** its protocol-violation rate is ≤ the naive arm's (R1) + 0.05. Official metrics never decide | **Fails (24 Nov, T-24 pilot).** R4 − R2 = −0.013 [−0.020, −0.005] (hard ignore is *better*); R4 − R3 = +0.003 [−0.002, +0.007]; violation(R4) − violation(R1) = +0.076 > 0.05. All three conditions fail. Per the rule, R5–R7 (tranche C) do not run. 05-results §11 |
 | **H10** *(pre-registered 24 Nov, D-47, before any round-2 training; C3)* | After correcting the selection model (D-44–D-46), on the same T-24 benchmark: **H10a** the oracle arm R6 (ignore exactly the missed normals) buys more recall than the R1–R2 line at its own violation rate (frontier excess E > 0, mouse-bootstrap CI lower bound > 0, and E > the replicate noise N = \|E(R1b)\|); **H10b** (primary method) the PU-corrected soft weights R4b: E > 0 (CI), E(R4b) − E(R3) > 0 (CI) and E > N; **H10c** (secondary) the PU-gated hard ignore R4h: the same. Each verdict must also hold with R1b as the line's low end. Full rule §7.7 | **Fails, all three (24 Nov, T-26).** E(R6) = +0.002 [−0.005, +0.010] (the oracle itself does not beat the line; N = 0.002); E(R4b) = +0.001 [−0.007, +0.009], minus E(R3) [−0.012, +0.003]; E(R4h) = −0.001 [−0.012, +0.011], minus E(R3) [−0.015, +0.003]. Same verdicts with R1b as the low end. Per the rule: C3 as a methods paper is dropped; T-24 goes into C1 as a benchmark result (D-48). 05-results §11.2 |
-| **H11** *(pre-registered 26 Nov, D-50, before any training; C1, reviewer gap G1)* | "Selection dominates" is not specific to nnU-Net. A second model family trained on our labels (Cellpose-SAM fine-tuned, fiber and axon instance models paired by containment) shows **H11a** selection-dominated errors on the 53 dev images and **H11b** the same thin-fiber stratification on held-out TEM1 mice. Full rule §7.9 | Open (training) |
+| **H11** *(pre-registered 26 Nov, D-50, before any training; C1, reviewer gap G1)* | "Selection dominates" is not specific to nnU-Net. A second model family trained on our labels (Cellpose-SAM fine-tuned, fiber and axon instance models paired by containment) shows **H11a** selection-dominated errors on the 53 dev images and **H11b** the same thin-fiber stratification on held-out TEM1 mice. Full rule §7.9 | **H11a fails; H11b holds (27 Nov).** CP-FT broad selection 20.5% [11.1, 29.1] of 322 errors, separation 0%, 79.5% missed GT fibers (precision 0.954, recall 0.842, F1 0.894). TEM1 gap_CP − gap_ref = −0.169 [−0.251, −0.129]. `05-results` §13 |
 
 ## 3. Decision register (compact)
 
@@ -115,7 +115,7 @@ And does a decoder that is nested by construction remove (b)?
 | **D-47** | **Round 2 of T-24 (T-26) and H10 pre-registered; tranche D opened** (owner, 24 Nov: "correct your mistakes … re-run the tests … budget of at least 20 dollars; do what must be done"). Arms R6 oracle, R4b, R4h, R1b replicate on A10G, 80 epochs, `--max-gpu-hours 2.8` each; frontier excess as the endpoint; est. ≈ $14, worst ≈ $16.5 (project ≤ ≈ $73.4 of the $75 workspace limit) | 24 Nov. §7.7 |
 | **D-48** | **C3 methods route closed; T-24 reported in C1** (applies §7.7's pre-registered rule "H10a fails", 24 Nov). Even perfect selection (R6) gains no recall beyond the R1–R2 line, so no selection-gated ignore can beat uniform ignore on this benchmark. Tranche C (R5/R7) never opens. T-24 (rounds 1–2) is written up in C1 as a controlled-omission benchmark result (§6 24 Nov, "round 2 results") | 24 Nov. 05-results §11.2 |
 | **D-49** | **Reviewer-lens audit of the C1 draft adopted as T-28; H4 re-registered with a numeric rule** (owner, 25 Nov: "identify gaps and holes from the lens of a reviewer… fill them beforehand… start working on them in priority order"). 16 gaps G1–G16 with fixes, costs and order are in `docs/paper/REVIEW_PLAN.md` (git-ignored) and summarised in §6 25 Nov. CPU fixes run now. GPU fixes (G1 second architecture ≈ $5; G2 benchmark seeds, omission sweep and an 80-epoch complete-label control ≈ $17.5 minimum; G10 explicit-exclusion arm ≈ $3.5) wait for an owner budget decision, because $4.25 is left under the $75 limit | 25 Nov. §7.8 |
-| **D-50** | **Tranche E opened for G1: a second model family trained on our labels** (owner, 26 Nov: Modal spending limit raised; "complete and finalise… a second trained model, about $5"). Cellpose-SAM `cpsam_v2` fine-tuned twice (fiber instances, axon instances) on the dev-split training images at 1/6 scale on A10G, 100 epochs, `--max-gpu-hours 1.5` each, after a 2-epoch timing smoke run. Est. ≈ $3, worst ≈ $4.6. Inference and scoring are local. H11 is pre-registered in §7.9 | 26 Nov. §7.9 |
+| **D-50** | **(billed $3.76, 27 Nov; H11a fails, H11b holds)** **Tranche E opened for G1: a second model family trained on our labels** (owner, 26 Nov: Modal spending limit raised; "complete and finalise… a second trained model, about $5"). Cellpose-SAM `cpsam_v2` fine-tuned twice (fiber instances, axon instances) on the dev-split training images at 1/6 scale on A10G, 100 epochs, `--max-gpu-hours 1.5` each, after a 2-epoch timing smoke run. Est. ≈ $3, worst ≈ $4.6. Inference and scoring are local. H11 is pre-registered in §7.9 | 26 Nov. §7.9 |
 
 ## 4. Tasks
 
@@ -662,6 +662,31 @@ And does a decoder that is nested by construction remove (b)?
     - spending.
   - **Size:** the paper is now 30 pages. A submission version must cut back to 8 + appendix.
   - Next IDs: D-50, T-30, H11.
+- **26–27 Nov, T-30 / tranche E (D-50, H11): second model family trained on our labels.**
+  - **Runs:**
+    - A smoke run at batch 8 ran out of memory on the A10G (ViT-L); batch 2 worked.
+    - Fiber and axon Cellpose-SAM fine-tunes ran 100 epochs each, 42 s/epoch, 70 min, no restarts (`fc-01M8BRJ056RKJ4EAA81FEVP9AQ`, `fc-01M8BRJ0E5AAATV1C8KDAPYWHH`), launched by deploy + spawn.
+    - Models (1.2 GB each) are local in `data/models/g1_cellpose/` and on the Volume under `runs/g1_cellpose/`.
+  - **Cost:** **tranche E billed $3.76** (est. ≈ $3, worst ≈ $4.6). **Project $74.51**; the owner raised the Modal limit on 26 Nov.
+  - **Inference:** local MPS, ≈ 21 s/image; 53 dev images and 64 held-out TEM1 images.
+  - **H11a fails** (rule §7.9, `ab7c273`):
+    - CP-FT F1 0.894 [0.873, 0.913], so the "inconclusive" clause (F1 < 0.80) does not apply.
+    - Broad selection 20.5% [11.1, 29.1] of 322 errors (strict 8.1%); separation 0%; 256 errors (79.5%) are labelled fibers it misses.
+    - Precision 0.954, recall 0.842, g-MAE 0.0127.
+    - O-sel⁺ +0.020, O-sep +0.0004.
+  - **H11b holds:** TEM1 held-out recall thin 0.432 / normal 0.618 (poor transfer overall); gap −0.187; gap_CP − gap_ref = −0.169 [−0.251, −0.129], almost identical to B1's −0.178.
+  - **Expectation vs outcome:** H11a was expected to hold (broad 65–85%). **It did not:** the expectation was wrong. H11b was as expected. CP-FT's F1 (0.894) was inside the expected 0.85–0.90.
+  - **Exploratory diagnosis** (`g1_cellpose_diag.py`, `results/paper/h11_diag.json`):
+    - Only 21% of CP-FT's misses are also B1 misses.
+    - Recall falls with fiber size (0.91 → 0.74 by quartile), on the image border (0.55) and on stratum-like fibers (0.69 vs 0.86).
+    - Misses touch label 1 or the border more often (38% vs 31% of all fibers).
+    - 4.4% of its fiber instances are dropped by the pairing.
+    - Likely causes: the 1/6 scale for large fibers, and no ignore label in Cellpose (label 1 taught as background).
+  - **Consequence for the paper's claims:**
+    - "Separation is negligible" and "the selective labels are learned as a thin-fiber stratification" now hold for two model families.
+    - "**Selection dominates the error count**" is **model-dependent**: a high-recall model (B1) errs by finding unlabelled fibers, while a conservative one (CP-FT) errs by missing labelled ones. In both, the errors are about *which* fibers are segmented, not how they are separated.
+  - **Paper updated:** new §5.3 with a table and figure, abstract, contributions, limitations, conclusion, appendix A rows for H11a and H11b, training and spending tables, and a new appendix on CP-FT details.
+  - Next IDs: D-51, T-31, H12.
 
 
 ## 7. Decision records (full rationale; Phase 0, 15 Nov 2026)

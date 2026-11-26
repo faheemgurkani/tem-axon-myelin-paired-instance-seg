@@ -562,3 +562,42 @@ Share of fibers in the simulated T-24 stratum (g > 0.85 or g < 0.65 or ecc > 0.9
 - Only TEM1 crops are shown (CC-BY): 99 held-out thin fibers (g > 0.85) are missed by B1 and found by the reference.
 - The figure shows one crop each from mice 34, 26 and 31.
 - No challenge images are used.
+
+## 13. Second model family trained on our labels: CP-FT and H11 (26–27 Nov; T-30, D-50)
+
+**Model.** Cellpose-SAM `cpsam_v2` (ViT-L, flow fields, instance-first) was fine-tuned twice on the 213 dev-split training images. Labels come from the cleaned masks at 1/6 scale; label 1 is background, because Cellpose has no ignore label.
+- **The two models:** fiber instances, and axon instances.
+- **Training:** 100 epochs, batch 2, lr 1e-5, A10G, 70 min each, $3.76 in total.
+- **Pairing:** each fiber takes the largest axon component inside it (`cellpose_split`); no B1 pixel is used.
+
+**Scripts:** `scripts/run/g1_cellpose_prep.py`, `baselines/cellpose_sam/finetune.py`, `scripts/run/g1_cellpose_eval.py`, `scripts/run/g1_cellpose_diag.py`, `scripts/run/paper_fig_h11.py`.
+- **Results:** `results/day4/{scores,summary,oracles}_cellpose_ft.*` and `results/paper/{h11,h11_diag}.json`.
+
+| 53 dev images | B1 | CP-FT |
+|---|---|---|
+| F1@0.5 / @0.75 | 0.904 / 0.881 | 0.894 [0.873, 0.913] / 0.891 |
+| Recall / precision | 0.963 / 0.85 | 0.842 / 0.954 |
+| Dice axon / myelin | 0.882 / 0.859 | 0.821 / 0.790 |
+| g-MAE | 0.0160 | 0.0127 |
+| Errors | 331 | 322 |
+| Strict / broad selection | 18.4% / 78.9% | 8.1% / **20.5%** [11.1, 29.1] |
+| Separation | 0.6% | 0% |
+| GT missed | 13.9% | **79.5%** |
+| O-sel⁺ / O-sep F1 gain | +0.074 / −0.001 | +0.020 [0.010, 0.030] / +0.0004 |
+
+**Verdicts:**
+- **H11a fails.** CP-FT's errors are not selection-dominated; this contradicts the stated expectation.
+- **H11b holds.** On the TEM1 held-out mice, recall is 0.432 for thin fibers and 0.618 for normal ones. gap_CP − gap_ref = −0.169 [−0.251, −0.129]; B1's was −0.178.
+
+**Exploratory diagnosis:**
+- Only 21% of CP-FT's misses are shared with B1.
+- **Recall by fiber-size quartile:** 0.91, 0.91, 0.81, 0.74 (B1: 0.97, 0.99, 0.96, 0.94).
+- **Recall on the image border:** 0.55 (B1 0.98).
+- **Recall on stratum-like fibers:** 0.69 vs 0.86 for the rest (B1: 0.86 vs 0.97).
+- **Pairing drops** 4.4% of its fibers.
+
+**Reading:**
+- Separation is negligible in both model families, and both learn the thin-fiber stratification.
+- How the protocol shows up in the error count depends on the model. A high-recall model finds the fibers the annotators skipped (selection errors); a conservative model skips some labelled fibers too (missed fibers).
+- CP-FT's conservatism is probably helped by the coarse scale and by the missing ignore label.
+
